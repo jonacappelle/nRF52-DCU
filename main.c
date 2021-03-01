@@ -69,6 +69,13 @@
 #include "nrf.h"
 #include "nrf_drv_gpiote.h"
 
+// TimeSync
+#include "time_sync.h"
+#include "nrf_gpiote.h"
+#include "nrf_ppi.h"
+#include "nrf_timer.h"
+
+
 /////////////// LED BUTTON BLINK /////////////////////
 #define SPARKFUN_LED	7
 #define	SPARKFUN_BUTTON	6
@@ -248,7 +255,7 @@ static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_le
         do
         {
             ret_val = app_uart_put(p_data[i]);
-					NRF_LOG_INFO("Test");
+//					NRF_LOG_INFO("Test");
             if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY))
             {
                 NRF_LOG_ERROR("app_uart_put failed for index 0x%04x.", i);
@@ -398,7 +405,7 @@ static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t con
 
         case BLE_NUS_C_EVT_NUS_TX_EVT:
             ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
-						NRF_LOG_INFO("Character received");
+//						NRF_LOG_INFO("Character received");
             break;
 
         case BLE_NUS_C_EVT_DISCONNECTED:
@@ -601,6 +608,33 @@ void bsp_event_handler(bsp_event_t event)
 
     switch (event)
     {
+				// TimeSync begin
+				case BSP_EVENT_KEY_0:
+        case BSP_EVENT_KEY_1:
+        case BSP_EVENT_KEY_2:
+        case BSP_EVENT_KEY_3:
+            {
+                static bool m_send_sync_pkt = false;
+                if (m_send_sync_pkt)
+                {
+                    m_send_sync_pkt = false;
+                    bsp_board_leds_off();
+                    err_code = ts_tx_stop();
+                    APP_ERROR_CHECK(err_code);
+                    NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+                }
+                else
+                {
+                    m_send_sync_pkt = true;
+                    bsp_board_leds_on();
+                    err_code = ts_tx_start(1);
+                    APP_ERROR_CHECK(err_code);
+                    NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+                }
+            }
+            break;
+					// TimeSync end
+						
         case BSP_EVENT_SLEEP:
             nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
             break;
@@ -692,8 +726,13 @@ static void buttons_leds_init(void)
     ret_code_t err_code;
     bsp_event_t startup_event;
 
-    err_code = bsp_init(BSP_INIT_LEDS, bsp_event_handler);
-    APP_ERROR_CHECK(err_code);
+    // err_code = bsp_init(BSP_INIT_LEDS, bsp_event_handler);
+		
+		// TimeSync begin
+		err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
+    // TimeSync end
+	
+		APP_ERROR_CHECK(err_code);
 
     err_code = bsp_btn_ble_init(NULL, &startup_event);
     APP_ERROR_CHECK(err_code);
@@ -755,6 +794,49 @@ static void idle_state_handle(void)
     }
 }
 
+
+
+static void sync_timer_init(void)
+{
+    uint32_t       err_code;
+    uint8_t        rf_address[5] = {0xDE, 0xAD, 0xBE, 0xEF, 0x19};
+    ts_params_t    ts_params;
+    // Debug pin:
+    // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
+    // nRF52840-DK (PCA10056) Toggle P1.14 from sync timer to allow pin measurement
+#if defined(BOARD_PCA10040)
+    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+    nrf_gpiote_task_enable(3);
+#elif defined(BOARD_PCA10056)
+    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(1, 14), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+    nrf_gpiote_task_enable(3);
+#else
+#warning Debug pin not set
+#endif
+    nrf_ppi_channel_endpoint_setup(
+        NRF_PPI_CHANNEL0,
+        (uint32_t) nrf_timer_event_address_get(NRF_TIMER3, NRF_TIMER_EVENT_COMPARE4),
+        nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+    nrf_ppi_channel_enable(NRF_PPI_CHANNEL0);
+    ts_params.high_freq_timer[0] = NRF_TIMER3;
+    ts_params.high_freq_timer[1] = NRF_TIMER2;
+    ts_params.rtc             = NRF_RTC1;
+    ts_params.egu             = NRF_EGU3;
+    ts_params.egu_irq_type    = SWI3_EGU3_IRQn;
+    ts_params.ppi_chg         = 0;
+    ts_params.ppi_chns[0]     = 1;
+    ts_params.ppi_chns[1]     = 2;
+    ts_params.ppi_chns[2]     = 3;
+    ts_params.ppi_chns[3]     = 4;
+    ts_params.rf_chn          = 125; /* For testing purposes */
+    memcpy(ts_params.rf_addr, rf_address, sizeof(rf_address));
+    err_code = ts_init(&ts_params);
+    APP_ERROR_CHECK(err_code);
+    err_code = ts_enable();
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Started listening for beacons.\r\n");
+    NRF_LOG_INFO("Press Button 1 to start sending sync beacons\r\n");
+}
 
 
 
@@ -820,6 +902,9 @@ int main(void)
 	
     scan_init();
 	
+		// TimeSync
+		sync_timer_init();
+	
 		// BLUE LED as output
 		//nrf_gpio_cfg_output(7);
 
@@ -829,7 +914,7 @@ int main(void)
     scan_start();
 		
 		/////////////// LED BUTTON BLINK /////////////////////
-		gpio_init();
+//		gpio_init();
 		/////////////// LED BUTTON BLINK /////////////////////
 		
 		/* CHANGES */
@@ -840,14 +925,7 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
-        idle_state_handle();
-			
-			// LED to check when device goes to sleep
-//				nrf_gpio_pin_write(7, 0);
-//				nrf_delay_ms(100);
-//				nrf_gpio_pin_write(7, 1);
-//				nrf_delay_ms(100);
-			
+        idle_state_handle();			
     }
 }
 

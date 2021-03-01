@@ -57,6 +57,7 @@
 ".\_build\nrf_sdh.o"
 ".\_build\nrf_sdh_ble.o"
 ".\_build\nrf_sdh_soc.o"
+".\_build\time_sync.o"
 ".\_build\arm_startup_nrf52.o"
 ".\_build\system_nrf52.o"
 --strict --scatter ".\_build\nrf52832_xxaa.sct"

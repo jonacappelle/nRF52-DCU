@@ -99,3 +99,6 @@
 .\_build\main.o: ..\..\..\..\..\..\integration\nrfx\legacy\nrf_drv_gpiote.h
 .\_build\main.o: ..\..\..\..\..\..\modules\nrfx\drivers\include\nrfx_gpiote.h
 .\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal/nrf_gpiote.h
+.\_build\main.o: ..\..\..\..\..\common\time_sync.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal\nrf_ppi.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal\nrf_timer.h
