@@ -76,6 +76,8 @@
 #include "nrf_timer.h"
 
 
+#define SYNC_FREQ	2 // Hz
+
 /////////////// LED BUTTON BLINK /////////////////////
 #define SPARKFUN_LED	7
 #define	SPARKFUN_BUTTON	6
@@ -627,7 +629,7 @@ void bsp_event_handler(bsp_event_t event)
                 {
                     m_send_sync_pkt = true;
                     bsp_board_leds_on();
-                    err_code = ts_tx_start(1);
+                    err_code = ts_tx_start(SYNC_FREQ); // Frequency of synchronization packets
                     APP_ERROR_CHECK(err_code);
                     NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
                 }
@@ -842,8 +844,6 @@ static void sync_timer_init(void)
 
 
 
-
-
 /////////////// LED BUTTON BLINK /////////////////////
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
@@ -902,8 +902,7 @@ int main(void)
 	
     scan_init();
 	
-		// TimeSync
-		sync_timer_init();
+
 	
 		// BLUE LED as output
 		//nrf_gpio_cfg_output(7);
@@ -913,6 +912,12 @@ int main(void)
     NRF_LOG_INFO("BLE UART central example started.");
     scan_start();
 		
+		// TimeSync
+		// Start TimeSync AFTER scan_start()
+		// This is a temporary fix for a known bug where connection is constantly closed with error code 0x3E
+		sync_timer_init();
+
+
 		/////////////// LED BUTTON BLINK /////////////////////
 //		gpio_init();
 		/////////////// LED BUTTON BLINK /////////////////////
@@ -925,6 +930,9 @@ int main(void)
     // Enter main loop.
     for (;;)
     {
+//				NRF_LOG_INFO(ts_timestamp_get_ticks_u64());
+//			NRF_LOG_INFO("%d", m_params.high_freq_timer[0]->CC[2]);
+			NRF_LOG_FLUSH();
         idle_state_handle();			
     }
 }
