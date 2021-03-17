@@ -300,8 +300,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20008758</StartAddress>
-                <Size>0x78a8</Size>
+                <StartAddress>0x20008f78</StartAddress>
+                <Size>0x7088</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>
@@ -3568,7 +3568,7 @@
         <TargetCommonOption>
           <Device>nRF52832_xxAA</Device>
           <Vendor>Nordic Semiconductor</Vendor>
-          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.35.0</PackID>
+          <PackID>NordicSemiconductor.nRF_DeviceFamilyPack.8.38.0</PackID>
           <PackURL>http://developer.nordicsemi.com/nRF5_SDK/pieces/nRF_DeviceFamilyPack/</PackURL>
           <Cpu>IROM(0x00000000,0x80000) IRAM(0x20000000,0x10000) CPUTYPE("Cortex-M4") FPU2 CLOCK(64000000) ELITTLE</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -3852,8 +3852,8 @@
               </OCR_RVCT8>
               <OCR_RVCT9>
                 <Type>0</Type>
-                <StartAddress>0x20008758</StartAddress>
-                <Size>0x78a8</Size>
+                <StartAddress>0x20008f78</StartAddress>
+                <Size>0x7088</Size>
               </OCR_RVCT9>
               <OCR_RVCT10>
                 <Type>0</Type>

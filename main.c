@@ -90,8 +90,8 @@
 #define APP_BLE_CONN_CFG_TAG    1                                       /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO   3                                       /**< BLE observer priority of the application. There is no need to modify this value. */
 
-#define UART_TX_BUF_SIZE        256                                     /**< UART TX buffer size. */
-#define UART_RX_BUF_SIZE        256                                     /**< UART RX buffer size. */
+#define UART_TX_BUF_SIZE        1024                                     /**< UART TX buffer size. */
+#define UART_RX_BUF_SIZE        1024                                     /**< UART RX buffer size. */
 
 #define NUS_SERVICE_UUID_TYPE   BLE_UUID_TYPE_VENDOR_BEGIN              /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -110,6 +110,8 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue,                                        /**< BLE
                NRF_BLE_GQ_QUEUE_SIZE);
 
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
+//static uint16_t m_ble_nus_max_data_len = 247 - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
+
 
 /**@brief NUS UUID. */
 static ble_uuid_t const m_nus_uuid =
@@ -238,6 +240,7 @@ static void db_disc_handler(ble_db_discovery_evt_t * p_evt)
 		ble_nus_c_on_db_disc_evt(&m_ble_nus_c[p_evt->conn_handle], p_evt);
 		/* END CHANGES */
 }
+
 
 
 /**@brief Function for handling characters received by the Nordic UART Service (NUS).
@@ -380,6 +383,9 @@ void uart_event_handle(app_uart_evt_t * p_event)
 }
 
 
+int counterr = 0;
+
+
 /**@brief Callback handling Nordic UART Service (NUS) client events.
  *
  * @details This function is called to notify the application of NUS client events.
@@ -408,6 +414,8 @@ static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t con
         case BLE_NUS_C_EVT_NUS_TX_EVT:
             ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
 //						NRF_LOG_INFO("Character received");
+				NRF_LOG_INFO("Receive counter:	%d", counterr);
+						counterr++;
             break;
 
         case BLE_NUS_C_EVT_DISCONNECTED:
@@ -485,6 +493,17 @@ static void ble_evt_handler(ble_evt_t const * p_ble_evt, void * p_context)
             // start discovery of services. The NUS Client waits for a discovery result
             err_code = ble_db_discovery_start(&m_db_disc, p_ble_evt->evt.gap_evt.conn_handle);
             APP_ERROR_CHECK(err_code);
+						
+						// Change to 2MBIT PHY
+						NRF_LOG_DEBUG("PHY update!");
+            ble_gap_phys_t const phys =
+            {
+                .rx_phys = BLE_GAP_PHY_2MBPS,
+                .tx_phys = BLE_GAP_PHY_2MBPS,
+            };
+            err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
+            APP_ERROR_CHECK(err_code);
+						
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -584,6 +603,9 @@ void gatt_evt_handler(nrf_ble_gatt_t * p_gatt, nrf_ble_gatt_evt_t const * p_evt)
         m_ble_nus_max_data_len = p_evt->params.att_mtu_effective - OPCODE_LENGTH - HANDLE_LENGTH;
         NRF_LOG_INFO("Ble NUS max data length set to 0x%X(%d)", m_ble_nus_max_data_len, m_ble_nus_max_data_len);
     }
+		
+
+		
 }
 
 
@@ -883,6 +905,65 @@ static void gpio_init(void)
 
 
 
+char const * phy_str(ble_gap_phys_t phys)
+{
+    static char const * str[] =
+    {
+        "1 Mbps",
+        "2 Mbps",
+        "Coded",
+        "Unknown"
+    };
+
+    switch (phys.tx_phys)
+    {
+        case BLE_GAP_PHY_1MBPS:
+            return str[0];
+
+        case BLE_GAP_PHY_2MBPS:
+        case BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS:
+        case BLE_GAP_PHY_2MBPS | BLE_GAP_PHY_1MBPS | BLE_GAP_PHY_CODED:
+            return str[1];
+
+        case BLE_GAP_PHY_CODED:
+            return str[2];
+
+        default:
+            return str[3];
+    }
+}
+
+//void current_config_print(nrf_cli_t const * p_cli)
+//{
+//    NRF_LOG_INFO(p_cli, "==== Current test configuration ====\r\n");
+//    NRF_LOG_INFO(p_cli,
+//                    "ATT MTU size:\t\t%d\r\n"
+//                    "Data length:\t\t%d\r\n"
+//                    "Connection interval:\t%d units\r\n"
+//                    "Connection length ext:\t%s\r\n"
+//                    "Preferred PHY:\t\t%s\r\n",
+//                    params.att_mtu,
+//                    params.data_len,
+//                    params.conn_interval,
+//                    params.conn_evt_len_ext_enabled ? "on" : "off",
+//                    phy_str(params.phys));
+//    NRF_LOG_INFO(p_cli, "GAP event length:\t%d\r\n",
+//                    NRF_SDH_BLE_GAP_EVENT_LENGTH);
+//}
+
+void conn_evt_len_ext_set(void)
+{
+    ret_code_t err_code;
+    ble_opt_t  opt;
+
+    memset(&opt, 0x00, sizeof(opt));
+    opt.common_opt.conn_evt_ext.enable = 1;
+
+    err_code = sd_ble_opt_set(BLE_COMMON_OPT_CONN_EVT_EXT, &opt);
+    APP_ERROR_CHECK(err_code);
+}
+
+
 int main(void)
 {
     // Initialize.
@@ -893,6 +974,8 @@ int main(void)
     db_discovery_init();
     power_management_init();
     ble_stack_init();
+		conn_evt_len_ext_set(); // added for faster speed
+	
     gatt_init();
     nus_c_init();
 	
@@ -915,7 +998,7 @@ int main(void)
 		// TimeSync
 		// Start TimeSync AFTER scan_start()
 		// This is a temporary fix for a known bug where connection is constantly closed with error code 0x3E
-		sync_timer_init();
+//		sync_timer_init();
 
 
 		/////////////// LED BUTTON BLINK /////////////////////
