@@ -90,8 +90,8 @@
 #define APP_BLE_CONN_CFG_TAG    1                                       /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO   3                                       /**< BLE observer priority of the application. There is no need to modify this value. */
 
-#define UART_TX_BUF_SIZE        1024                                     /**< UART TX buffer size. */
-#define UART_RX_BUF_SIZE        1024                                     /**< UART RX buffer size. */
+#define UART_TX_BUF_SIZE        2048                                     /**< UART TX buffer size. */
+#define UART_RX_BUF_SIZE        2048                                     /**< UART RX buffer size. */
 
 #define NUS_SERVICE_UUID_TYPE   BLE_UUID_TYPE_VENDOR_BEGIN              /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -311,6 +311,42 @@ static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_le
 }
 
 
+static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len)
+{
+    ret_code_t err_code;
+	
+		float quat[data_len/sizeof(float)];
+		
+		memcpy(quat, p_data, data_len);
+	
+//		NRF_LOG_INFO("%d %d %d %d", (int)(quat[0]*1000),(int)(quat[1]*1000),(int)(quat[2]*1000),(int)(quat[3]*1000));
+		
+		char string_send[100];
+	
+		sprintf(string_send, "%f	%f	%f	%f \n", quat[0], quat[1], quat[2], quat[3]);
+	
+		uint16_t index = 0;
+		
+		do
+		{
+			index++;
+		}while(string_send[index] != '\n');
+	
+		for (uint16_t i = 0; i <= index; i++)
+    {
+        do
+        {
+            err_code = app_uart_put(string_send[i]);
+            if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
+            {
+                NRF_LOG_ERROR("app_uart_put failed for index 0x%04x.", i);
+                APP_ERROR_CHECK(err_code);
+            }
+        } while (err_code == NRF_ERROR_BUSY);
+    }
+}
+
+
 /**@brief   Function for handling app_uart events.
  *
  * @details This function receives a single character from the app_uart module and appends it to
@@ -412,7 +448,8 @@ static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t con
             break;
 
         case BLE_NUS_C_EVT_NUS_TX_EVT:
-            ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
+//            ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
+							ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
 //						NRF_LOG_INFO("Character received");
 				NRF_LOG_INFO("Receive counter:	%d", counterr);
 						counterr++;
@@ -998,7 +1035,7 @@ int main(void)
 		// TimeSync
 		// Start TimeSync AFTER scan_start()
 		// This is a temporary fix for a known bug where connection is constantly closed with error code 0x3E
-//		sync_timer_init();
+		sync_timer_init();
 
 
 		/////////////// LED BUTTON BLINK /////////////////////
