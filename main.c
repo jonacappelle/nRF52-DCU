@@ -75,6 +75,9 @@
 #include "nrf_ppi.h"
 #include "nrf_timer.h"
 
+// UARTE using easyDMA
+#include "nrf_drv_uart.h"
+
 
 #define SYNC_FREQ	2 // Hz
 
@@ -310,6 +313,7 @@ static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_le
 		/* END CHANGES */
 }
 
+static nrf_drv_uart_t app_uart_inst = NRF_DRV_UART_INSTANCE(APP_UART_DRIVER_INSTANCE);
 
 static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len)
 {
@@ -323,7 +327,7 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 		
 		char string_send[100];
 	
-		sprintf(string_send, "%f	%f	%f	%f \n", quat[0], quat[1], quat[2], quat[3]);
+		sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
 	
 		uint16_t index = 0;
 		
@@ -336,10 +340,14 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
     {
         do
         {
+						NRF_LOG_INFO("String send");
+						NRF_LOG_FLUSH();
             err_code = app_uart_put(string_send[i]);
+//						err_code = nrf_drv_uart_tx(&app_uart_inst, (uint8_t *) string_send, index+1);
             if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
             {
                 NRF_LOG_ERROR("app_uart_put failed for index 0x%04x.", i);
+//								NRF_LOG_ERROR("nrf_drv_uart_tx failed");
                 APP_ERROR_CHECK(err_code);
             }
         } while (err_code == NRF_ERROR_BUSY);
@@ -405,6 +413,8 @@ void uart_event_handle(app_uart_evt_t * p_event)
         /**@snippet [Handling data from UART] */
         case APP_UART_COMMUNICATION_ERROR:
             NRF_LOG_ERROR("Communication error occurred while handling UART.");
+						NRF_LOG_INFO("Communication error occurred while handling UART.");
+						NRF_LOG_FLUSH();
             APP_ERROR_HANDLER(p_event->data.error_communication);
             break;
 
@@ -744,7 +754,7 @@ static void uart_init(void)
         .cts_pin_no   = CTS_PIN_NUMBER,
         .flow_control = APP_UART_FLOW_CONTROL_DISABLED,
         .use_parity   = false,
-        .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud1M
+        .baud_rate    = UART_BAUDRATE_BAUDRATE_Baud115200
     };
 
     APP_UART_FIFO_INIT(&comm_params,

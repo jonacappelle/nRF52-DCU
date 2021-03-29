@@ -102,3 +102,8 @@
 .\_build\main.o: ..\..\..\..\..\common\time_sync.h
 .\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal\nrf_ppi.h
 .\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal\nrf_timer.h
+.\_build\main.o: ..\..\..\..\..\..\integration\nrfx\legacy\nrf_drv_uart.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\drivers\include\nrfx_uarte.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal/nrf_uarte.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\drivers\include\nrfx_uart.h
+.\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal/nrf_uart.h
