@@ -250,9 +250,9 @@ ARM Macro Assembler    Page 4
   212 00000000                 IMPORT           __main
   213 00000000         
   214 00000000         
-  215 00000000 4809            LDR              R0, =SystemInit
+  215 00000000 4806            LDR              R0, =SystemInit
   216 00000002 4780            BLX              R0
-  217 00000004 4809            LDR              R0, =__main
+  217 00000004 4806            LDR              R0, =__main
   218 00000006 4700            BX               R0
   219 00000008                 ENDP
   220 00000008         
@@ -419,30 +419,16 @@ ARM Macro Assembler    Page 7
   345 0000001C         ; User Initial Stack & Heap
   346 0000001C         
   347 0000001C                 IF               :DEF:__MICROLIB
-  354 0000001C         
-  355 0000001C                 IMPORT           __use_two_region_memory
-  356 0000001C                 EXPORT           __user_initial_stackheap
-  357 0000001C         
-  358 0000001C         __user_initial_stackheap
-                               PROC
-  359 0000001C         
-  360 0000001C 4804            LDR              R0, = Heap_Mem
-  361 0000001E 4905            LDR              R1, = (Stack_Mem + Stack_Size)
-  362 00000020 4A05            LDR              R2, = (Heap_Mem + Heap_Size)
-  363 00000022 4B06            LDR              R3, = Stack_Mem
-  364 00000024 4770            BX               LR
-  365 00000026                 ENDP
-  366 00000026         
-  367 00000026 00 00           ALIGN
-  368 00000028         
-  369 00000028                 ENDIF
-  370 00000028         
-  371 00000028                 END
+  348 0000001C         
+  349 0000001C                 EXPORT           __initial_sp
+  350 0000001C                 EXPORT           __heap_base
+  351 0000001C                 EXPORT           __heap_limit
+  352 0000001C         
+  353 0000001C                 ELSE
+  369                          ENDIF
+  370 0000001C         
+  371 0000001C                 END
               00000000 
-              00000000 
-              00000000 
-              00002000 
-              00002000 
               00000000 
 Command Line: --debug --xref --diag_suppress=9931 --cpu=Cortex-M4.fp.sp --apcs=
 interwork --depend=.\_build\arm_startup_nrf52.d -o.\_build\arm_startup_nrf52.o 
@@ -453,12 +439,6 @@ p -I..\..\..\..\..\..\components\ble\ble_services\ble_ancs_c -I..\..\..\..\..\.
 .\components\ble\ble_services\ble_ans_c -I..\..\..\..\..\..\components\ble\ble_
 services\ble_bas -I..\..\..\..\..\..\components\ble\ble_services\ble_bas_c -I..
 \..\..\..\..\..\components\ble\ble_services\ble_cscs -I..\..\..\..\..\..\compon
-
-
-
-ARM Macro Assembler    Page 8 
-
-
 ents\ble\ble_services\ble_cts_c -I..\..\..\..\..\..\components\ble\ble_services
 \ble_dfu -I..\..\..\..\..\..\components\ble\ble_services\ble_dis -I..\..\..\..\
 ..\..\components\ble\ble_services\ble_gls -I..\..\..\..\..\..\components\ble\bl
@@ -473,6 +453,12 @@ ponents\ble\ble_services\ble_nus_c -I..\..\..\..\..\..\components\ble\ble_servi
 ces\ble_rscs -I..\..\..\..\..\..\components\ble\ble_services\ble_rscs_c -I..\..
 \..\..\..\..\components\ble\ble_services\ble_tps -I..\..\..\..\..\..\components
 \ble\common -I..\..\..\..\..\..\components\ble\nrf_ble_gatt -I..\..\..\..\..\..
+
+
+
+ARM Macro Assembler    Page 8 
+
+
 \components\ble\nrf_ble_gq -I..\..\..\..\..\..\components\ble\nrf_ble_qwr -I..\
 ..\..\..\..\..\components\ble\nrf_ble_scan -I..\..\..\..\..\..\components\ble\p
 eer_manager -I..\..\..\..\..\..\components\boards -I..\..\..\..\..\..\component
@@ -518,12 +504,6 @@ raries\util -I..\..\..\..\..\..\components\nfc\ndef\conn_hand_parser -I..\..\..
 ..\components\nfc\ndef\conn_hand_parser\le_oob_rec_parser -I..\..\..\..\..\..\c
 omponents\nfc\ndef\connection_handover\ac_rec -I..\..\..\..\..\..\components\nf
 c\ndef\connection_handover\ble_oob_advdata -I..\..\..\..\..\..\components\nfc\n
-
-
-
-ARM Macro Assembler    Page 9 
-
-
 def\connection_handover\ble_pair_lib -I..\..\..\..\..\..\components\nfc\ndef\co
 nnection_handover\ble_pair_msg -I..\..\..\..\..\..\components\nfc\ndef\connecti
 on_handover\common -I..\..\..\..\..\..\components\nfc\ndef\connection_handover\
@@ -538,6 +518,12 @@ I..\..\..\..\..\..\components\nfc\t2t_lib -I..\..\..\..\..\..\components\nfc\t2
 t_parser -I..\..\..\..\..\..\components\nfc\t4t_lib -I..\..\..\..\..\..\compone
 nts\nfc\t4t_parser\apdu -I..\..\..\..\..\..\components\nfc\t4t_parser\cc_file -
 I..\..\..\..\..\..\components\nfc\t4t_parser\hl_detection_procedure -I..\..\..\
+
+
+
+ARM Macro Assembler    Page 9 
+
+
 ..\..\..\components\nfc\t4t_parser\tlv -I..\..\..\..\..\..\components\softdevic
 e\common -I..\..\..\..\..\..\components\softdevice\s132\headers -I..\..\..\..\.
 .\..\components\softdevice\s132\headers\nrf52 -I..\..\..\..\..\..\external\fpri
@@ -547,19 +533,19 @@ fx\legacy -I..\..\..\..\..\..\modules\nrfx -I..\..\..\..\..\..\modules\nrfx\dri
 vers\include -I..\..\..\..\..\..\modules\nrfx\hal -I..\config -I.\RTE\_nrf52832
 _xxaa -I"C:\Users\Jona Cappelle\AppData\Local\Arm\Packs\ARM\CMSIS\5.6.0\CMSIS\C
 ore\Include" -I"C:\Users\Jona Cappelle\AppData\Local\Arm\Packs\NordicSemiconduc
-tor\nRF_DeviceFamilyPack\8.35.0\Device\Include" --predefine="__UVISION_VERSION 
-SETA 531" --predefine="_RTE_ SETA 1" --predefine="NRF52832_XXAA SETA 1" --prede
-fine="_RTE_ SETA 1" --predefine="APP_TIMER_V2 SETA 1" --predefine="APP_TIMER_V2
-_RTC1_ENABLED SETA 1" --predefine="BOARD_PCA10040 SETA 1" --predefine="CONFIG_G
-PIO_AS_PINRESET SETA 1" --predefine="FLOAT_ABI_HARD SETA 1" --predefine="NRF52 
-SETA 1" --predefine="NRF52832_XXAA SETA 1" --predefine="NRF52_PAN_74 SETA 1" --
-predefine="NRF_SD_BLE_API_VERSION SETA 7" --predefine="S132 SETA 1" --predefine
-="SOFTDEVICE_PRESENT SETA 1" --predefine="__HEAP_SIZE SETA 8192" --predefine="_
-_STACK_SIZE SETA 8192" --cpreproc_opts=-DAPP_TIMER_V2,-DAPP_TIMER_V2_RTC1_ENABL
-ED,-DBOARD_PCA10040,-DCONFIG_GPIO_AS_PINRESET,-DFLOAT_ABI_HARD,-DNRF52,-DNRF528
-32_XXAA,-DNRF52_PAN_74,-DNRF_SD_BLE_API_VERSION=7,-DS132,-DSOFTDEVICE_PRESENT,-
-D__HEAP_SIZE=8192,-D__STACK_SIZE=8192 --list=.\_build\arm_startup_nrf52.lst RTE
-\Device\nRF52832_xxAA\arm_startup_nrf52.s
+tor\nRF_DeviceFamilyPack\8.35.0\Device\Include" --predefine="__MICROLIB SETA 1"
+ --predefine="__UVISION_VERSION SETA 531" --predefine="_RTE_ SETA 1" --predefin
+e="NRF52832_XXAA SETA 1" --predefine="_RTE_ SETA 1" --predefine="APP_TIMER_V2 S
+ETA 1" --predefine="APP_TIMER_V2_RTC1_ENABLED SETA 1" --predefine="BOARD_PCA100
+40 SETA 1" --predefine="CONFIG_GPIO_AS_PINRESET SETA 1" --predefine="FLOAT_ABI_
+HARD SETA 1" --predefine="NRF52 SETA 1" --predefine="NRF52832_XXAA SETA 1" --pr
+edefine="NRF52_PAN_74 SETA 1" --predefine="NRF_SD_BLE_API_VERSION SETA 7" --pre
+define="S132 SETA 1" --predefine="SOFTDEVICE_PRESENT SETA 1" --predefine="__HEA
+P_SIZE SETA 8192" --predefine="__STACK_SIZE SETA 8192" --cpreproc_opts=-DAPP_TI
+MER_V2,-DAPP_TIMER_V2_RTC1_ENABLED,-DBOARD_PCA10040,-DCONFIG_GPIO_AS_PINRESET,-
+DFLOAT_ABI_HARD,-DNRF52,-DNRF52832_XXAA,-DNRF52_PAN_74,-DNRF_SD_BLE_API_VERSION
+=7,-DS132,-DSOFTDEVICE_PRESENT,-D__HEAP_SIZE=8192,-D__STACK_SIZE=8192 --list=.\
+_build\arm_startup_nrf52.lst RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
 
 
 
@@ -580,9 +566,8 @@ Symbol: Stack_Mem
    Definitions
       At line 43 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
-      At line 361 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-      At line 363 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-
+      None
+Comment: Stack_Mem unused
 __initial_sp 00002000
 
 Symbol: __initial_sp
@@ -590,7 +575,8 @@ Symbol: __initial_sp
       At line 44 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
       At line 69 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-Comment: __initial_sp used once
+      At line 349 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
+
 3 symbols
 
 
@@ -612,25 +598,24 @@ Symbol: Heap_Mem
    Definitions
       At line 56 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
-      At line 360 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-      At line 362 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-
+      None
+Comment: Heap_Mem unused
 __heap_base 00000000
 
 Symbol: __heap_base
    Definitions
       At line 55 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
-      None
-Comment: __heap_base unused
+      At line 350 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
+Comment: __heap_base used once
 __heap_limit 00002000
 
 Symbol: __heap_limit
    Definitions
       At line 57 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
-      None
-Comment: __heap_limit unused
+      At line 351 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
+Comment: __heap_limit used once
 4 symbols
 
 
@@ -1152,15 +1137,7 @@ Symbol: WDT_IRQHandler
       At line 103 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
       At line 283 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
 
-__user_initial_stackheap 0000001C
-
-Symbol: __user_initial_stackheap
-   Definitions
-      At line 358 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-   Uses
-      At line 356 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-Comment: __user_initial_stackheap used once
-50 symbols
+49 symbols
 
 
 
@@ -1174,8 +1151,7 @@ Symbol: Heap_Size
       At line 49 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
       At line 56 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-      At line 362 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-
+Comment: Heap_Size used once
 Stack_Align 00000003
 
 Symbol: Stack_Align
@@ -1191,8 +1167,7 @@ Symbol: Stack_Size
       At line 31 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
    Uses
       At line 43 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-      At line 361 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-
+Comment: Stack_Size used once
 __Vectors_Size 00000200
 
 Symbol: __Vectors_Size
@@ -1224,13 +1199,5 @@ Symbol: __main
    Uses
       At line 217 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
 Comment: __main used once
-__use_two_region_memory 00000000
-
-Symbol: __use_two_region_memory
-   Definitions
-      At line 355 in file RTE\Device\nRF52832_xxAA\arm_startup_nrf52.s
-   Uses
-      None
-Comment: __use_two_region_memory unused
-3 symbols
-425 symbols in table
+2 symbols
+422 symbols in table

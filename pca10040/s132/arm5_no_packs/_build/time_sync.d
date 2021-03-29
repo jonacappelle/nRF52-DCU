@@ -44,5 +44,4 @@
 .\_build\time_sync.o: ..\..\..\..\..\..\components\softdevice\s132\headers\nrf_sdm.h
 .\_build\time_sync.o: ..\..\..\..\..\..\components\softdevice\s132\headers\nrf_error_sdm.h
 .\_build\time_sync.o: ..\..\..\..\..\..\components\libraries\log\nrf_log.h
-.\_build\time_sync.o: ..\..\..\..\..\..\components\libraries\strerror\nrf_strerror.h
 .\_build\time_sync.o: ..\..\..\..\..\..\components\libraries\log\src\nrf_log_internal.h
