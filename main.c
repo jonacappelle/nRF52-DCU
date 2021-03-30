@@ -325,18 +325,21 @@ uint8_t uart_dma_tx_buff[100];
 
 static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len)
 {
+	nrf_gpio_pin_set(18);	
     ret_code_t err_code;
 	
 		float quat[data_len/sizeof(float)];
 		
+		
 		memcpy(quat, p_data, data_len);
 	
-//		NRF_LOG_INFO("%d %d %d %d", (int)(quat[0]*1000),(int)(quat[1]*1000),(int)(quat[2]*1000),(int)(quat[3]*1000));
+		NRF_LOG_INFO("%d %d %d %d", (int)(quat[0]*1000),(int)(quat[1]*1000),(int)(quat[2]*1000),(int)(quat[3]*1000));
 		
 		char string_send[100]= {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x0A};
-	
-		sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
-	
+	nrf_gpio_pin_set(22);	
+//		sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
+	nrf_gpio_pin_clear(22);
+			
 		index = 42;
 		
 //		do
@@ -349,12 +352,12 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 		err_code = app_fifo_write(&uart_dma_difo, (uint8_t *) string_send, &index);
 		
 		NRF_LOG_INFO("index write %d", index);
-			
+		
 		if(err_code == NRF_ERROR_NO_MEM)
 		{
 			NRF_LOG_INFO("UART FIFO BUFFER FULL!");
 		}
-			
+		
 		if (err_code == NRF_SUCCESS)
     {
 				NRF_LOG_INFO("Data in FIFO");
@@ -389,6 +392,7 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
             }
         }
     }
+		nrf_gpio_pin_clear(18);	
 	
 //		for (uint16_t i = 0; i <= index; i++)
 //    {
@@ -1097,21 +1101,13 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t * p_event, void * p_conte
 		{
 			case NRF_DRV_UART_EVT_TX_DONE : ///< Requested TX transfer completed.
 			
-//					index = 42;
+					index = 255;
 					// Get next bytes from FIFO.
 					if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &index) == NRF_SUCCESS)
 					{
-//						do
-//						{
 								nrf_drv_uart_tx(&uart_driver_instance, uart_dma_tx_buff, (uint8_t) index);
 								NRF_LOG_INFO("index evt %d", index);
-//								if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
-//								{
-//										NRF_LOG_ERROR("nrf_drv_uart_tx failed");
-//										APP_ERROR_CHECK(err_code);
-//								}
-//						} while (err_code == NRF_ERROR_BUSY);
-							NRF_LOG_INFO("Send next byte from evt handler");
+								NRF_LOG_INFO("Send next byte from evt handler");
 					}
 //					else
 //					{
@@ -1119,7 +1115,6 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t * p_event, void * p_conte
 //							app_uart_event.evt_type = APP_UART_TX_EMPTY;
 //							m_event_handler(&app_uart_event);
 //					}
-					
 				NRF_LOG_INFO("UART TX done");
 				break;
 			case NRF_DRV_UART_EVT_RX_DONE : ///< Requested RX transfer completed.
@@ -1238,14 +1233,27 @@ int main(void)
 		// TIMER DIY INIT
 		//timer_diy_init();
 		/* END CHANGES */
+		
+		// Check time needed to process data
+		nrf_gpio_cfg_output(18);
+		// Check active time of CPU
+		nrf_gpio_cfg_output(19);
+		// Check time of NRF_LOG_FLUSH
+		nrf_gpio_cfg_output(20);
+		// Check UART transmission
+		nrf_gpio_cfg_output(22);
 
     // Enter main loop.
     for (;;)
     {
 //				NRF_LOG_INFO(ts_timestamp_get_ticks_u64());
 //			NRF_LOG_INFO("%d", m_params.high_freq_timer[0]->CC[2]);
+			nrf_gpio_pin_set(20);	
 			NRF_LOG_FLUSH();
-        idle_state_handle();			
+			nrf_gpio_pin_clear(20);
+				nrf_gpio_pin_clear(19);
+        idle_state_handle();	
+				nrf_gpio_pin_set(19);			
     }
 }
 
