@@ -137,13 +137,10 @@ static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGT
 
 
 
-
-
-
-
 // Event handler DIY
 void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 {
+	nrf_gpio_pin_set(22);
 		uint32_t err_code;
 	
     while (evt_scheduled > 0)
@@ -192,7 +189,7 @@ void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 								// a new transmission here.
 								if (!nrf_drv_uart_tx_in_progress(&uart_driver_instance))
 								{
-										NRF_LOG_INFO("TX not in progress");
+//										NRF_LOG_INFO("TX not in progress");
 										// This operation should be almost always successful, since we've
 										// just added a byte to FIFO, but if some bigger delay occurred
 										// (some heavy interrupt handler routine has been executed) since
@@ -213,13 +210,14 @@ void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 																APP_ERROR_CHECK(err_code);
 														}
 												} while (err_code == NRF_ERROR_BUSY);
-												NRF_LOG_INFO("UART TX OK");
+//												NRF_LOG_INFO("UART TX OK");
 										}
 								}
 						}
 						evt_scheduled--;
 					}
     }
+		nrf_gpio_pin_clear(22);
 }
 
 
@@ -1299,9 +1297,9 @@ int main(void)
 			nrf_gpio_pin_set(20);	
 			NRF_LOG_FLUSH();
 			nrf_gpio_pin_clear(20);
-//				nrf_gpio_pin_clear(19);
-//        idle_state_handle();	
-				nrf_gpio_pin_toggle(19);			
+				nrf_gpio_pin_clear(19);
+        idle_state_handle();	
+				nrf_gpio_pin_set(19);			
     }
 }
 
