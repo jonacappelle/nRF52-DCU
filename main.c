@@ -82,6 +82,11 @@
 // Application scheduler
 #include "app_scheduler.h"
 
+// IMU Params
+#include "imu_params.h"
+
+
+
 uint32_t evt_scheduled = 0;
 uint32_t index;
 
@@ -1287,7 +1292,28 @@ int main(void)
 		nrf_gpio_cfg_output(20);
 		// Check UART transmission
 		nrf_gpio_cfg_output(22);
+		
+		
+		nrf_delay_ms(10000);
+		
+		uint32_t ret_val;
+		// Send data back to the peripheral.
+		uint8_t p_data[] = {ENABLE_QUAT9};
+		uint16_t data_len = sizeof(p_data);
+		for(int c = 0; c < NRF_SDH_BLE_CENTRAL_LINK_COUNT; c++)
+		{
+				do
+				{
+						ret_val = ble_nus_c_string_send(&m_ble_nus_c[c], p_data, data_len);
+						if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY) && (ret_val != NRF_ERROR_INVALID_STATE))
+						{
+								NRF_LOG_ERROR("Failed sending NUS message. Error 0x%x. ", ret_val);
+								APP_ERROR_CHECK(ret_val);
+						}
+				} while (ret_val == NRF_ERROR_BUSY);
+		}
 
+		
     // Enter main loop.
     for (;;)
     {

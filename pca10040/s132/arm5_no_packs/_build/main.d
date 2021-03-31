@@ -109,3 +109,4 @@
 .\_build\main.o: ..\..\..\..\..\..\modules\nrfx\hal/nrf_uart.h
 .\_build\main.o: ..\..\..\..\..\..\components\libraries\fifo\app_fifo.h
 .\_build\main.o: ..\..\..\..\..\..\components\libraries\scheduler\app_scheduler.h
+.\_build\main.o: ..\arm5_no_packs\imu_params.h
