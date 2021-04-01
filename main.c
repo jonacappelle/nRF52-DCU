@@ -85,7 +85,7 @@
 // IMU Params
 #include "imu_params.h"
 
-
+uint16_t imu_packet_len;
 
 uint32_t evt_scheduled = 0;
 uint32_t index;
@@ -150,35 +150,38 @@ void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 	
     while (evt_scheduled > 0)
     {
+				// Temp print event_size
+//				NRF_LOG_INFO("imu_packet_len: %d", imu_packet_len);
 			
-			NRF_LOG_INFO("App scheduler execute: %d", evt_scheduled);
-				// Do what we have to do
-				// TODO
+				NRF_LOG_INFO("App scheduler execute: %d", evt_scheduled);
+
 			
-				uint16_t data_len = 4*sizeof(float);
-			
-				float quat[data_len/sizeof(float)];
-				uint32_t quat_len = sizeof(quat);
+				float temp[imu_packet_len/sizeof(float)];
+				memcpy(temp, p_event_data, imu_packet_len);
+				
+				uint32_t temp_len = sizeof(temp);
 			
 				// Get data from FIFO buffer
-				if (app_fifo_read(&received_data_fifo, (uint8_t *) quat, &quat_len) == NRF_SUCCESS)
+				if (app_fifo_read(&received_data_fifo, (uint8_t *) temp, &temp_len) == NRF_SUCCESS)
 				{
-						char string_send[100]= {0x00, 0x01, 0x02, 0x03, 0x04, 0x05, 0x06, 0x07, 0x08, 0x09, 0x10, 0x11, 0x12, 0x13, 0x14, 0x15, 0x16, 0x17, 0x18, 0x19, 0x0A};
+						char string_send[200];
 
-						sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
-							
-						index = 42;
+						sprintf(string_send, "w%fwa%fab%fbc%fc\n", temp[0], temp[1], temp[2], temp[3]);
 						
-				//		do
-				//		{
-				//			index++;
-				//		}while(string_send[index] != '\n');
+//						sprintf(string_send, "%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f\n", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9], temp[10], temp[11], temp[12]);
 					
+						uint32_t string_len = 0;
+						do
+						{
+							string_len++;
+						}while(string_send[string_len] != '\n');
+						string_len++;
+						
 					
 						// Put the data in FIFO buffer
-						err_code = app_fifo_write(&uart_dma_difo, (uint8_t *) string_send, &index);
+						err_code = app_fifo_write(&uart_dma_difo, (uint8_t *) string_send, &string_len);
 						
-//						NRF_LOG_INFO("index write %d", index);
+						NRF_LOG_INFO("index write %d", index);
 						
 						if(err_code == NRF_ERROR_NO_MEM)
 						{
@@ -199,13 +202,13 @@ void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 										// just added a byte to FIFO, but if some bigger delay occurred
 										// (some heavy interrupt handler routine has been executed) since
 										// that time, FIFO might be empty already.
-										index = 42;
-										if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &index) == NRF_SUCCESS)
+//										index = 42;
+										if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
 										{
 //												NRF_LOG_INFO("FIFO read");
 												do
 												{
-														err_code = nrf_drv_uart_tx(&uart_driver_instance, uart_dma_tx_buff, (uint8_t) index);
+														err_code = nrf_drv_uart_tx(&uart_driver_instance, uart_dma_tx_buff, (uint8_t) string_len);
 													
 //														NRF_LOG_INFO("index read %d", index);
 													
@@ -435,15 +438,20 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 	
     ret_code_t err_code;
 	
-		float quat[data_len/sizeof(float)];
+		// Global variable to keep track of received packet length
+		imu_packet_len = data_len;
+	
+		float temp[imu_packet_len/sizeof(float)];
 		
 		// Copy data to quaternion varaiable
-		memcpy(quat, p_data, data_len);
+		memcpy(temp, p_data, imu_packet_len);
 		
-		uint32_t quat_len = sizeof(quat);
+		uint32_t temp_len = sizeof(temp);
+	
+//	NRF_LOG_INFO("data_len: %d", imu_packet_len);
 	
 		// Put the received data in FIFO buffer
-		err_code = app_fifo_write(&received_data_fifo, (uint8_t *) quat, &quat_len);
+		err_code = app_fifo_write(&received_data_fifo, (uint8_t *) temp, &temp_len);
 		if(err_code == NRF_ERROR_NO_MEM)
 		{
 			NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
@@ -451,7 +459,6 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 		if(err_code == NRF_SUCCESS)
 		{
 			// Signal to event handler to execute sprintf + start UART transmission
-			// TODO
 			// If there are already events in the queue
 				if(evt_scheduled > 0)
 				{
@@ -466,7 +473,7 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 				}
 		}
 		
-//		NRF_LOG_INFO("%d %d %d %d", (int)(quat[0]*1000),(int)(quat[1]*1000),(int)(quat[2]*1000),(int)(quat[3]*1000));
+//		NRF_LOG_INFO("%d %d %d %d", (int)(temp[0]*1000),(int)(temp[1]*1000),(int)(temp[2]*1000),(int)(temp[3]*1000));
 		
 		nrf_gpio_pin_clear(18);	
 }
@@ -488,43 +495,43 @@ void uart_event_handle(app_uart_evt_t * p_event)
     {
         /**@snippet [Handling data from UART] */
         case APP_UART_DATA_READY:
-            UNUSED_VARIABLE(app_uart_get(&data_array[index]));
-            index++;
+//            UNUSED_VARIABLE(app_uart_get(&data_array[index]));
+//            index++;
 
-            if ((data_array[index - 1] == '\n') ||
-                (data_array[index - 1] == '\r') ||
-                (index >= (m_ble_nus_max_data_len)))
-            {
-                NRF_LOG_DEBUG("Ready to send data over BLE NUS");
-                NRF_LOG_HEXDUMP_DEBUG(data_array, index);
+//            if ((data_array[index - 1] == '\n') ||
+//                (data_array[index - 1] == '\r') ||
+//                (index >= (m_ble_nus_max_data_len)))
+//            {
+//                NRF_LOG_DEBUG("Ready to send data over BLE NUS");
+//                NRF_LOG_HEXDUMP_DEBUG(data_array, index);
 
-							
-							/* CHANGES
-                do
-                {
-                    ret_val = ble_nus_c_string_send(&m_ble_nus_c, data_array, index);
-                    if ( (ret_val != NRF_ERROR_INVALID_STATE) && (ret_val != NRF_ERROR_RESOURCES) )
-                    {
-                        APP_ERROR_CHECK(ret_val);
-                    }
-                } while (ret_val == NRF_ERROR_RESOURCES);
-							END CHANGES	*/
-							
-							for(int c = 0; c < NRF_SDH_BLE_CENTRAL_LINK_COUNT; c++)
-                {
-                    do
-                    {
-                        ret_val = ble_nus_c_string_send(&m_ble_nus_c[c], data_array, index);
-                        if ( (ret_val != NRF_ERROR_INVALID_STATE) && (ret_val != NRF_ERROR_RESOURCES) )
-                        {
-                            APP_ERROR_CHECK(ret_val);
-                        }
-                    } while (ret_val == NRF_ERROR_RESOURCES);
-                }
-							/* END CHANGES */
-							
-                index = 0;
-            }
+//							
+//							/* CHANGES
+//                do
+//                {
+//                    ret_val = ble_nus_c_string_send(&m_ble_nus_c, data_array, index);
+//                    if ( (ret_val != NRF_ERROR_INVALID_STATE) && (ret_val != NRF_ERROR_RESOURCES) )
+//                    {
+//                        APP_ERROR_CHECK(ret_val);
+//                    }
+//                } while (ret_val == NRF_ERROR_RESOURCES);
+//							END CHANGES	*/
+//							
+//							for(int c = 0; c < NRF_SDH_BLE_CENTRAL_LINK_COUNT; c++)
+//                {
+//                    do
+//                    {
+//                        ret_val = ble_nus_c_string_send(&m_ble_nus_c[c], data_array, index);
+//                        if ( (ret_val != NRF_ERROR_INVALID_STATE) && (ret_val != NRF_ERROR_RESOURCES) )
+//                        {
+//                            APP_ERROR_CHECK(ret_val);
+//                        }
+//                    } while (ret_val == NRF_ERROR_RESOURCES);
+//                }
+//							/* END CHANGES */
+//							
+//                index = 0;
+//            }
             break;
 
         /**@snippet [Handling data from UART] */
@@ -785,6 +792,29 @@ void gatt_init(void)
     APP_ERROR_CHECK(err_code);
 }
 
+void config_imu(uint8_t *config, uint8_t len)
+{
+		uint32_t err_code;
+	
+		// Remote adjustment of settings of IMU
+		// Send data back to the peripheral.
+		uint8_t p_data[len];
+		memcpy(p_data, config, len);
+
+		for(int c = 0; c < NRF_SDH_BLE_CENTRAL_LINK_COUNT; c++)
+		{
+				do
+				{
+						err_code = ble_nus_c_string_send(&m_ble_nus_c[c], p_data, len);
+						if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY) && (err_code != NRF_ERROR_INVALID_STATE))
+						{
+								NRF_LOG_ERROR("Failed sending NUS message. Error 0x%x. ", err_code);
+								APP_ERROR_CHECK(err_code);
+						}
+				} while (err_code == NRF_ERROR_BUSY);
+		}
+		NRF_LOG_INFO("CONFIG SEND!");
+}
 
 /**@brief Function for handling events from the BSP module.
  *
@@ -798,10 +828,7 @@ void bsp_event_handler(bsp_event_t event)
     {
 				// TimeSync begin
 				case BSP_EVENT_KEY_0:
-        case BSP_EVENT_KEY_1:
-        case BSP_EVENT_KEY_2:
-        case BSP_EVENT_KEY_3:
-            {
+						{
                 static bool m_send_sync_pkt = false;
                 if (m_send_sync_pkt)
                 {
@@ -822,6 +849,20 @@ void bsp_event_handler(bsp_event_t event)
             }
             break;
 					// TimeSync end
+				
+        case BSP_EVENT_KEY_1:
+
+						uint8_t temp_config1[] = {ENABLE_QUAT6, ENABLE_GYRO, ENABLE_ACCEL, ENABLE_MAG};
+						config_imu(temp_config1, sizeof(temp_config1));
+
+						break;
+        case BSP_EVENT_KEY_2:
+        case BSP_EVENT_KEY_3:
+					
+						uint8_t temp_config2[] = {STOP_IMU};
+						config_imu(temp_config2, sizeof(temp_config2));
+
+						break;
 						
         case BSP_EVENT_SLEEP:
             nrf_pwr_mgmt_shutdown(NRF_PWR_MGMT_SHUTDOWN_GOTO_SYSOFF);
@@ -1137,8 +1178,8 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t * p_event, void * p_conte
 		switch(p_event->type)
 		{
 			case NRF_DRV_UART_EVT_TX_DONE : ///< Requested TX transfer completed.
-			
-					index = 42;
+					// TODO send data more efficiently
+					index = 255;
 					// Get next bytes from FIFO.
 					if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &index) == NRF_SUCCESS)
 					{
@@ -1152,7 +1193,7 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t * p_event, void * p_conte
 //							app_uart_event.evt_type = APP_UART_TX_EMPTY;
 //							m_event_handler(&app_uart_event);
 //					}
-//				NRF_LOG_INFO("UART TX done");
+				NRF_LOG_INFO("UART TX done");
 				break;
 			case NRF_DRV_UART_EVT_RX_DONE : ///< Requested RX transfer completed.
 				break;
@@ -1189,8 +1230,53 @@ void uart_dma_init()
 
 
 
-												
+typedef struct imu
+{
+	bool gyro_enabled;
+	bool accel_enabled;
+	bool mag_enabled;
+	bool quat6_enabled;
+	bool quat9_enabled;
+	bool euler_enabled;
+	uint32_t period; // period in milliseconds (ms)
+	uint16_t packet_length;
+}IMU;
 
+
+												
+IMU imu;
+
+void set_imu_packet_length()
+{
+	imu.packet_length = 0;
+	
+	if(imu.gyro_enabled)
+	{
+		imu.packet_length += 3 * sizeof(float);
+	}
+	if(imu.accel_enabled)
+	{
+		imu.packet_length += 3 * sizeof(float);
+	}
+	if(imu.mag_enabled)
+	{
+		imu.packet_length += 3 * sizeof(float);
+	}
+	if(imu.quat6_enabled)
+	{
+		imu.packet_length += 4 * sizeof(float);
+	}
+	if(imu.quat9_enabled)
+	{
+		imu.packet_length += 4 * sizeof(float);
+	}
+	if(imu.euler_enabled)
+	{
+		imu.packet_length += 3 * sizeof(float);
+	}
+	
+	NRF_LOG_INFO("Packet Len set to: %d", imu.packet_length);
+}
 
 															
 int main(void)
@@ -1293,26 +1379,6 @@ int main(void)
 		// Check UART transmission
 		nrf_gpio_cfg_output(22);
 		
-		
-		nrf_delay_ms(10000);
-		
-		uint32_t ret_val;
-		// Send data back to the peripheral.
-		uint8_t p_data[] = {ENABLE_QUAT9};
-		uint16_t data_len = sizeof(p_data);
-		for(int c = 0; c < NRF_SDH_BLE_CENTRAL_LINK_COUNT; c++)
-		{
-				do
-				{
-						ret_val = ble_nus_c_string_send(&m_ble_nus_c[c], p_data, data_len);
-						if ((ret_val != NRF_SUCCESS) && (ret_val != NRF_ERROR_BUSY) && (ret_val != NRF_ERROR_INVALID_STATE))
-						{
-								NRF_LOG_ERROR("Failed sending NUS message. Error 0x%x. ", ret_val);
-								APP_ERROR_CHECK(ret_val);
-						}
-				} while (ret_val == NRF_ERROR_BUSY);
-		}
-
 		
     // Enter main loop.
     for (;;)

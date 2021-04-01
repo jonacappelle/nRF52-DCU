@@ -10,6 +10,6 @@
 #define ENABLE_GYRO			0x04
 #define ENABLE_ACCEL		0x05
 #define ENABLE_MAG			0x06
-
+#define STOP_IMU				0x07
 
 #endif
