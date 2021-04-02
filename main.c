@@ -154,21 +154,71 @@ void data_evt_sceduled(void * p_event_data, uint16_t event_size)
 //				NRF_LOG_INFO("imu_packet_len: %d", imu_packet_len);
 			
 				NRF_LOG_INFO("App scheduler execute: %d", evt_scheduled);
-
+				NRF_LOG_FLUSH();
 			
-				float temp[imu_packet_len/sizeof(float)];
-				memcpy(temp, p_event_data, imu_packet_len);
-				
-				uint32_t temp_len = sizeof(temp);
+				uint32_t classification_byte_len = 1;
+				uint8_t classification_byte[classification_byte_len];
 			
-				// Get data from FIFO buffer
-				if (app_fifo_read(&received_data_fifo, (uint8_t *) temp, &temp_len) == NRF_SUCCESS)
+			
+				bool read_success = false;
+				uint32_t temp_len;
+				float quat[4];
+				float other[3];
+				char string_send[200];
+			
+				// Get 1 byte from buffer to determine which sort of data we are dealing with
+				if (app_fifo_read(&received_data_fifo, classification_byte, &classification_byte_len) == NRF_SUCCESS)
 				{
-						char string_send[200];
+					NRF_LOG_INFO("Read classification byte: %X", classification_byte[0]);
+					NRF_LOG_FLUSH();
+					// Here, we check what type of data we're dealing with
+//					#define ENABLE_QUAT6		0x01
+//					#define ENABLE_QUAT9		0x02
+//					#define ENABLE_EULER		0x03
+//					#define ENABLE_GYRO			0x04
+//					#define ENABLE_ACCEL		0x05
+//					#define ENABLE_MAG			0x06
+					
+					switch (classification_byte[0])
+					{
+							case ENABLE_QUAT6:
+							case ENABLE_QUAT9:
+								// Get 4 floats
+								temp_len = 4 * sizeof(float);
+								if(app_fifo_read(&received_data_fifo, (uint8_t *) quat, &temp_len) == NRF_SUCCESS)
+								{
+									NRF_LOG_INFO("Read QUAT6");
+									read_success = true;
+									sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
+								}
+								break;
 
-						sprintf(string_send, "w%fwa%fab%fbc%fc\n", temp[0], temp[1], temp[2], temp[3]);
-						
-//						sprintf(string_send, "%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f	%f\n", temp[0], temp[1], temp[2], temp[3], temp[4], temp[5], temp[6], temp[7], temp[8], temp[9], temp[10], temp[11], temp[12]);
+							case ENABLE_EULER:
+							case ENABLE_GYRO:
+							case ENABLE_ACCEL:
+							case ENABLE_MAG:
+								// Get 3 floats
+								temp_len = 3 * sizeof(float);
+								if(app_fifo_read(&received_data_fifo, (uint8_t *) other, &temp_len) == NRF_SUCCESS)
+								{
+									read_success = true;
+//									sprintf(string_send, "x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+								}
+								break;
+							default:
+								// in case of error
+								NRF_LOG_INFO("Error detecting classification_byte: %X", classification_byte[0]);
+								break;
+					}
+				}
+				NRF_LOG_FLUSH();
+			
+				// Get data from FIFO buffer if data is correctly recognized
+				if (read_success)
+				{
+					
+						NRF_LOG_INFO("read_success");
+						NRF_LOG_FLUSH();
 					
 						uint32_t string_len = 0;
 						do
@@ -431,7 +481,7 @@ static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_le
 
 
 
-
+// Put every received byte in a FIFO buffer
 static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len)
 {
 	nrf_gpio_pin_set(18);	
@@ -448,7 +498,9 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 		
 		uint32_t temp_len = sizeof(temp);
 	
-//	NRF_LOG_INFO("data_len: %d", imu_packet_len);
+	NRF_LOG_INFO("BLE packet received");
+	NRF_LOG_INFO("data_len: %d", data_len);
+	NRF_LOG_INFO("imu_packet_len: %d", imu_packet_len);
 	
 		// Put the received data in FIFO buffer
 		err_code = app_fifo_write(&received_data_fifo, (uint8_t *) temp, &temp_len);
@@ -472,9 +524,7 @@ static void ble_nus_data_received_uart_print(uint8_t * p_data, uint16_t data_len
 					APP_ERROR_CHECK(err_code);
 				}
 		}
-		
-//		NRF_LOG_INFO("%d %d %d %d", (int)(temp[0]*1000),(int)(temp[1]*1000),(int)(temp[2]*1000),(int)(temp[3]*1000));
-		
+			
 		nrf_gpio_pin_clear(18);	
 }
 
@@ -584,7 +634,7 @@ static void ble_nus_c_evt_handler(ble_nus_c_t * p_ble_nus_c, ble_nus_c_evt_t con
         case BLE_NUS_C_EVT_NUS_TX_EVT:
 //            ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
 							ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
-//						NRF_LOG_INFO("Character received");
+						NRF_LOG_INFO("Character received");
 				NRF_LOG_INFO("Receive counter:	%d", counterr);
 						counterr++;
             break;
@@ -852,7 +902,7 @@ void bsp_event_handler(bsp_event_t event)
 				
         case BSP_EVENT_KEY_1:
 
-						uint8_t temp_config1[] = {ENABLE_QUAT6, ENABLE_GYRO, ENABLE_ACCEL, ENABLE_MAG};
+						uint8_t temp_config1[] = {ENABLE_QUAT6};
 						config_imu(temp_config1, sizeof(temp_config1));
 
 						break;

@@ -3,7 +3,7 @@
 <title>Static Call Graph - [.\_build\nrf52832_xxaa.axf]</title></head>
 <body><HR>
 <H1>Static Call Graph for image .\_build\nrf52832_xxaa.axf</H1><HR>
-<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Apr 01 15:01:26 2021
+<BR><P>#&#060CALLGRAPH&#062# ARM Linker, 5060750: Last Updated: Thu Apr 01 18:22:36 2021
 <BR><P>
 <H3>Maximum Stack Usage =        748 bytes + Unknown(Cycles, Untraceable Function Pointers)</H3><H3>
 Call chain for Maximum Stack Depth:</H3>
@@ -414,7 +414,6 @@ Global Symbols
 <LI><a href="#[10b]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;discovery_complete_evt_trigger
 <LI><a href="#[153]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_ble_scan_init
 <LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_sched_event_put
-<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;data_evt_sceduled
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;config_imu
 <LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ble_nus_data_received_uart_print
 <LI><a href="#[134]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;memobj_op
@@ -1199,13 +1198,14 @@ Global Symbols
 <BR>[Called By]<UL><LI><a href="#[54]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ble_evt_handler
 </UL>
 
-<P><STRONG><a name="[38]"></a>data_evt_sceduled</STRONG> (Thumb, 322 bytes, Stack size 296 bytes, main.o(i.data_evt_sceduled))
+<P><STRONG><a name="[38]"></a>data_evt_sceduled</STRONG> (Thumb, 442 bytes, Stack size 296 bytes, main.o(i.data_evt_sceduled))
 <BR><BR>[Stack]<UL><LI>Max Depth = 516<LI>Call Chain = data_evt_sceduled &rArr; app_error_handler_bare &rArr; app_error_fault_handler &rArr; nrf_log_frontend_std_0 &rArr; std_n &rArr; nrf_log_frontend_dequeue &rArr;  nrf_log_frontend_std_0 (Cycle)
 </UL>
 <BR>[Calls]<UL><LI><a href="#[b5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrfx_uarte_tx_in_progress
 <LI><a href="#[b6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrfx_uart_tx_in_progress
 <LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_1
 <LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_0
+<LI><a href="#[9d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_dequeue
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_fifo_write
 <LI><a href="#[a4]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_fifo_read
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_error_handler_bare
@@ -1213,7 +1213,6 @@ Global Symbols
 <LI><a href="#[de]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_gpio_pin_set
 <LI><a href="#[e0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_gpio_pin_clear
 <LI><a href="#[102]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_drv_uart_tx
-<LI><a href="#[87]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__aeabi_memcpy
 <LI><a href="#[df]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;malloc
 <LI><a href="#[e1]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;free
 <LI><a href="#[101]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;__2sprintf
@@ -1771,6 +1770,7 @@ Global Symbols
 <LI><a href="#[122]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;invalid_packets_omit
 </UL>
 <BR>[Called By]<UL><LI><a href="#[2f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;main
+<LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;data_evt_sceduled
 <LI><a href="#[46]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_error_fault_handler
 <LI><a href="#[17d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;shutdown_process
 <LI><a href="#[173]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;std_n
@@ -1819,6 +1819,7 @@ Global Symbols
 <LI><a href="#[55]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_ble_gatt_on_ble_evt
 <LI><a href="#[38]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;data_evt_sceduled
 <LI><a href="#[f0]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;config_imu
+<LI><a href="#[d7]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ble_nus_data_received_uart_print
 <LI><a href="#[40]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ble_nus_c_evt_handler
 <LI><a href="#[5d]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;ts_on_sys_evt
 </UL>
@@ -2345,7 +2346,7 @@ Local Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(sdh_ble_observers3)
 </UL>
-<P><STRONG><a name="[40]"></a>ble_nus_c_evt_handler</STRONG> (Thumb, 126 bytes, Stack size 16 bytes, main.o(i.ble_nus_c_evt_handler))
+<P><STRONG><a name="[40]"></a>ble_nus_c_evt_handler</STRONG> (Thumb, 134 bytes, Stack size 16 bytes, main.o(i.ble_nus_c_evt_handler))
 <BR><BR>[Stack]<UL><LI>Max Depth = 436<LI>Call Chain = ble_nus_c_evt_handler &rArr; ble_nus_c_tx_notif_enable &rArr; nrf_ble_gq_item_add &rArr; queue_process &rArr; request_err_code_handle &rArr; nrf_log_frontend_std_3 &rArr; std_n &rArr; nrf_log_frontend_dequeue &rArr;  nrf_log_frontend_std_0 (Cycle)
 </UL>
 <BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_1
@@ -2358,10 +2359,11 @@ Local Symbols
 </UL>
 <BR>[Address Reference Count : 1]<UL><LI> main.o(i.main)
 </UL>
-<P><STRONG><a name="[d7]"></a>ble_nus_data_received_uart_print</STRONG> (Thumb, 122 bytes, Stack size 24 bytes, main.o(i.ble_nus_data_received_uart_print))
-<BR><BR>[Stack]<UL><LI>Max Depth = 244<LI>Call Chain = ble_nus_data_received_uart_print &rArr; app_error_handler_bare &rArr; app_error_fault_handler &rArr; nrf_log_frontend_std_0 &rArr; std_n &rArr; nrf_log_frontend_dequeue &rArr;  nrf_log_frontend_std_0 (Cycle)
+<P><STRONG><a name="[d7]"></a>ble_nus_data_received_uart_print</STRONG> (Thumb, 156 bytes, Stack size 32 bytes, main.o(i.ble_nus_data_received_uart_print))
+<BR><BR>[Stack]<UL><LI>Max Depth = 252<LI>Call Chain = ble_nus_data_received_uart_print &rArr; app_error_handler_bare &rArr; app_error_fault_handler &rArr; nrf_log_frontend_std_0 &rArr; std_n &rArr; nrf_log_frontend_dequeue &rArr;  nrf_log_frontend_std_0 (Cycle)
 </UL>
-<BR>[Calls]<UL><LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_0
+<BR>[Calls]<UL><LI><a href="#[d8]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_1
+<LI><a href="#[9e]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;nrf_log_frontend_std_0
 <LI><a href="#[a6]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_sched_event_put
 <LI><a href="#[a5]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_fifo_write
 <LI><a href="#[9f]">&gt;&gt;</a>&nbsp;&nbsp;&nbsp;app_error_handler_bare

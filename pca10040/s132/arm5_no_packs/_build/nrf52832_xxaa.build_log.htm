@@ -28,36 +28,36 @@ Project File Date:  03/31/2021
 *** Using Compiler 'V5.06 update 6 (build 750)', folder: 'C:\Keil_v5\ARM\ARMCC\Bin'
 Build target 'nrf52832_xxaa'
 compiling main.c...
-..\..\..\main.c(490): warning:  #177-D: variable "data_array"  was declared but never referenced
+..\..\..\main.c(540): warning:  #177-D: variable "data_array"  was declared but never referenced
       static uint8_t data_array[BLE_NUS_MAX_DATA_LEN];
-..\..\..\main.c(491): warning:  #177-D: variable "index"  was declared but never referenced
+..\..\..\main.c(541): warning:  #177-D: variable "index"  was declared but never referenced
       static uint16_t index = 0;
-..\..\..\main.c(492): warning:  #177-D: variable "ret_val"  was declared but never referenced
+..\..\..\main.c(542): warning:  #177-D: variable "ret_val"  was declared but never referenced
       uint32_t ret_val;
-..\..\..\main.c(641): warning:  #546-D: transfer of control bypasses initialization of:
-            variable "phys"  (declared at line 670)
+..\..\..\main.c(691): warning:  #546-D: transfer of control bypasses initialization of:
+            variable "phys"  (declared at line 720)
       switch (p_ble_evt->header.evt_id)
       ^
-..\..\..\main.c(855): warning:  #1182-D: a declaration cannot have a label
-  						uint8_t temp_config1[] = {ENABLE_QUAT6, ENABLE_GYRO, ENABLE_ACCEL, ENABLE_MAG};
-..\..\..\main.c(862): warning:  #1182-D: a declaration cannot have a label
+..\..\..\main.c(905): warning:  #1182-D: a declaration cannot have a label
+  						uint8_t temp_config1[] = {ENABLE_QUAT6};
+..\..\..\main.c(912): warning:  #1182-D: a declaration cannot have a label
   						uint8_t temp_config2[] = {STOP_IMU};
-..\..\..\main.c(827): warning:  #546-D: transfer of control bypasses initialization of:
-            variable "temp_config1"  (declared at line 855)
-            variable "temp_config2"  (declared at line 862)
+..\..\..\main.c(877): warning:  #546-D: transfer of control bypasses initialization of:
+            variable "temp_config1"  (declared at line 905)
+            variable "temp_config2"  (declared at line 912)
       switch (event)
       ^
-..\..\..\main.c(1176): warning:  #177-D: variable "err_code"  was declared but never referenced
+..\..\..\main.c(1226): warning:  #177-D: variable "err_code"  was declared but never referenced
   	uint32_t err_code;
-..\..\..\main.c(369): warning:  #177-D: function "ble_nus_chars_received_uart_print"  was declared but never referenced
+..\..\..\main.c(419): warning:  #177-D: function "ble_nus_chars_received_uart_print"  was declared but never referenced
   static void ble_nus_chars_received_uart_print(uint8_t * p_data, uint16_t data_len)
-..\..\..\main.c(903): warning:  #177-D: function "uart_init"  was declared but never referenced
+..\..\..\main.c(953): warning:  #177-D: function "uart_init"  was declared but never referenced
   static void uart_init(void)
-..\..\..\main.c(1089): warning:  #177-D: function "gpio_init"  was declared but never referenced
+..\..\..\main.c(1139): warning:  #177-D: function "gpio_init"  was declared but never referenced
   static void gpio_init(void)
 ..\..\..\main.c: 11 warnings, 0 errors
 linking...
-Program Size: Code=33144 RO-data=4472 RW-data=2008 ZI-data=24640  
+Program Size: Code=33480 RO-data=4472 RW-data=2008 ZI-data=24640  
 FromELF: creating hex file...
 ".\_build\nrf52832_xxaa.axf" - 0 Error(s), 11 Warning(s).
 
