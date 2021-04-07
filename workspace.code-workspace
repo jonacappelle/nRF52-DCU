@@ -1,0 +1,14 @@
+{
+	"folders": [
+		{
+			"path": "."
+		}
+	],
+	"settings": {
+		"files.associations": {
+			"freertos.h": "c",
+			"time_diy.h": "c",
+			"nrf_atflags.h": "c"
+		}
+	}
+}
