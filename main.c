@@ -166,7 +166,6 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             switch (classification_byte[0])
             {
             case ENABLE_QUAT6:
-            case ENABLE_QUAT9:
                 // Get 4 floats
                 temp_len = 4 * sizeof(float);
                 // NRF_LOG_INFO("temp_len: %d", temp_len);
@@ -179,17 +178,62 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     NRF_LOG_INFO("%s", string_send);
                 }
                 break;
+            case ENABLE_QUAT9:
+                // Get 4 floats
+                temp_len = 4 * sizeof(float);
+                // NRF_LOG_INFO("temp_len: %d", temp_len);
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("Read QUAT9");
+                    NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
+                    read_success = true;
+                    sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
+                    NRF_LOG_INFO("%s", string_send);
+                }
+                break;
 
             case ENABLE_EULER:
+                // Get 3 floats
+                temp_len = 3 * sizeof(float);
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("Read EULER");
+                    read_success = true;
+                    // Convert to string
+                    sprintf(string_send, "Euler: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                }
+                break;
             case ENABLE_GYRO:
+                // Get 3 floats
+                temp_len = 3 * sizeof(float);
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("Read GYRO");
+                    read_success = true;
+                    // Convert to string
+                    sprintf(string_send, "Gyro: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                }
+                break;
             case ENABLE_ACCEL:
+                // Get 3 floats
+                temp_len = 3 * sizeof(float);
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("Read ACC");
+                    read_success = true;
+                    // Convert to string
+                    sprintf(string_send, "Acc: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                }
+                break;
             case ENABLE_MAG:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
                 if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
                 {
+                    NRF_LOG_INFO("Read MAG");
                     read_success = true;
-                    //									sprintf(string_send, "x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                    // Convert to string
+                    sprintf(string_send, "Mag: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
                 }
                 break;
             default:
@@ -866,19 +910,19 @@ void bsp_event_handler(bsp_event_t event)
 
     case BSP_EVENT_KEY_1:
     {
-        uint8_t temp_config1[] = {ENABLE_QUAT6};
+        uint8_t temp_config1[] = {ENABLE_GYRO};
         config_imu(temp_config1, sizeof(temp_config1));
         break;
     }
     case BSP_EVENT_KEY_2:
     {
-        uint8_t temp_config3[] = {ENABLE_QUAT9};
+        uint8_t temp_config3[] = {ENABLE_ACCEL};
         config_imu(temp_config3, sizeof(temp_config3));
         break;
     }
     case BSP_EVENT_KEY_3:
     {
-        uint8_t temp_config2[] = {STOP_IMU};
+        uint8_t temp_config2[] = {ENABLE_MAG};
         config_imu(temp_config2, sizeof(temp_config2));
         break;
     }
