@@ -461,8 +461,6 @@ static void ble_nus_data_received_uart_print(uint8_t *p_data, uint16_t data_len)
     nrf_gpio_pin_set(18);
 
     NRF_LOG_INFO("%X", p_data[0]);
-    NRF_LOG_INFO("data_len: %d", data_len)
-    NRF_LOG_FLUSH();
 
     ret_code_t err_code;
 
@@ -608,10 +606,7 @@ static void ble_nus_c_evt_handler(ble_nus_c_t *p_ble_nus_c, ble_nus_c_evt_t cons
 
     case BLE_NUS_C_EVT_NUS_TX_EVT:
         //            ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
-        // ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
-        NRF_LOG_INFO("data: %X %X %X %X", p_ble_nus_evt->p_data[0], p_ble_nus_evt->p_data[1], p_ble_nus_evt->p_data[2], p_ble_nus_evt->p_data[3]);
-        NRF_LOG_INFO("length: %d", p_ble_nus_evt->data_len);
-        NRF_LOG_FLUSH();
+        ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
         // NRF_LOG_INFO("Character received");
         // NRF_LOG_INFO("Receive counter:	%d", counterr);
         counterr++;
@@ -877,7 +872,7 @@ void bsp_event_handler(bsp_event_t event)
     }
     case BSP_EVENT_KEY_2:
     {
-        uint8_t temp_config3[] = {ENABLE_QUAT9, ENABLE_GYRO};
+        uint8_t temp_config3[] = {ENABLE_QUAT9};
         config_imu(temp_config3, sizeof(temp_config3));
         break;
     }
