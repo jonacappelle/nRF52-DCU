@@ -85,40 +85,18 @@
 // IMU Params
 #include "imu_params.h"
 
+uint16_t imu_packet_len;
+
+uint32_t evt_scheduled = 0;
+uint32_t index;
+
+nrf_drv_uart_t uart_driver_instance = NRF_DRV_UART_INSTANCE(0);
+
 // Create a FIFO structure
-typedef struct buffer
-{
-    app_fifo_t uart_dma_difo;
-    app_fifo_t received_data_fifo;  
-    uint8_t uart_dma_tx_buff[100];
-}BUFFER;
+app_fifo_t uart_dma_difo;
+app_fifo_t received_data_fifo;
 
-// Initialisation of struct to keep track of different buffers
-BUFFER buffer;
-
-
-typedef struct imu
-{
-    bool gyro_enabled;
-    bool accel_enabled;
-    bool mag_enabled;
-    bool quat6_enabled;
-    bool quat9_enabled;
-    bool euler_enabled;
-    uint32_t period; // period in milliseconds (ms)
-    uint16_t packet_length;
-    int received_packet_counter;
-    nrf_drv_uart_t uart;
-    uint32_t evt_scheduled;
-} IMU;
-
-// Initialisation of IMU struct
-IMU imu = {
-    .received_packet_counter = 0,
-    .evt_scheduled = 0,
-    .uart = NRF_DRV_UART_INSTANCE(0),
-};
-
+uint8_t uart_dma_tx_buff[100];
 
 // APP Scheduler
 #define SCHED_MAX_EVENT_DATA_SIZE APP_TIMER_SCHED_EVENT_DATA_SIZE /**< Maximum size of scheduler events. */
@@ -165,9 +143,12 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
     nrf_gpio_pin_set(22);
     uint32_t err_code;
 
-    while (imu.evt_scheduled > 0)
+    while (evt_scheduled > 0)
     {
-        NRF_LOG_INFO("App scheduler execute: %d", imu.evt_scheduled);
+        // Temp print event_size
+        //				NRF_LOG_INFO("imu_packet_len: %d", imu_packet_len);
+
+        NRF_LOG_INFO("App scheduler execute: %d", evt_scheduled);
         NRF_LOG_FLUSH();
 
         uint32_t classification_byte_len = 1;
@@ -180,7 +161,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
         char string_send[200];
 
         // Get 1 byte from buffer to determine which sort of data we are dealing with
-        if (app_fifo_read(&buffer.received_data_fifo, classification_byte, &classification_byte_len) == NRF_SUCCESS)
+        if (app_fifo_read(&received_data_fifo, classification_byte, &classification_byte_len) == NRF_SUCCESS)
         {
             switch (classification_byte[0])
             {
@@ -188,7 +169,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                 // Get 4 floats
                 temp_len = 4 * sizeof(float);
                 // NRF_LOG_INFO("temp_len: %d", temp_len);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read QUAT6");
                     NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
@@ -201,7 +182,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                 // Get 4 floats
                 temp_len = 4 * sizeof(float);
                 // NRF_LOG_INFO("temp_len: %d", temp_len);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read QUAT9");
                     NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
@@ -214,7 +195,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             case ENABLE_EULER:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read EULER");
                     read_success = true;
@@ -225,7 +206,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             case ENABLE_GYRO:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read GYRO");
                     read_success = true;
@@ -236,7 +217,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             case ENABLE_ACCEL:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read ACC");
                     read_success = true;
@@ -247,7 +228,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             case ENABLE_MAG:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
-                if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
+                if (app_fifo_read(&received_data_fifo, (uint8_t *)other, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read MAG");
                     read_success = true;
@@ -277,7 +258,10 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             string_len++;
 
             // Put the data in FIFO buffer
-            err_code = app_fifo_write(&buffer.uart_dma_difo, (uint8_t *)string_send, &string_len);
+            err_code = app_fifo_write(&uart_dma_difo, (uint8_t *)string_send, &string_len);
+
+            // NRF_LOG_INFO("index write %d", index);
+
             if (err_code == NRF_ERROR_NO_MEM)
             {
                 NRF_LOG_INFO("UART FIFO BUFFER FULL!");
@@ -290,19 +274,23 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                 // (in 'uart_event_handler') when all preceding bytes are transmitted.
                 // But if UART is not transmitting anything at the moment, we must start
                 // a new transmission here.
-                if (!nrf_drv_uart_tx_in_progress(&imu.uart))
+                if (!nrf_drv_uart_tx_in_progress(&uart_driver_instance))
                 {
                     //										NRF_LOG_INFO("TX not in progress");
                     // This operation should be almost always successful, since we've
                     // just added a byte to FIFO, but if some bigger delay occurred
                     // (some heavy interrupt handler routine has been executed) since
                     // that time, FIFO might be empty already.
-                    if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
+                    //										index = 42;
+                    if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
                     {
                         //												NRF_LOG_INFO("FIFO read");
                         do
                         {
-                            err_code = nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)string_len);
+                            err_code = nrf_drv_uart_tx(&uart_driver_instance, uart_dma_tx_buff, (uint8_t)string_len);
+
+                            //														NRF_LOG_INFO("index read %d", index);
+
                             if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
                             {
                                 NRF_LOG_ERROR("nrf_drv_uart_tx failed");
@@ -313,8 +301,9 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     }
                 }
             }
+            // evt_scheduled--;
         }
-        imu.evt_scheduled--; // Needs to be here: problem: can skip some malformed packets - otherwise the app_scheduler will continue to execute and block the cpu
+        evt_scheduled--; // Needs to be here: problem: can skip some malformed packets - otherwise the app_scheduler will continue to execute and block the cpu
     }
     nrf_gpio_pin_clear(22);
 }
@@ -519,15 +508,22 @@ static void ble_nus_data_received_uart_print(uint8_t *p_data, uint16_t data_len)
 
     ret_code_t err_code;
 
-    uint8_t temp[data_len / sizeof(uint8_t)];
+    // Global variable to keep track of received packet length
+    imu_packet_len = data_len;
+
+    uint8_t temp[imu_packet_len / sizeof(uint8_t)];
 
     // Copy data to quaternion varaiable
-    memcpy(temp, p_data, data_len);
+    memcpy(temp, p_data, imu_packet_len);
 
     uint32_t temp_len = sizeof(temp);
 
+    // NRF_LOG_INFO("BLE packet received: %X", p_data[0]);
+    // NRF_LOG_INFO("data_len: %d", data_len);
+    // NRF_LOG_INFO("imu_packet_len: %d", imu_packet_len);
+
     // Put the received data in FIFO buffer
-    err_code = app_fifo_write(&buffer.received_data_fifo, temp, &temp_len);
+    err_code = app_fifo_write(&received_data_fifo, temp, &temp_len);
     if (err_code == NRF_ERROR_NO_MEM)
     {
         NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
@@ -536,14 +532,14 @@ static void ble_nus_data_received_uart_print(uint8_t *p_data, uint16_t data_len)
     {
         // Signal to event handler to execute sprintf + start UART transmission
         // If there are already events in the queue
-        if (imu.evt_scheduled > 0)
+        if (evt_scheduled > 0)
         {
-            imu.evt_scheduled++;
+            evt_scheduled++;
         }
         // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
         else
         {
-            imu.evt_scheduled++;
+            evt_scheduled++;
             err_code = app_sched_event_put(0, 0, data_evt_sceduled);
             APP_ERROR_CHECK(err_code);
         }
@@ -625,6 +621,8 @@ void uart_event_handle(app_uart_evt_t *p_event)
     }
 }
 
+int counterr = 0;
+
 /**@brief Callback handling Nordic UART Service (NUS) client events.
  *
  * @details This function is called to notify the application of NUS client events.
@@ -654,8 +652,8 @@ static void ble_nus_c_evt_handler(ble_nus_c_t *p_ble_nus_c, ble_nus_c_evt_t cons
         //            ble_nus_chars_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
         ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
         // NRF_LOG_INFO("Character received");
-        // NRF_LOG_INFO("Receive counter:	%d", imu.received_packet_counter);
-        imu.received_packet_counter++;
+        // NRF_LOG_INFO("Receive counter:	%d", counterr);
+        counterr++;
         break;
 
     case BLE_NUS_C_EVT_DISCONNECTED:
@@ -924,7 +922,7 @@ void bsp_event_handler(bsp_event_t event)
     }
     case BSP_EVENT_KEY_3:
     {
-        uint8_t temp_config2[] = {ENABLE_QUAT6};
+        uint8_t temp_config2[] = {ENABLE_MAG};
         config_imu(temp_config2, sizeof(temp_config2));
         break;
     }
@@ -1220,13 +1218,12 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
     switch (p_event->type)
     {
     case NRF_DRV_UART_EVT_TX_DONE: ///< Requested TX transfer completed.
-    {
         // TODO send data more efficiently
-        uint32_t index = 255;
+        index = 255;
         // Get next bytes from FIFO.
-        if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &index) == NRF_SUCCESS)
+        if (app_fifo_read(&uart_dma_difo, uart_dma_tx_buff, &index) == NRF_SUCCESS)
         {
-            nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)index);
+            nrf_drv_uart_tx(&uart_driver_instance, uart_dma_tx_buff, (uint8_t)index);
             //								NRF_LOG_INFO("index evt %d", index);
             //								NRF_LOG_INFO("Send next byte from evt handler");
         }
@@ -1238,7 +1235,6 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
         //					}
         // NRF_LOG_INFO("UART TX done");
         break;
-    }
     case NRF_DRV_UART_EVT_RX_DONE: ///< Requested RX transfer completed.
         break;
     case NRF_DRV_UART_EVT_ERROR: ///< Error reported by UART peripheral.
@@ -1265,12 +1261,24 @@ void uart_dma_init()
         .interrupt_priority = UART_DEFAULT_CONFIG_IRQ_PRIORITY, //NRF_DRV_UART_DEFAULT_CONFIG_USE_EASY_DMA                                 \ // Yes, use easyDMA!
     };
 
-    err_code = nrf_drv_uart_init(&imu.uart, &uart_config_params, usr_uarte_evt_handler);
+    err_code = nrf_drv_uart_init(&uart_driver_instance, &uart_config_params, usr_uarte_evt_handler);
 
     APP_ERROR_CHECK(err_code);
 }
 
+typedef struct imu
+{
+    bool gyro_enabled;
+    bool accel_enabled;
+    bool mag_enabled;
+    bool quat6_enabled;
+    bool quat9_enabled;
+    bool euler_enabled;
+    uint32_t period; // period in milliseconds (ms)
+    uint16_t packet_length;
+} IMU;
 
+IMU imu;
 
 void set_imu_packet_length()
 {
@@ -1323,11 +1331,11 @@ int main(void)
 
     uint32_t err_code;
     // Initialize FIFO structure for use in UART DMA
-    err_code = app_fifo_init(&buffer.uart_dma_difo, uart_dma_buffer, (uint16_t)sizeof(uart_dma_buffer));
+    err_code = app_fifo_init(&uart_dma_difo, uart_dma_buffer, (uint16_t)sizeof(uart_dma_buffer));
     APP_ERROR_CHECK(err_code);
 
     // Initialize FIFO structure for collecting received data
-    err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
+    err_code = app_fifo_init(&received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
     APP_ERROR_CHECK(err_code);
 
     // Application scheduler (soft interrupt like)
@@ -1336,12 +1344,12 @@ int main(void)
     ////////////////////////////////////
     //	uint32_t err_code;
     //	while(1){
-    //			if (!nrf_drv_uart_tx_in_progress(&imu.uart))
+    //			if (!nrf_drv_uart_tx_in_progress(&uart_driver_instance))
     //			{
     //        do
     //        {
     //						char test[] = ("teststringhahahaaahhaha\n");
-    //						err_code = nrf_drv_uart_tx(&imu.uart, (uint8_t *) test, sizeof(test)-1);
+    //						err_code = nrf_drv_uart_tx(&uart_driver_instance, (uint8_t *) test, sizeof(test)-1);
     //
     //            if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
     //            {
