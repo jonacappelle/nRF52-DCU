@@ -193,7 +193,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     NRF_LOG_INFO("Read QUAT6");
                     NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
                     read_success = true;
-                    sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
+                    sprintf(string_send, "w%.2fwa%.2fab%.2fbc%.2fc\n", quat[0], quat[1], quat[2], quat[3]);
                     NRF_LOG_INFO("%s", string_send);
                 }
                 break;
@@ -210,7 +210,6 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     NRF_LOG_INFO("%s", string_send);
                 }
                 break;
-
             case ENABLE_EULER:
                 // Get 3 floats
                 temp_len = 3 * sizeof(float);
@@ -230,7 +229,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     NRF_LOG_INFO("Read GYRO");
                     read_success = true;
                     // Convert to string
-                    sprintf(string_send, "Gyro: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                    sprintf(string_send, "Gyro: x: %.2f	y: %.2f	z: %.2f\n", other[0], other[1], other[2]);
                 }
                 break;
             case ENABLE_ACCEL:
@@ -241,7 +240,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     NRF_LOG_INFO("Read ACC");
                     read_success = true;
                     // Convert to string
-                    sprintf(string_send, "Acc: x: %f	y: %f	z: %f\n", other[0], other[1], other[2]);
+                    sprintf(string_send, "Acc: x: %.2f	y: %.2f	z: %.2f\n", other[0], other[1], other[2]);
                 }
                 break;
             case ENABLE_MAG:
@@ -313,8 +312,9 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     }
                 }
             }
+            imu.evt_scheduled--; // Needs to be here: problem: can skip some malformed packets - otherwise the app_scheduler will continue to execute and block the cpu
         }
-        imu.evt_scheduled--; // Needs to be here: problem: can skip some malformed packets - otherwise the app_scheduler will continue to execute and block the cpu
+        
     }
     nrf_gpio_pin_clear(22);
 }
@@ -912,13 +912,13 @@ void bsp_event_handler(bsp_event_t event)
 
     case BSP_EVENT_KEY_1:
     {
-        uint8_t temp_config1[] = {ENABLE_GYRO};
+        uint8_t temp_config1[] = {ENABLE_GYRO, ENABLE_ACCEL, ENABLE_QUAT6};
         config_imu(temp_config1, sizeof(temp_config1));
         break;
     }
     case BSP_EVENT_KEY_2:
     {
-        uint8_t temp_config3[] = {ENABLE_ACCEL};
+        uint8_t temp_config3[] = {ENABLE_GYRO, ENABLE_ACCEL};
         config_imu(temp_config3, sizeof(temp_config3));
         break;
     }
@@ -1230,13 +1230,14 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
             //								NRF_LOG_INFO("index evt %d", index);
             //								NRF_LOG_INFO("Send next byte from evt handler");
         }
-        //					else
-        //					{
-        //							// Last byte from FIFO transmitted, notify the application.
-        //							app_uart_event.evt_type = APP_UART_TX_EMPTY;
-        //							m_event_handler(&app_uart_event);
-        //					}
-        // NRF_LOG_INFO("UART TX done");
+        else
+        {
+                // Last byte from FIFO transmitted, notify the application.
+                // app_uart_event.evt_type = APP_UART_TX_EMPTY;
+                // m_event_handler(&app_uart_event);
+                NRF_LOG_INFO("UART TX EMPTY");
+        }
+        NRF_LOG_INFO("UART TX done");
         break;
     }
     case NRF_DRV_UART_EVT_RX_DONE: ///< Requested RX transfer completed.
@@ -1318,7 +1319,7 @@ int main(void)
     uint8_t uart_dma_buffer[uart_dma_buffer_size];
 
     // Create a buffer for the FIFO
-    uint16_t received_data_buffer_size = 2048;
+    uint16_t received_data_buffer_size = 4096;
     uint8_t received_data_buffer[received_data_buffer_size];
 
     uint32_t err_code;
@@ -1398,6 +1399,8 @@ int main(void)
     nrf_gpio_cfg_output(20);
     // Check UART transmission
     nrf_gpio_cfg_output(22);
+    // Sprintf timing
+    nrf_gpio_cfg_output(10);
 
     // Enter main loop.
     for (;;)
@@ -1409,8 +1412,11 @@ int main(void)
         NRF_LOG_FLUSH();
         nrf_gpio_pin_clear(20);
         nrf_gpio_pin_clear(19);
-        idle_state_handle();
+        // idle_state_handle();
         nrf_gpio_pin_set(19);
+
+        // Toggle pin to check CPU activity
+        nrf_gpio_pin_toggle(17);
     }
 }
 
