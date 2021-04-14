@@ -85,6 +85,12 @@
 // IMU Params
 #include "imu_params.h"
 
+// Receive data from Thingy motion service
+#include "ble_tes_c.h"
+
+BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);                                                 /**< Structure used to identify the battery service. */
+
+
 // Create a FIFO structure
 typedef struct buffer
 {
@@ -440,6 +446,10 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
     //ble_nus_c_on_db_disc_evt(&m_ble_nus_c, p_evt);
     ble_nus_c_on_db_disc_evt(&m_ble_nus_c[p_evt->conn_handle], p_evt);
     /* END CHANGES */
+
+    // Add discovery for TMS service
+    ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c, p_evt);
+
 }
 
 /**@brief Function for handling characters received by the Nordic UART Service (NUS).
@@ -637,6 +647,8 @@ void uart_event_handle(app_uart_evt_t *p_event)
 static void ble_nus_c_evt_handler(ble_nus_c_t *p_ble_nus_c, ble_nus_c_evt_t const *p_ble_nus_evt)
 {
     ret_code_t err_code;
+
+    NRF_LOG_DEBUG("ble_nus_c_evt_handler");
 
     switch (p_ble_nus_evt->evt_type)
     {
@@ -1305,6 +1317,50 @@ void set_imu_packet_length()
     NRF_LOG_INFO("Packet Len set to: %d", imu.packet_length);
 }
 
+void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t * p_evt)
+{
+    NRF_LOG_INFO("thingy_tes_c_evt_handler called");
+
+
+    switch (p_evt->evt_type)
+    {
+        case BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE:
+        {
+            uint32_t err_code;
+            
+            // err_code = ble_tbs_c_handles_assign(&m_ble_tbs_c,
+            //                                     p_tbs_c_evt->conn_handle,
+            //                                     &p_tbs_c_evt->params.peer_db);
+
+            err_code = ble_tes_c_quaternion_notif_enable(p_ble_tes_c);
+            APP_ERROR_CHECK(err_code);
+            
+        }
+        break;
+
+        default:
+        {
+
+        }
+        break;
+    }
+}
+
+static void thingy_tes_c_init(void)
+{
+    ret_code_t       err_code;
+
+    ble_thingy_tes_c_init_t thingy_tes_c_init_obj;
+    thingy_tes_c_init_obj.evt_handler =  thingy_tes_c_evt_handler;
+
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        err_code = ble_thingy_tes_c_init(&m_thingy_tes_c[i], &thingy_tes_c_init_obj);
+        APP_ERROR_CHECK(err_code);
+    }
+}
+
+
 int main(void)
 {
     // Initialize.
@@ -1363,6 +1419,9 @@ int main(void)
     gatt_init();
     nus_c_init();
 
+
+    thingy_tes_c_init();
+
     /* CHANGES ADDED */
     ble_conn_state_init();
     /* END ADDED CHANGES */
@@ -1401,6 +1460,9 @@ int main(void)
     nrf_gpio_cfg_output(22);
     // Sprintf timing
     nrf_gpio_cfg_output(10);
+
+
+
 
     // Enter main loop.
     for (;;)

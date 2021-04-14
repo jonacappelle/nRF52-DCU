@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/BLE_Services/ble_tes_c.c \
   $(SDK_ROOT)/components/libraries/atomic_flags/nrf_atflags.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_state.c \
   $(PROJ_DIR)/TimeSync/time_sync.c \
@@ -210,6 +211,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/TimeSync \
   $(PROJ_DIR)/pca10040/s132/arm5_no_packs \
   $(SDK_ROOT)/components/libraries/atomic_flags \
+  $(PROJ_DIR)/BLE_Services \
 
 # Libraries common to all targets
 LIB_FILES += \
