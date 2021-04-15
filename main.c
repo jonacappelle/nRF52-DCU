@@ -88,7 +88,6 @@
 // Receive data from Thingy motion service
 #include "ble_tes_c.h"
 
-BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);                                                 /**< Structure used to identify the battery service. */
 
 
 // Create a FIFO structure
@@ -154,6 +153,9 @@ IMU imu = {
 //BLE_NUS_C_DEF(m_ble_nus_c);                                             /**< BLE Nordic UART Service (NUS) client instance. */
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< BLE Nordic UART Service (NUS) client instances. */
 /* END CHANGES */
+BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);                  /**< Structure used to identify the battery service. */
+
+
 
 NRF_BLE_GATT_DEF(m_gatt);        /**< GATT module instance. */
 BLE_DB_DISCOVERY_DEF(m_db_disc); /**< Database discovery module instance. */
@@ -448,7 +450,7 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
     /* END CHANGES */
 
     // Add discovery for TMS service
-    ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c, p_evt);
+    ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c[p_evt->conn_handle], p_evt);
 
 }
 
@@ -648,7 +650,7 @@ static void ble_nus_c_evt_handler(ble_nus_c_t *p_ble_nus_c, ble_nus_c_evt_t cons
 {
     ret_code_t err_code;
 
-    NRF_LOG_DEBUG("ble_nus_c_evt_handler");
+    NRF_LOG_INFO("ble_nus_c_evt_handler");
 
     switch (p_ble_nus_evt->evt_type)
     {
@@ -725,6 +727,10 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         err_code = ble_nus_c_handles_assign(&m_ble_nus_c[p_ble_evt->evt.gap_evt.conn_handle], p_ble_evt->evt.gap_evt.conn_handle, NULL);
         /* END CHANGES */
 
+        APP_ERROR_CHECK(err_code);
+
+        // TMS CHANGES - add handles
+        err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
         APP_ERROR_CHECK(err_code);
 
         /* ADDED CHANGES*/
@@ -1317,30 +1323,74 @@ void set_imu_packet_length()
     NRF_LOG_INFO("Packet Len set to: %d", imu.packet_length);
 }
 
+
+
+
+
 void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t * p_evt)
 {
-    NRF_LOG_INFO("thingy_tes_c_evt_handler called");
-
 
     switch (p_evt->evt_type)
     {
+        ret_code_t err_code;
+
         case BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE:
         {
-            uint32_t err_code;
+            err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_evt->conn_handle],
+                                                p_evt->conn_handle,
+                                                &p_evt->params.peer_db);
+            NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
-            // err_code = ble_tbs_c_handles_assign(&m_ble_tbs_c,
-            //                                     p_tbs_c_evt->conn_handle,
-            //                                     &p_tbs_c_evt->params.peer_db);
 
-            err_code = ble_tes_c_quaternion_notif_enable(p_ble_tes_c);
+            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             APP_ERROR_CHECK(err_code);
-            
+
         }
         break;
 
-        default:
+        case BLE_TMS_EVT_QUAT:
         {
 
+            float quat_buff[4];
+            uint32_t quat_buff_len = sizeof(quat_buff);
+
+            #define FIXED_POINT_FRACTIONAL_BITS_QUAT        30
+
+            quat_buff[0] = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            quat_buff[1] = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            quat_buff[2] = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            
+            
+            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+
+            // // Put the received data in FIFO buffer
+            // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
+            // if (err_code == NRF_ERROR_NO_MEM)
+            // {
+            //     NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+            // }
+            // if (err_code == NRF_SUCCESS)
+            // {
+            //     // Signal to event handler to execute sprintf + start UART transmission
+            //     // If there are already events in the queue
+            //     if (imu.evt_scheduled > 0)
+            //     {
+            //         imu.evt_scheduled++;
+            //     }
+            //     // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+            //     else
+            //     {
+            //         imu.evt_scheduled++;
+            //         err_code = app_sched_event_put(0, 0, data_evt_sceduled);
+            //         APP_ERROR_CHECK(err_code);
+            //     }
+            // }
+        }
+
+        default:
+        {
+            // NRF_LOG_DEBUG("thingy_tes_c_evt_handler DEFAULT");
         }
         break;
     }
@@ -1462,6 +1512,8 @@ int main(void)
     nrf_gpio_cfg_output(10);
 
 
+    NRF_LOG_DEBUG("DEBUG ACTIVE");
+
 
 
     // Enter main loop.
@@ -1476,6 +1528,9 @@ int main(void)
         nrf_gpio_pin_clear(19);
         // idle_state_handle();
         nrf_gpio_pin_set(19);
+
+        // nrf_delay_ms(1000);
+        // NRF_LOG_INFO("Loop");
 
         // Toggle pin to check CPU activity
         nrf_gpio_pin_toggle(17);

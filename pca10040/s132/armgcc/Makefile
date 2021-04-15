@@ -217,7 +217,8 @@ INC_FOLDERS += \
 LIB_FILES += \
 
 # Optimization flags
-OPT = -O3 -g3
+# OPT = -O3 -g3
+OPT = -O0 -g
 # Uncomment the line below to enable link time optimization
 #OPT += -flto
 
@@ -241,6 +242,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
+CFLAGS += -DEBUG # Allow NRF_LOG_DEBUG() to be printed
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)

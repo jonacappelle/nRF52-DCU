@@ -15,7 +15,8 @@
 			"ble_gattc.h": "c",
 			"sdk_common.h": "c",
 			"ble_types.h": "c",
-			"nrf_log.h": "c"
+			"nrf_log.h": "c",
+			"imu_params.h": "c"
 		}
 	}
 }

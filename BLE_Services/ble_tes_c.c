@@ -169,8 +169,6 @@ static void on_hvx(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * p_ble_evt
     {
         ble_tes_c_evt.evt_type = BLE_TMS_EVT_QUAT;
         ble_tes_c_evt.params.value.quat_data = *(ble_tms_quat_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
-
-        NRF_LOG_DEBUG("quat: %d", ble_tes_c_evt.params.value.quat_data.w);
     } 
     // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.pressure_handle)
     // {
@@ -254,7 +252,7 @@ void ble_thingy_tes_on_db_disc_evt(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_
         ble_tes_c_evt_t evt;
         evt.evt_type    = BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE;
         evt.conn_handle = p_evt->conn_handle;
-        //NRF_LOG_INFO("tes discover count : %d", p_evt->params.discovered_db.char_count);
+        NRF_LOG_DEBUG("tes discover count : %d", p_evt->params.discovered_db.char_count);
         for (uint32_t i = 0; i < p_evt->params.discovered_db.char_count; i++)
         {
             const ble_gatt_db_char_t * p_char = &(p_evt->params.discovered_db.charateristics[i]);
@@ -313,6 +311,7 @@ void ble_thingy_tes_on_db_disc_evt(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_
         //If the instance has been assigned prior to db_discovery, assign the db_handles
          if (p_ble_thingy_tes_c->conn_handle != BLE_CONN_HANDLE_INVALID)
         {
+            NRF_LOG_INFO("TES instance has been initialized prior");
             if (
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.config_cccd_handle    = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.config_handle         = BLE_GATT_HANDLE_INVALID)&&
@@ -399,7 +398,7 @@ uint32_t ble_thingy_tes_c_init(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_thin
 void ble_tes_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
 {
 
-    NRF_LOG_DEBUG("ble_tes_c_on_ble_evt");
+    // NRF_LOG_DEBUG("ble_tes_c_on_ble_evt");
 
     if ((p_context == NULL) || (p_ble_evt == NULL))
     {
