@@ -164,17 +164,24 @@ static void on_hvx(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * p_ble_evt
     ble_tes_c_evt.conn_handle                = p_ble_tes_c->conn_handle;
     
     
-    // Check if this is a Temperature notification.
+    // Check if this is a Quaternion notification.
     if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.quat_handle)
     {
         ble_tes_c_evt.evt_type = BLE_TMS_EVT_QUAT;
         ble_tes_c_evt.params.value.quat_data = *(ble_tms_quat_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     } 
-    // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.pressure_handle)
-    // {
-    //     ble_tes_c_evt.evt_type = BLE_TES_C_EVT_PRESSURE_NOTIFICATION;
-    //     ble_tes_c_evt.params.value.pressure_data = *(ble_tes_pressure_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
-    // }
+    // Check if this is a Euler angle notification.
+    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.euler_handle)
+    {
+        ble_tes_c_evt.evt_type = BLE_TMS_EVT_EULER;
+        ble_tes_c_evt.params.value.euler_data = *(ble_tms_euler_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+    }
+    // Check if this is a Raw data notification.
+    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.raw_handle)
+    {
+        ble_tes_c_evt.evt_type = BLE_TMS_EVT_RAW;
+        ble_tes_c_evt.params.value.raw_data = *(ble_tms_raw_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+    }
     // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.humidity_handle)
     // {
     //     ble_tes_c_evt.evt_type = BLE_TES_C_EVT_HUMIDITY_NOTIFICATION;
@@ -474,6 +481,35 @@ uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
                           p_ble_tes_c->peer_thingy_tes_db.quat_cccd_handle,
                           true);
 }
+
+uint32_t ble_tes_c_euler_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
+{
+    VERIFY_PARAM_NOT_NULL(p_ble_tes_c);
+
+    if (p_ble_tes_c->conn_handle == BLE_CONN_HANDLE_INVALID)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    return cccd_configure_tes(p_ble_tes_c->conn_handle,
+                          p_ble_tes_c->peer_thingy_tes_db.euler_cccd_handle,
+                          true);
+}
+
+uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
+{
+    VERIFY_PARAM_NOT_NULL(p_ble_tes_c);
+
+    if (p_ble_tes_c->conn_handle == BLE_CONN_HANDLE_INVALID)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    return cccd_configure_tes(p_ble_tes_c->conn_handle,
+                          p_ble_tes_c->peer_thingy_tes_db.raw_cccd_handle,
+                          true);
+}
+
 
 uint32_t ble_tes_c_handles_assign(ble_thingy_tes_c_t    * p_ble_tes_c,
                                   uint16_t         conn_handle,

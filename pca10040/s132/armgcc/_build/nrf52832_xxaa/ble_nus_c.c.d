@@ -95,7 +95,6 @@ _build/nrf52832_xxaa/ble_nus_c.c.o: \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
  ../../../../../../components/libraries/util/app_error.h \
  ../../../../../../components/libraries/log/nrf_log.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h
 ../../../../../../components/libraries/util/sdk_common.h:
@@ -193,6 +192,5 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/s132/headers/ble_gap.h:
 ../../../../../../components/libraries/util/app_error.h:
 ../../../../../../components/libraries/log/nrf_log.h:
-../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:

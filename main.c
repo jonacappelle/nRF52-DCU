@@ -816,6 +816,12 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         APP_ERROR_CHECK(err_code);
         break;
 
+    // case BLE_GATTS_EVT_SYS_ATTR_MISSING:
+    //     // No system attributes have been stored.
+    //     err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+    //     APP_ERROR_CHECK(err_code);
+    //     break;
+
     default:
         break;
     }
@@ -1330,6 +1336,8 @@ void set_imu_packet_length()
 void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t * p_evt)
 {
 
+nrf_gpio_pin_set(11);
+
     switch (p_evt->evt_type)
     {
         ret_code_t err_code;
@@ -1341,15 +1349,21 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t 
                                                 &p_evt->params.peer_db);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
-
+            // Enable notifications - in peripheral this equates to turning on the sensors
             err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             APP_ERROR_CHECK(err_code);
+            // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
+            // err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
 
         }
         break;
 
         case BLE_TMS_EVT_QUAT:
         {
+            imu.received_packet_counter++;
+            NRF_LOG_INFO("%d", imu.received_packet_counter);
 
             float quat_buff[4];
             uint32_t quat_buff_len = sizeof(quat_buff);
@@ -1362,7 +1376,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t 
             quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             
-            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
             // // Put the received data in FIFO buffer
             // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
@@ -1387,13 +1401,61 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t 
             //     }
             // }
         }
+        break;
+        
+        case BLE_TMS_EVT_EULER:
+        {
+            float euler_buff[3];
+            uint32_t euler_buff_len = sizeof(euler_buff);
+
+            #define FIXED_POINT_FRACTIONAL_BITS_EULER       16
+
+            euler_buff[0] = ((float)p_evt->params.value.euler_data.yaw / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
+            euler_buff[1] = ((float)p_evt->params.value.euler_data.pitch / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
+            euler_buff[2] = ((float)p_evt->params.value.euler_data.roll / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));            
+            
+            NRF_LOG_INFO("euler: %d %d  %d", (int)euler_buff[0], (int)euler_buff[1], (int)euler_buff[2]);
+        }
+        break;
+
+        case BLE_TMS_EVT_RAW:
+        {
+            #define RAW_Q_FORMAT_GYR_COMMA_BITS 5    // Number of bits used for comma part of raw data.
+            #define RAW_Q_FORMAT_ACC_COMMA_BITS 10     // Number of bits used for comma part of raw data.
+            #define RAW_Q_FORMAT_CMP_COMMA_BITS 4    // Number of bits used for comma part of raw data.
+
+            float gyro[3];
+            float accel[3];
+            float mag[3];
+
+            gyro[0] = ((float)p_evt->params.value.raw_data.gyro.x / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+            gyro[1] = ((float)p_evt->params.value.raw_data.gyro.y / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+            gyro[2] = ((float)p_evt->params.value.raw_data.gyro.z / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));   
+            
+            accel[0] = ((float)p_evt->params.value.raw_data.accel.x / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+            accel[1] = ((float)p_evt->params.value.raw_data.accel.y / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+            accel[2] = ((float)p_evt->params.value.raw_data.accel.z / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));   
+
+            mag[0] = ((float)p_evt->params.value.raw_data.compass.x / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+            mag[1] = ((float)p_evt->params.value.raw_data.compass.y / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+            mag[2] = ((float)p_evt->params.value.raw_data.compass.z / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));   
+
+
+            NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(gyro[0]*1000), (int)(gyro[1]*1000), (int)(gyro[2]*1000));
+            NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
+            NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
+
+        }
+        break;
 
         default:
         {
-            // NRF_LOG_DEBUG("thingy_tes_c_evt_handler DEFAULT");
+            NRF_LOG_INFO("thingy_tes_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
         }
         break;
     }
+
+    nrf_gpio_pin_clear(11);
 }
 
 static void thingy_tes_c_init(void)
@@ -1511,6 +1573,8 @@ int main(void)
     // Sprintf timing
     nrf_gpio_cfg_output(10);
 
+    nrf_gpio_cfg_output(11);
+
 
     NRF_LOG_DEBUG("DEBUG ACTIVE");
 
@@ -1520,14 +1584,17 @@ int main(void)
     for (;;)
     {
         // App scheduler: handle event in buffer
+        nrf_gpio_pin_set(19);
         app_sched_execute();
+        nrf_gpio_pin_clear(19);
 
         nrf_gpio_pin_set(20);
         NRF_LOG_FLUSH();
         nrf_gpio_pin_clear(20);
-        nrf_gpio_pin_clear(19);
-        // idle_state_handle();
-        nrf_gpio_pin_set(19);
+
+        
+        idle_state_handle();
+        
 
         // nrf_delay_ms(1000);
         // NRF_LOG_INFO("Loop");

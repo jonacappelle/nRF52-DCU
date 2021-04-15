@@ -124,7 +124,6 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h \
  ../../../../../../components/ble/nrf_ble_scan/nrf_ble_scan.h \
  ../../../../../../components/libraries/log/nrf_log.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/libraries/log/nrf_log_ctrl.h \
@@ -276,7 +275,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h:
 ../../../../../../components/ble/nrf_ble_scan/nrf_ble_scan.h:
 ../../../../../../components/libraries/log/nrf_log.h:
-../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/libraries/log/nrf_log_ctrl.h:

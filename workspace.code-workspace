@@ -16,7 +16,10 @@
 			"sdk_common.h": "c",
 			"ble_types.h": "c",
 			"nrf_log.h": "c",
-			"imu_params.h": "c"
+			"imu_params.h": "c",
+			"app_util.h": "c",
+			"sdk_macros.h": "c",
+			"sdk_config.h": "c"
 		}
 	}
 }

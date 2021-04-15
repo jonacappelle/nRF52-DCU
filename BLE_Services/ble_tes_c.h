@@ -133,11 +133,46 @@ typedef enum
 
 typedef struct
 {
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} ble_tms_raw_accel_t;
+
+typedef struct
+{
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} ble_tms_raw_gyro_t;
+
+typedef struct
+{
+    int16_t x;
+    int16_t y;
+    int16_t z;
+} ble_tms_raw_compass_t;
+
+typedef struct
+{
+    ble_tms_raw_accel_t   accel;
+    ble_tms_raw_gyro_t    gyro;
+    ble_tms_raw_compass_t compass;
+} ble_tms_raw_t;
+
+typedef struct
+{
     int32_t w;
     int32_t x;
     int32_t y;
     int32_t z;
 } ble_tms_quat_t;
+
+typedef struct
+{
+    int32_t roll;
+    int32_t pitch;
+    int32_t yaw;
+} ble_tms_euler_t;
 
 
 typedef struct
@@ -177,12 +212,9 @@ typedef struct
 /**@brief Structure containing the event value received from the peer. */
 typedef union
 {
-    ble_tes_temperature_t temperature_data;  /**< Data Value. */
-    ble_tes_pressure_t pressure_data;
-    ble_tes_humidity_t humidity_data;
-    ble_tes_gas_t gas_data;
-    ble_tes_color_t color_data;
     ble_tms_quat_t quat_data;
+    ble_tms_euler_t euler_data;
+    ble_tms_raw_t raw_data;
 } ble_evt_value_t;
 
 /**@brief Structure containing the handles related to the Thingy Enviroment Service found on the peer. */
@@ -292,6 +324,8 @@ void ble_tes_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
  *          NRF_ERROR_NULL if the given parameter is NULL
  */
 uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
+uint32_t ble_tes_c_euler_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
+uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 
 
 /**@brief Function for handling events from the database discovery module.

@@ -81,7 +81,6 @@ _build/nrf52832_xxaa/nrfx_prs.c.o: \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_instance.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
@@ -168,7 +167,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/util/app_util.h:
 ../../../../../../components/libraries/util/sdk_macros.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
-../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_instance.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:

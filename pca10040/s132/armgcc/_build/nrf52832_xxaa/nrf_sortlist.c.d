@@ -50,8 +50,6 @@ _build/nrf52832_xxaa/nrf_sortlist.c.o: \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
  ../../../../../../components/libraries/util/nordic_common.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
- ../../../../../../components/libraries/util/sdk_errors.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/libraries/log/nrf_log_instance.h \
@@ -107,8 +105,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/log/nrf_log.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
 ../../../../../../components/libraries/util/nordic_common.h:
-../../../../../../components/libraries/strerror/nrf_strerror.h:
-../../../../../../components/libraries/util/sdk_errors.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/util/app_util.h:
 ../../../../../../components/libraries/log/nrf_log_instance.h:

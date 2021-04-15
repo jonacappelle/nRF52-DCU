@@ -68,7 +68,6 @@ _build/nrf52832_xxaa/nrf_queue.c.o: \
  ../../../../../../components/libraries/util/nordic_common.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/libraries/log/nrf_log.h \
- ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h
 ../../../../../../components/libraries/util/sdk_common.h:
@@ -139,6 +138,5 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/util/nordic_common.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/libraries/log/nrf_log.h:
-../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
