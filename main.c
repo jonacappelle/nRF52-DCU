@@ -1352,6 +1352,8 @@ nrf_gpio_pin_set(11);
             // Enable notifications - in peripheral this equates to turning on the sensors
             err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_orient_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
@@ -1445,6 +1447,12 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
             NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
 
+        }
+        break;
+
+        case BLE_TMS_EVT_ORIENTATION:
+        {
+            NRF_LOG_INFO("ADC data: %d", p_evt->params.value.orient_data.adc_1);
         }
         break;
 

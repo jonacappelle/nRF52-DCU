@@ -182,11 +182,11 @@ static void on_hvx(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * p_ble_evt
         ble_tes_c_evt.evt_type = BLE_TMS_EVT_RAW;
         ble_tes_c_evt.params.value.raw_data = *(ble_tms_raw_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
-    // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.humidity_handle)
-    // {
-    //     ble_tes_c_evt.evt_type = BLE_TES_C_EVT_HUMIDITY_NOTIFICATION;
-    //     ble_tes_c_evt.params.value.humidity_data = *(ble_tes_humidity_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
-    // }
+    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.orient_handle)
+    {
+        ble_tes_c_evt.evt_type = BLE_TMS_EVT_ORIENTATION;
+        ble_tes_c_evt.params.value.orient_data = *(ble_tms_orientation_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+    }
     // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.gas_handle)
     // {
     //     ble_tes_c_evt.evt_type = BLE_TES_C_EVT_GAS_NOTIFICATION;
@@ -479,6 +479,20 @@ uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
 
     return cccd_configure_tes(p_ble_tes_c->conn_handle,
                           p_ble_tes_c->peer_thingy_tes_db.quat_cccd_handle,
+                          true);
+}
+
+uint32_t ble_tes_c_orient_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
+{
+    VERIFY_PARAM_NOT_NULL(p_ble_tes_c);
+
+    if (p_ble_tes_c->conn_handle == BLE_CONN_HANDLE_INVALID)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    return cccd_configure_tes(p_ble_tes_c->conn_handle,
+                          p_ble_tes_c->peer_thingy_tes_db.orient_cccd_handle,
                           true);
 }
 

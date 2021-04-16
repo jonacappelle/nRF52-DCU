@@ -133,6 +133,50 @@ typedef enum
 
 typedef struct
 {
+    uint32_t adc_1;
+    uint32_t adc_2;
+    uint32_t adc_3;
+    uint32_t adc_4;
+    uint32_t adc_5;
+    uint32_t adc_6;
+    uint32_t adc_7;
+    uint32_t adc_8;
+    uint32_t adc_9;
+    uint32_t adc_10;
+    uint32_t adc_11;
+    uint32_t adc_12;
+    uint32_t adc_13;
+    uint32_t adc_14;
+    uint32_t adc_15;
+    uint32_t adc_16;
+    uint32_t adc_17;
+    uint32_t adc_18;
+    uint32_t adc_19;
+    uint32_t adc_20;
+    uint32_t adc_21;
+    uint32_t adc_22;
+    uint32_t adc_23;
+    uint32_t adc_24;
+    uint32_t adc_25;
+    uint32_t adc_26;
+    uint32_t adc_27;
+    uint32_t adc_28;
+    uint32_t adc_29;
+    uint32_t adc_30;
+    uint32_t adc_31;
+    uint32_t adc_32;
+    uint32_t adc_33;
+    uint32_t adc_34;
+    uint32_t adc_35;
+    uint32_t adc_36;
+    uint32_t adc_37;
+    uint32_t adc_38;
+    uint32_t adc_39;
+    uint32_t adc_40;
+}ble_tms_orientation_t;
+
+typedef struct
+{
     int16_t x;
     int16_t y;
     int16_t z;
@@ -215,6 +259,7 @@ typedef union
     ble_tms_quat_t quat_data;
     ble_tms_euler_t euler_data;
     ble_tms_raw_t raw_data;
+    ble_tms_orientation_t orient_data;
 } ble_evt_value_t;
 
 /**@brief Structure containing the handles related to the Thingy Enviroment Service found on the peer. */
@@ -324,6 +369,7 @@ void ble_tes_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
  *          NRF_ERROR_NULL if the given parameter is NULL
  */
 uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
+uint32_t ble_tes_c_orient_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_euler_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 
