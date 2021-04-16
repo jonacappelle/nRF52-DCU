@@ -76,6 +76,7 @@ _build/nrf52832_xxaa/time_sync.c.o: ../../../TimeSync/time_sync.c \
  ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h \
  ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
  ../../../../../../components/libraries/log/nrf_log.h \
+ ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h
 ../../../TimeSync/time_sync.h:
@@ -155,5 +156,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h:
 ../../../../../../components/softdevice/s132/headers/nrf_soc.h:
 ../../../../../../components/libraries/log/nrf_log.h:
+../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:

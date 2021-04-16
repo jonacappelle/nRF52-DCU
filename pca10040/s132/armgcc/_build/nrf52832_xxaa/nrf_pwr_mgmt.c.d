@@ -89,10 +89,15 @@ _build/nrf52832_xxaa/nrf_pwr_mgmt.c.o: \
  ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h \
  ../../../../../../components/libraries/log/nrf_log_backend_interface.h \
+ ../../../../../../components/libraries/memobj/nrf_memobj.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdlib.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h \
+ ../../../../../../components/libraries/balloc/nrf_balloc.h \
+ ../../../../../../components/libraries/log/nrf_log_instance.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
  ../../../../../../components/libraries/log/nrf_log.h \
+ ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
- ../../../../../../components/libraries/log/nrf_log_instance.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/softdevice/common/nrf_sdh.h
 ../../../../../../components/libraries/util/sdk_common.h:
@@ -184,9 +189,14 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h:
 ../../../../../../components/libraries/log/nrf_log_backend_interface.h:
+../../../../../../components/libraries/memobj/nrf_memobj.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdlib.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h:
+../../../../../../components/libraries/balloc/nrf_balloc.h:
+../../../../../../components/libraries/log/nrf_log_instance.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
 ../../../../../../components/libraries/log/nrf_log.h:
+../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
-../../../../../../components/libraries/log/nrf_log_instance.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/softdevice/common/nrf_sdh.h:

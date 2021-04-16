@@ -87,6 +87,7 @@ _build/nrf52832_xxaa/app_timer2.c.o: \
  ../../../../../../components/libraries/util/sdk_os.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
+ ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/libraries/timer/drv_rtc.h \
@@ -178,6 +179,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/util/sdk_os.h:
 ../../../../../../components/libraries/util/app_util.h:
 ../../../../../../components/libraries/util/sdk_macros.h:
+../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/libraries/timer/drv_rtc.h:

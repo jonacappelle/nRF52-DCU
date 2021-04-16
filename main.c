@@ -1376,7 +1376,7 @@ nrf_gpio_pin_set(11);
             quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             
-            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
             // // Put the received data in FIFO buffer
             // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
@@ -1526,7 +1526,9 @@ int main(void)
     db_discovery_init();
     power_management_init();
     ble_stack_init();
-    conn_evt_len_ext_set(); // added for faster speed
+    // conn_evt_len_ext_set(); // added for faster speed
+
+
 
     gatt_init();
     nus_c_init();
