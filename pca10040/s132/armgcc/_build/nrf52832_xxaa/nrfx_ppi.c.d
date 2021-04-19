@@ -1,6 +1,8 @@
-_build/nrf52832_xxaa/time_sync.c.o: ../../../TimeSync/time_sync.c \
- ../../../TimeSync/time_sync.h \
- c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h \
+_build/nrf52832_xxaa/nrfx_ppi.c.o: \
+ ../../../../../../modules/nrfx/drivers/src/nrfx_ppi.c \
+ ../../../../../../modules/nrfx/nrfx.h \
+ ../../../../../../integration/nrfx/nrfx_config.h ../config/sdk_config.h \
+ ../../../../../../modules/nrfx/drivers/nrfx_common.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\_default_types.h \
@@ -8,10 +10,8 @@ _build/nrf52832_xxaa/time_sync.c.o: ../../../TimeSync/time_sync.c \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_newlib_version.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_intsup.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_stdint.h \
- ../../../../../../modules/nrfx/nrfx.h \
- ../../../../../../integration/nrfx/nrfx_config.h ../config/sdk_config.h \
- ../../../../../../modules/nrfx/drivers/nrfx_common.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stddef.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h \
  ../../../../../../modules/nrfx/mdk/nrf.h \
  ../../../../../../modules/nrfx/mdk/nrf52.h \
  ../../../../../../components/toolchain/cmsis/include/core_cm4.h \
@@ -71,32 +71,26 @@ _build/nrf52832_xxaa/time_sync.c.o: ../../../TimeSync/time_sync.c \
  ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h \
  ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h \
+ ../../../../../../modules/nrfx/hal/nrf_ppi.h \
+ ../../../../../../integration/nrfx/nrfx_log.h \
+ ../../../../../../components/libraries/log/nrf_log.h \
+ ../../../../../../components/libraries/util/sdk_common.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h \
- ../../../../../../components/libraries/util/app_error.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h \
- ../../../../../../components/libraries/atomic/nrf_atomic.h \
- ../../../../../../components/libraries/util/sdk_common.h \
  ../../../../../../components/libraries/util/sdk_os.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/libraries/util/sdk_macros.h \
- ../../../../../../components/libraries/balloc/nrf_balloc.h \
- ../../../../../../components/libraries/log/nrf_log_instance.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
- ../../../../../../components/libraries/log/nrf_log_types.h \
- ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h \
- ../../../../../../modules/nrfx/hal/nrf_ppi.h \
- ../../../../../../components/softdevice/common/nrf_sdh_soc.h \
- ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h \
- ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
- ../../../../../../components/softdevice/s132/headers/nrf_sdm.h \
- ../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h \
- ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
+ ../../../../../../components/libraries/log/nrf_log_instance.h \
+ ../../../../../../components/libraries/log/nrf_log_types.h \
  ../../../../../../components/libraries/log/nrf_log_types.h
-../../../TimeSync/time_sync.h:
-c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h:
+../../../../../../modules/nrfx/nrfx.h:
+../../../../../../integration/nrfx/nrfx_config.h:
+../config/sdk_config.h:
+../../../../../../modules/nrfx/drivers/nrfx_common.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\_default_types.h:
@@ -104,11 +98,8 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_newlib_version.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_intsup.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_stdint.h:
-../../../../../../modules/nrfx/nrfx.h:
-../../../../../../integration/nrfx/nrfx_config.h:
-../config/sdk_config.h:
-../../../../../../modules/nrfx/drivers/nrfx_common.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stddef.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h:
 ../../../../../../modules/nrfx/mdk/nrf.h:
 ../../../../../../modules/nrfx/mdk/nrf52.h:
 ../../../../../../components/toolchain/cmsis/include/core_cm4.h:
@@ -168,27 +159,19 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h:
 ../../../../../../components/softdevice/s132/headers/nrf_soc.h:
 ../../../../../../modules/nrfx/drivers/nrfx_errors.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h:
+../../../../../../modules/nrfx/hal/nrf_ppi.h:
+../../../../../../integration/nrfx/nrfx_log.h:
+../../../../../../components/libraries/log/nrf_log.h:
+../../../../../../components/libraries/util/sdk_common.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h:
-../../../../../../components/libraries/util/app_error.h:
-../../../../../../modules/nrfx/hal/nrf_gpio.h:
-../../../../../../components/libraries/atomic/nrf_atomic.h:
-../../../../../../components/libraries/util/sdk_common.h:
 ../../../../../../components/libraries/util/sdk_os.h:
 ../../../../../../components/libraries/util/app_util.h:
 ../../../../../../components/libraries/util/sdk_macros.h:
-../../../../../../components/libraries/balloc/nrf_balloc.h:
-../../../../../../components/libraries/log/nrf_log_instance.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
-../../../../../../components/libraries/log/nrf_log_types.h:
-../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h:
-../../../../../../modules/nrfx/hal/nrf_ppi.h:
-../../../../../../components/softdevice/common/nrf_sdh_soc.h:
-../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h:
-../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
-../../../../../../components/softdevice/s132/headers/nrf_sdm.h:
-../../../../../../components/softdevice/s132/headers/nrf_error_sdm.h:
-../../../../../../components/libraries/log/nrf_log.h:
 ../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
+../../../../../../components/libraries/log/nrf_log_instance.h:
+../../../../../../components/libraries/log/nrf_log_types.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
