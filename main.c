@@ -1256,31 +1256,7 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 
     /* END CHANGES */
 }
-/**
- * @brief Function for configuring: PIN_IN pin for input, PIN_OUT pin for output,
- * and configures GPIOTE to give an interrupt on pin change.
- */
-static void gpio_init(void)
-{
-    ret_code_t err_code;
 
-    err_code = nrf_drv_gpiote_init();
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_out_config_t out_config = GPIOTE_CONFIG_OUT_SIMPLE(false);
-
-    err_code = nrf_drv_gpiote_out_init(PIN_OUT, &out_config);
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_config_t in_config = GPIOTE_CONFIG_IN_SENSE_TOGGLE(true);
-    in_config.pull = NRF_GPIO_PIN_PULLUP;
-
-    err_code = nrf_drv_gpiote_in_init(PIN_IN, &in_config, in_pin_handler);
-    APP_ERROR_CHECK(err_code);
-
-    nrf_drv_gpiote_in_event_enable(PIN_IN, true);
-}
-/////////////// LED BUTTON BLINK /////////////////////
 
 char const *phy_str(ble_gap_phys_t phys)
 {
@@ -1309,23 +1285,6 @@ char const *phy_str(ble_gap_phys_t phys)
     }
 }
 
-//void current_config_print(nrf_cli_t const * p_cli)
-//{
-//    NRF_LOG_INFO(p_cli, "==== Current test configuration ====\r\n");
-//    NRF_LOG_INFO(p_cli,
-//                    "ATT MTU size:\t\t%d\r\n"
-//                    "Data length:\t\t%d\r\n"
-//                    "Connection interval:\t%d units\r\n"
-//                    "Connection length ext:\t%s\r\n"
-//                    "Preferred PHY:\t\t%s\r\n",
-//                    params.att_mtu,
-//                    params.data_len,
-//                    params.conn_interval,
-//                    params.conn_evt_len_ext_enabled ? "on" : "off",
-//                    phy_str(params.phys));
-//    NRF_LOG_INFO(p_cli, "GAP event length:\t%d\r\n",
-//                    NRF_SDH_BLE_GAP_EVENT_LENGTH);
-//}
 
 void conn_evt_len_ext_set(void)
 {
@@ -1347,7 +1306,6 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
     {
     case NRF_DRV_UART_EVT_TX_DONE: ///< Requested TX transfer completed.
     {
-        // TODO send data more efficiently
         uint32_t index = 255;
         // Get next bytes from FIFO.
         if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &index) == NRF_SUCCESS)
@@ -1612,33 +1570,11 @@ int main(void)
     // Application scheduler (soft interrupt like)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 
-    ////////////////////////////////////
-    //	uint32_t err_code;
-    //	while(1){
-    //			if (!nrf_drv_uart_tx_in_progress(&imu.uart))
-    //			{
-    //        do
-    //        {
-    //						char test[] = ("teststringhahahaaahhaha\n");
-    //						err_code = nrf_drv_uart_tx(&imu.uart, (uint8_t *) test, sizeof(test)-1);
-    //
-    //            if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
-    //            {
-    //								NRF_LOG_ERROR("nrf_drv_uart_tx failed");
-    //                APP_ERROR_CHECK(err_code);
-    //            }
-    //        } while (err_code == NRF_ERROR_BUSY);
-    //			}
-    //		}
-    ///////////////////////////////////
-
     buttons_leds_init();
     db_discovery_init();
     power_management_init();
     ble_stack_init();
     // conn_evt_len_ext_set(); // added for faster speed
-
-
 
     gatt_init();
     nus_c_init();
@@ -1656,8 +1592,8 @@ int main(void)
     //nrf_gpio_cfg_output(7);
 
     // Start execution.
-    printf("BLE UART central example started.\r\n");
-    NRF_LOG_INFO("BLE UART central example started.");
+    printf("BLE DCU central started.\r\n");
+    NRF_LOG_INFO("BLE DCU central started.");
     scan_start();
 
     // TimeSync
@@ -1665,13 +1601,9 @@ int main(void)
     // This is a temporary fix for a known bug where connection is constantly closed with error code 0x3E
     sync_timer_init();
 
-    /////////////// LED BUTTON BLINK /////////////////////
-    //		gpio_init();
-    /////////////// LED BUTTON BLINK /////////////////////
-
     /* CHANGES */
     // TIMER DIY INIT
-    //timer_diy_init();
+    // timer_diy_init();
     /* END CHANGES */
 
     // Check time needed to process data
@@ -1706,20 +1638,8 @@ int main(void)
 
         
         idle_state_handle();
-        
-
-        // nrf_delay_ms(1000);
-        // NRF_LOG_INFO("Loop");
 
         // Toggle pin to check CPU activity
         nrf_gpio_pin_toggle(17);
     }
 }
-
-/*
-NRF_SDH_BLE_GAP_DATA_LENGTH 251
-
-NRF_SDH_BLE_GAP_EVENT_LENGTH 300
-
-NRF_SDH_BLE_GATT_MAX_MTU_SIZE 247
-*/
