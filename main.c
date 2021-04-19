@@ -1350,9 +1350,9 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
-            err_code = ble_tes_c_orient_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
@@ -1450,9 +1450,9 @@ nrf_gpio_pin_set(11);
         }
         break;
 
-        case BLE_TMS_EVT_ORIENTATION:
+        case BLE_TMS_EVT_ADC:
         {
-            NRF_LOG_INFO("ADC data: %d", p_evt->params.value.orient_data.adc_1);
+            NRF_LOG_INFO("ADC data: %d", p_evt->params.value.adc_data.raw[1]);
         }
         break;
 

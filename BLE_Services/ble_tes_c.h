@@ -94,7 +94,8 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
                       ble_tes_c_on_ble_evt, &_name, _cnt)
 
 
-#define THINGY_UUID_BASE        {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}
+// #define THINGY_UUID_BASE        {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}
+#define THINGY_UUID_BASE                  {0x5d, 0x82, 0x7d, 0x69, 0x83, 0xd1, 0x7c, 0x96, 0x2e, 0x43, 0xfb, 0x95, 0x54, 0x03, 0xaa, 0xcb}
 
 
 #define THINGY_UIS_UUID_SERVICE     0x0300
@@ -104,7 +105,7 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define THINGY_TES_UUID_SERVICE          0x0400
 #define THINGY_TES_UUID_CONFIG_CHAR      0x0401                      /**< The UUID of the config Characteristic. */
 #define THINGY_TES_UUID_TAP_CHAR         0x0402                      /**< The UUID of the tap Characteristic. */
-#define THINGY_TES_UUID_ORIENTATION_CHAR 0x0403                      /**< The UUID of the orientation Characteristic. */
+#define THINGY_TES_UUID_ADC_CHAR 0x0403                      /**< The UUID of the adc Characteristic. */
 #define THINGY_TES_UUID_QUATERNION_CHAR  0x0404                      /**< The UUID of the quaternion Characteristic. */
 #define THINGY_TES_UUID_PEDOMETER_CHAR   0x0405                      /**< The UUID of the pedometer Characteristic. */
 #define THINGY_TES_UUID_RAW_CHAR         0x0406                      /**< The UUID of the raw data Characteristic. */
@@ -114,13 +115,14 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define THINGY_TES_UUID_GRAVITY_CHAR     0x040A                      /**< The UUID of the gravity vector Characteristic. */
 
 
+
 /**@brief TES Client event type. */
 typedef enum
 {
     BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE = 1,       /**< Event indicating that the Thingy enviroment Service has been discovered at the peer. */
     BLE_TMS_EVT_CONFIG_RECEIVED,
     BLE_TMS_EVT_TAP,
-    BLE_TMS_EVT_ORIENTATION,
+    BLE_TMS_EVT_ADC,
     BLE_TMS_EVT_QUAT,
     BLE_TMS_EVT_PEDOMETER,
     BLE_TMS_EVT_RAW,
@@ -133,47 +135,8 @@ typedef enum
 
 typedef struct
 {
-    uint32_t adc_1;
-    uint32_t adc_2;
-    uint32_t adc_3;
-    uint32_t adc_4;
-    uint32_t adc_5;
-    uint32_t adc_6;
-    uint32_t adc_7;
-    uint32_t adc_8;
-    uint32_t adc_9;
-    uint32_t adc_10;
-    uint32_t adc_11;
-    uint32_t adc_12;
-    uint32_t adc_13;
-    uint32_t adc_14;
-    uint32_t adc_15;
-    uint32_t adc_16;
-    uint32_t adc_17;
-    uint32_t adc_18;
-    uint32_t adc_19;
-    uint32_t adc_20;
-    uint32_t adc_21;
-    uint32_t adc_22;
-    uint32_t adc_23;
-    uint32_t adc_24;
-    uint32_t adc_25;
-    uint32_t adc_26;
-    uint32_t adc_27;
-    uint32_t adc_28;
-    uint32_t adc_29;
-    uint32_t adc_30;
-    uint32_t adc_31;
-    uint32_t adc_32;
-    uint32_t adc_33;
-    uint32_t adc_34;
-    uint32_t adc_35;
-    uint32_t adc_36;
-    uint32_t adc_37;
-    uint32_t adc_38;
-    uint32_t adc_39;
-    uint32_t adc_40;
-}ble_tms_orientation_t;
+    uint32_t raw[40];
+}ble_tms_adc_t;
 
 typedef struct
 {
@@ -259,7 +222,7 @@ typedef union
     ble_tms_quat_t quat_data;
     ble_tms_euler_t euler_data;
     ble_tms_raw_t raw_data;
-    ble_tms_orientation_t orient_data;
+    ble_tms_adc_t adc_data;
 } ble_evt_value_t;
 
 /**@brief Structure containing the handles related to the Thingy Enviroment Service found on the peer. */
@@ -268,7 +231,7 @@ typedef struct
     uint16_t config_cccd_handle;
     uint16_t euler_cccd_handle;       /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t heading_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
-    uint16_t orient_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
+    uint16_t adc_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t pedometer_cccd_handle;               /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t quat_cccd_handle;             /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t raw_cccd_handle;            /**< Handle of the CCCD of the <...> characteristic. */
@@ -278,7 +241,7 @@ typedef struct
     uint16_t config_handle;
     uint16_t euler_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t heading_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t orient_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
+    uint16_t adc_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t pedometer_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t quat_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t raw_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
@@ -369,7 +332,7 @@ void ble_tes_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
  *          NRF_ERROR_NULL if the given parameter is NULL
  */
 uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
-uint32_t ble_tes_c_orient_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
+uint32_t ble_tes_c_adc_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_euler_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 

@@ -182,10 +182,10 @@ static void on_hvx(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * p_ble_evt
         ble_tes_c_evt.evt_type = BLE_TMS_EVT_RAW;
         ble_tes_c_evt.params.value.raw_data = *(ble_tms_raw_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
-    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.orient_handle)
+    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_thingy_tes_db.adc_handle)
     {
-        ble_tes_c_evt.evt_type = BLE_TMS_EVT_ORIENTATION;
-        ble_tes_c_evt.params.value.orient_data = *(ble_tms_orientation_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+        ble_tes_c_evt.evt_type = BLE_TMS_EVT_ADC;
+        ble_tes_c_evt.params.value.adc_data = *(ble_tms_adc_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
     // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_tes_c->peer_tes_db.gas_handle)
     // {
@@ -226,7 +226,7 @@ static void on_disconnected(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * 
 
         p_ble_tes_c->peer_thingy_tes_db.euler_cccd_handle    = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.heading_cccd_handle       = BLE_GATT_HANDLE_INVALID;
-        p_ble_tes_c->peer_thingy_tes_db.orient_cccd_handle       = BLE_GATT_HANDLE_INVALID;
+        p_ble_tes_c->peer_thingy_tes_db.adc_cccd_handle       = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.pedometer_cccd_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.quat_cccd_handle          = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.raw_cccd_handle         = BLE_GATT_HANDLE_INVALID;
@@ -235,7 +235,7 @@ static void on_disconnected(ble_thingy_tes_c_t * p_ble_tes_c, ble_evt_t const * 
         p_ble_tes_c->peer_thingy_tes_db.gravity_cccd_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.euler_handle                 = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.heading_handle               = BLE_GATT_HANDLE_INVALID;
-        p_ble_tes_c->peer_thingy_tes_db.orient_handle              = BLE_GATT_HANDLE_INVALID;
+        p_ble_tes_c->peer_thingy_tes_db.adc_handle              = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.pedometer_handle         = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.quat_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_tes_c->peer_thingy_tes_db.raw_handle            = BLE_GATT_HANDLE_INVALID;
@@ -276,10 +276,10 @@ void ble_thingy_tes_on_db_disc_evt(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_
                     evt.params.peer_db.tap_handle = p_char->characteristic.handle_value;
                     NRF_LOG_INFO("402 evt TAP handle = %d", p_char->characteristic.handle_value);
                     break;
-                case THINGY_TES_UUID_ORIENTATION_CHAR: 
-                    evt.params.peer_db.orient_cccd_handle = p_char->cccd_handle;
-                    evt.params.peer_db.orient_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("403 evt Orientation handle = %d", evt.params.peer_db.orient_handle);
+                case THINGY_TES_UUID_ADC_CHAR: 
+                    evt.params.peer_db.adc_cccd_handle = p_char->cccd_handle;
+                    evt.params.peer_db.adc_handle = p_char->characteristic.handle_value;
+                    NRF_LOG_INFO("403 evt ADC handle = %d", evt.params.peer_db.adc_handle);
                     break;
                 case THINGY_TES_UUID_QUATERNION_CHAR:
                     evt.params.peer_db.quat_cccd_handle = p_char->cccd_handle;
@@ -334,8 +334,8 @@ void ble_thingy_tes_on_db_disc_evt(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.tap_handle           = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.heading_cccd_handle  = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.heading_handle       = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_thingy_tes_c->peer_thingy_tes_db.orient_cccd_handle   = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_thingy_tes_c->peer_thingy_tes_db.orient_handle        = BLE_GATT_HANDLE_INVALID)&&
+                (p_ble_thingy_tes_c->peer_thingy_tes_db.adc_cccd_handle   = BLE_GATT_HANDLE_INVALID)&&
+                (p_ble_thingy_tes_c->peer_thingy_tes_db.adc_handle        = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.rot_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_thingy_tes_c->peer_thingy_tes_db.rot_handle           = BLE_GATT_HANDLE_INVALID))
             {
@@ -372,8 +372,8 @@ uint32_t ble_thingy_tes_c_init(ble_thingy_tes_c_t * p_ble_thingy_tes_c, ble_thin
     p_ble_thingy_tes_c->peer_thingy_tes_db.euler_handle           = BLE_GATT_HANDLE_INVALID;
     p_ble_thingy_tes_c->peer_thingy_tes_db.heading_cccd_handle    = BLE_GATT_HANDLE_INVALID;
     p_ble_thingy_tes_c->peer_thingy_tes_db.heading_handle         = BLE_GATT_HANDLE_INVALID;
-    p_ble_thingy_tes_c->peer_thingy_tes_db.orient_cccd_handle     = BLE_GATT_HANDLE_INVALID;
-    p_ble_thingy_tes_c->peer_thingy_tes_db.orient_handle          = BLE_GATT_HANDLE_INVALID;
+    p_ble_thingy_tes_c->peer_thingy_tes_db.adc_cccd_handle     = BLE_GATT_HANDLE_INVALID;
+    p_ble_thingy_tes_c->peer_thingy_tes_db.adc_handle          = BLE_GATT_HANDLE_INVALID;
     p_ble_thingy_tes_c->peer_thingy_tes_db.pedometer_cccd_handle  = BLE_GATT_HANDLE_INVALID;
     p_ble_thingy_tes_c->peer_thingy_tes_db.pedometer_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_thingy_tes_c->peer_thingy_tes_db.quat_cccd_handle       = BLE_GATT_HANDLE_INVALID;
@@ -482,7 +482,7 @@ uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
                           true);
 }
 
-uint32_t ble_tes_c_orient_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
+uint32_t ble_tes_c_adc_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
 {
     VERIFY_PARAM_NOT_NULL(p_ble_tes_c);
 
@@ -492,7 +492,7 @@ uint32_t ble_tes_c_orient_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
     }
 
     return cccd_configure_tes(p_ble_tes_c->conn_handle,
-                          p_ble_tes_c->peer_thingy_tes_db.orient_cccd_handle,
+                          p_ble_tes_c->peer_thingy_tes_db.adc_cccd_handle,
                           true);
 }
 
