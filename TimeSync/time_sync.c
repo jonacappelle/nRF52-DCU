@@ -60,6 +60,8 @@
 #define NRF_LOG_MODULE_NAME time_sync
 #define NRF_LOG_LEVEL 4
 #include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
 NRF_LOG_MODULE_REGISTER();
 
 #if   defined ( __CC_ARM )
@@ -180,7 +182,7 @@ static int32_t calculate_tx_start_offset(void);
 static nrf_radio_request_t m_timeslot_req_earliest = {
         NRF_RADIO_REQ_TYPE_EARLIEST,
         .params.earliest = {
-            NRF_RADIO_HFCLK_CFG_XTAL_GUARANTEED,
+            NRF_RADIO_HFCLK_CFG_NO_GUARANTEE, //NRF_RADIO_HFCLK_CFG_XTAL_GUARANTEED,
             NRF_RADIO_PRIORITY_NORMAL,
             TS_LEN_US,
             100000 /* Expect timeslot within 100 ms */
@@ -190,7 +192,7 @@ static nrf_radio_request_t m_timeslot_req_earliest = {
 static nrf_radio_request_t m_timeslot_req_normal = {
         NRF_RADIO_REQ_TYPE_NORMAL,
         .params.normal = {
-            NRF_RADIO_HFCLK_CFG_XTAL_GUARANTEED,
+            NRF_RADIO_HFCLK_CFG_NO_GUARANTEE, //NRF_RADIO_HFCLK_CFG_XTAL_GUARANTEED,
             NRF_RADIO_PRIORITY_NORMAL,
             0,
             TS_LEN_US
@@ -580,6 +582,12 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
                     ++m_tx_slot_retry_count;
                     m_timeslot_req_normal.params.normal.distance_us = m_timeslot_distance * (m_tx_slot_retry_count + 2);
                     uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_normal);
+
+                    if(err_code != NRF_SUCCESS)
+                    {
+                        NRF_LOG_INFO("ts_evt_callback ERROR: %d", err_code);
+                        NRF_LOG_FLUSH();
+                    }
                     APP_ERROR_CHECK(err_code);
                 }
                 else
@@ -653,7 +661,7 @@ static void sync_timer_start(void)
 }
 
 #if TIME_SYNC_TX_OFFSET_REALIGN_TIMEOUT == 0
-static uint32_t calculate_tx_start_offset(void)
+static int32_t calculate_tx_start_offset(void)
 {
     return 0;
 }
@@ -970,8 +978,7 @@ static void timers_capture(uint32_t * p_sync_timer_val, uint32_t * p_count_timer
 {
     static nrf_atomic_flag_t m_timestamp_capture_flag = 0;
 
-    uint32_t peer_counter;
-    bool     timeslot_active;
+    nrf_atomic_u32_t peer_counter;
 
     if (nrf_atomic_flag_set_fetch(&m_timestamp_capture_flag) != 0)
     {
@@ -981,41 +988,49 @@ static void timers_capture(uint32_t * p_sync_timer_val, uint32_t * p_count_timer
 
     nrf_ppi_channel_t ppi_chn;
     nrfx_err_t ret = nrfx_ppi_channel_alloc(&ppi_chn);
-    ASSERT(ret == NRFX_SUCCESS);
+    APP_ERROR_CHECK_BOOL(ret == NRFX_SUCCESS);
 
     ppi_counter_timer_capture_configure(ppi_chn);
 
-    // Use loop in case radio state changes from inactive to active during value copy
-    // Value copy needs to be atomic to get accurate timestamp
+    NVIC_DisableIRQ(m_params.egu_irq_type);
+
+    bool counter_adjustment_triggered;
+
+    // Loop if adjustment procedure happened close to timer capture
     do
     {
-        if (m_radio_state == RADIO_STATE_IDLE)
+        counter_adjustment_triggered = m_params.egu->EVENTS_TRIGGERED[0];
+
+        m_params.egu->EVENTS_TRIGGERED[1] = 0;
+        m_params.egu->TASKS_TRIGGER[1] = 1;
+        while (m_params.egu->EVENTS_TRIGGERED[1] == 0)
         {
-            timeslot_active = false;
+            __NOP();
+        }
+
+        if (m_params.high_freq_timer[1]->CC[0] < 2 || m_params.high_freq_timer[0]->CC[3] < 2)
+        {
+            /* Capture again if capture happened too close to adjustment or wraparound */
+            m_params.egu->EVENTS_TRIGGERED[1] = 0;
+            m_params.egu->TASKS_TRIGGER[1] = 1;
+            while (m_params.egu->EVENTS_TRIGGERED[1] == 0)
+            {
+                __NOP();
+            }
+        }
+
+        if (counter_adjustment_triggered)
+        {
+            peer_counter = ((sync_pkt_t *) mp_curr_adj_pkt)->counter_val;
         }
         else
         {
-            timeslot_active =  true;
-        }
-
-        if (timeslot_active)
-        {
-            // Do critical section during timeslot
-            NVIC_DisableIRQ(RADIO_IRQn);
-            m_params.egu->TASKS_TRIGGER[1] = 1;
-            (void) m_params.egu->EVENTS_TRIGGERED[1];
-            peer_counter = m_master_counter;
-            NVIC_EnableIRQ(RADIO_IRQn);
-        }
-        else
-        {
-            // Critical section not needed outside of timeslot
-            m_params.egu->TASKS_TRIGGER[1] = 1;
-            (void) m_params.egu->EVENTS_TRIGGERED[1];
             peer_counter = m_master_counter;
         }
+    } while (counter_adjustment_triggered != m_params.egu->EVENTS_TRIGGERED[0] ||
+             m_params.high_freq_timer[0]->CC[3] < 2);
 
-    } while (!timeslot_active && (m_radio_state != RADIO_STATE_IDLE));
+    NVIC_EnableIRQ(m_params.egu_irq_type);
 
     ppi_counter_timer_capture_disable(ppi_chn);
     nrfx_ppi_channel_free(ppi_chn);

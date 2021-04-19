@@ -94,7 +94,14 @@ _build/nrf52832_xxaa/time_sync.c.o: ../../../TimeSync/time_sync.c \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
- ../../../../../../components/libraries/log/nrf_log_types.h
+ ../../../../../../components/libraries/log/nrf_log_types.h \
+ ../../../../../../components/libraries/log/nrf_log_ctrl.h \
+ ../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h \
+ ../../../../../../components/libraries/log/nrf_log_backend_interface.h \
+ ../../../../../../components/libraries/memobj/nrf_memobj.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdlib.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h \
+ ../../../../../../components/libraries/log/nrf_log_default_backends.h
 ../../../TimeSync/time_sync.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h:
@@ -192,3 +199,10 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
+../../../../../../components/libraries/log/nrf_log_ctrl.h:
+../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h:
+../../../../../../components/libraries/log/nrf_log_backend_interface.h:
+../../../../../../components/libraries/memobj/nrf_memobj.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdlib.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h:
+../../../../../../components/libraries/log/nrf_log_default_backends.h:

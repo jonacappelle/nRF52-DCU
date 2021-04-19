@@ -962,6 +962,12 @@ static void ts_evt_callback(const ts_evt_t* evt)
                 tick_target = evt->params.triggered.tick_target + 2;
 
                 uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+                
+                if(err_code != NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("ts_evt_callback ERROR: %d", err_code);
+                    NRF_LOG_FLUSH();
+                }
                 APP_ERROR_CHECK(err_code);
             }
             else

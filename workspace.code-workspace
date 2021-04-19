@@ -19,7 +19,9 @@
 			"imu_params.h": "c",
 			"app_util.h": "c",
 			"sdk_macros.h": "c",
-			"sdk_config.h": "c"
+			"sdk_config.h": "c",
+			"app_error.h": "c",
+			"nordic_common.h": "c"
 		}
 	}
 }
