@@ -132,6 +132,7 @@ IMU imu = {
 
 #define SYNC_FREQ 2 // Hz
 static bool m_gpio_trigger_enabled;
+static bool m_imu_trigger_enabled;
 
 /////////////// LED BUTTON BLINK /////////////////////
 #define SPARKFUN_LED 7
@@ -940,27 +941,67 @@ static void ts_gpio_trigger_disable(void)
     m_gpio_trigger_enabled = false;
 }
 
+
+static void ts_imu_trigger_enable(void)
+{
+    uint64_t time_now_ticks;
+    uint32_t time_now_msec;
+    uint32_t time_target;
+    uint32_t err_code;
+
+    if (m_imu_trigger_enabled)
+    {
+        return;
+    }
+
+    // Round up to nearest second to next 2000 ms to start toggling.
+    // If the receiver has received a valid sync packet within this time, the GPIO toggling polarity will be the same.
+
+    time_now_ticks = ts_timestamp_get_ticks_u64();
+    time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+
+    time_target = TIME_SYNC_MSEC_TO_TICK(time_now_msec) + (1000 * 2);
+    time_target = (time_target / 1000) * 1000;
+
+    err_code = ts_set_trigger(time_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+    APP_ERROR_CHECK(err_code);
+
+    nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
+
+    m_imu_trigger_enabled = true;
+}
+
+static void ts_imu_trigger_disable(void)
+{
+    m_imu_trigger_enabled = false;
+}
+
 static void ts_evt_callback(const ts_evt_t* evt)
 {
+
     APP_ERROR_CHECK_BOOL(evt != NULL);
 
     switch (evt->type)
     {
         case TS_EVT_SYNCHRONIZED:
             NRF_LOG_INFO("TS_EVT_SYNCHRONIZED");
-            ts_gpio_trigger_enable();
+            // ts_gpio_trigger_enable();
+            ts_imu_trigger_enable();
             break;
         case TS_EVT_DESYNCHRONIZED:
             NRF_LOG_INFO("TS_EVT_DESYNCHRONIZED");
-            ts_gpio_trigger_disable();
+            // ts_gpio_trigger_disable();
+            ts_imu_trigger_disable();
             break;
         case TS_EVT_TRIGGERED:
             // NRF_LOG_INFO("TS_EVT_TRIGGERED");
-            if (m_gpio_trigger_enabled)
+            if (m_imu_trigger_enabled)
             {
                 uint32_t tick_target;
 
-                tick_target = evt->params.triggered.tick_target + 2;
+                tick_target = evt->params.triggered.tick_target + 200;
+
+                NRF_LOG_INFO("tick_target %d", tick_target);
 
                 uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
                 
@@ -976,6 +1017,11 @@ static void ts_evt_callback(const ts_evt_t* evt)
                 // Ensure pin is low when triggering is stopped
                 nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
             }
+            uint64_t time_now_ticks;
+            uint32_t time_now_msec;
+            time_now_ticks = ts_timestamp_get_ticks_u64();
+            time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+            NRF_LOG_INFO("Time: %d", time_now_msec);
             break;
         default:
             APP_ERROR_CHECK_BOOL(false);
@@ -1065,7 +1111,8 @@ void bsp_event_handler(bsp_event_t event)
             err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
             APP_ERROR_CHECK(err_code);
 
-            ts_gpio_trigger_enable();
+            // ts_gpio_trigger_enable();
+            ts_imu_trigger_enable();
 
             NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
         }
@@ -1426,7 +1473,7 @@ nrf_gpio_pin_set(11);
         case BLE_TMS_EVT_QUAT:
         {
             imu.received_packet_counter++;
-            NRF_LOG_INFO("%d", imu.received_packet_counter);
+            // NRF_LOG_INFO("%d", imu.received_packet_counter);
 
             float quat_buff[4];
             uint32_t quat_buff_len = sizeof(quat_buff);
@@ -1439,7 +1486,7 @@ nrf_gpio_pin_set(11);
             quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             
-            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
             // // Put the received data in FIFO buffer
             // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
