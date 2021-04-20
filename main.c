@@ -955,6 +955,7 @@ static void ts_evt_callback(const ts_evt_t* evt)
             ts_gpio_trigger_disable();
             break;
         case TS_EVT_TRIGGERED:
+            // NRF_LOG_INFO("TS_EVT_TRIGGERED");
             if (m_gpio_trigger_enabled)
             {
                 uint32_t tick_target;
@@ -1013,7 +1014,7 @@ static void sync_timer_init(void)
 
 	ts_rf_config_t rf_config =
 	{
-		.rf_chn = 80,
+		.rf_chn = 37,
 		.rf_addr = { 0xDE, 0xAD, 0xBE, 0xEF, 0x19 }
 	};
 
@@ -1048,7 +1049,7 @@ void bsp_event_handler(bsp_event_t event)
             m_send_sync_pkt = false;
             m_gpio_trigger_enabled = false;
 
-            bsp_board_leds_off();
+            // bsp_board_leds_off();
 
             err_code = ts_tx_stop();
             APP_ERROR_CHECK(err_code);
@@ -1059,7 +1060,7 @@ void bsp_event_handler(bsp_event_t event)
         {
             m_send_sync_pkt = true;
 
-            bsp_board_leds_on();
+            // bsp_board_leds_on();
 
             err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
             APP_ERROR_CHECK(err_code);
@@ -1410,8 +1411,8 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
