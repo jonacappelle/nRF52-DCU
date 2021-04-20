@@ -1014,7 +1014,7 @@ static void sync_timer_init(void)
 
 	ts_rf_config_t rf_config =
 	{
-		.rf_chn = 37,
+		.rf_chn = 80,
 		.rf_addr = { 0xDE, 0xAD, 0xBE, 0xEF, 0x19 }
 	};
 
