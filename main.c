@@ -999,9 +999,9 @@ static void ts_evt_callback(const ts_evt_t* evt)
             {
                 uint32_t tick_target;
 
-                tick_target = evt->params.triggered.tick_target + 200;
+                tick_target = evt->params.triggered.tick_target + 4;
 
-                NRF_LOG_INFO("tick_target %d", tick_target);
+                // NRF_LOG_INFO("tick_target %d", tick_target);
 
                 uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
                 
@@ -1021,7 +1021,7 @@ static void ts_evt_callback(const ts_evt_t* evt)
             uint32_t time_now_msec;
             time_now_ticks = ts_timestamp_get_ticks_u64();
             time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
-            NRF_LOG_INFO("Time: %d", time_now_msec);
+            // NRF_LOG_INFO("Time: %d", time_now_msec);
             break;
         default:
             APP_ERROR_CHECK_BOOL(false);
@@ -1458,14 +1458,14 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
+            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
-            // err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
 
         }
         break;
@@ -1486,7 +1486,7 @@ nrf_gpio_pin_set(11);
             quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             
-            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
             // // Put the received data in FIFO buffer
             // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
