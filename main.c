@@ -170,6 +170,97 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue, /**< BLE GATT Queue instance. */
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 //static uint16_t m_ble_nus_max_data_len = 247 - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 
+
+
+
+
+void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
+{
+    while (imu.evt_scheduled > 0)
+    {
+        uint32_t err_code;
+
+        bool read_success = false;
+
+        // NRF_LOG_INFO("App scheduler execute: %d", imu.evt_scheduled);
+
+        char string[26];
+
+        float quat[4];
+        uint32_t quat_len = sizeof(quat);
+
+        if (app_fifo_read(&buffer.received_data_fifo, quat, &quat_len) == NRF_SUCCESS)
+        {
+            // NRF_LOG_INFO("Read QUAT6");
+            // NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
+            sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", quat[0], quat[1], quat[2], quat[3]);
+            // NRF_LOG_INFO("%s", string);
+
+            read_success = true;
+            imu.evt_scheduled--;
+        }
+
+                // Get data from FIFO buffer if data is correctly recognized
+        if (read_success)
+        {
+
+            // NRF_LOG_INFO("read_success");
+            // NRF_LOG_FLUSH();
+
+            uint32_t string_len = 0;
+            do
+            {
+                string_len++;
+            } while (string[string_len] != '\n');
+            string_len++;
+
+            // Put the data in FIFO buffer
+            err_code = app_fifo_write(&buffer.uart_dma_difo, (uint8_t *)string, &string_len);
+            if (err_code == NRF_ERROR_NO_MEM)
+            {
+                NRF_LOG_INFO("UART FIFO BUFFER FULL!");
+            }
+
+            if (err_code == NRF_SUCCESS)
+            {
+                //								NRF_LOG_INFO("Data in FIFO");
+                // The new byte has been added to FIFO. It will be picked up from there
+                // (in 'uart_event_handler') when all preceding bytes are transmitted.
+                // But if UART is not transmitting anything at the moment, we must start
+                // a new transmission here.
+                if (!nrf_drv_uart_tx_in_progress(&imu.uart))
+                {
+                    //										NRF_LOG_INFO("TX not in progress");
+                    // This operation should be almost always successful, since we've
+                    // just added a byte to FIFO, but if some bigger delay occurred
+                    // (some heavy interrupt handler routine has been executed) since
+                    // that time, FIFO might be empty already.
+                    if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
+                    {
+                        //												NRF_LOG_INFO("FIFO read");
+                        do
+                        {
+                            err_code = nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)string_len);
+                            if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
+                            {
+                                NRF_LOG_ERROR("nrf_drv_uart_tx failed");
+                                APP_ERROR_CHECK(err_code);
+                            }
+                        } while (err_code == NRF_ERROR_BUSY);
+                        //												NRF_LOG_INFO("UART TX OK");
+                    }
+                }
+            }
+
+        }
+    }
+}
+
+
+
+
+
+
 // Event handler DIY
 void data_evt_sceduled(void *p_event_data, uint16_t event_size)
 {
@@ -1367,9 +1458,9 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
                 // Last byte from FIFO transmitted, notify the application.
                 // app_uart_event.evt_type = APP_UART_TX_EMPTY;
                 // m_event_handler(&app_uart_event);
-                NRF_LOG_INFO("UART TX EMPTY");
+                // NRF_LOG_INFO("UART TX EMPTY");
         }
-        NRF_LOG_INFO("UART TX done");
+        // NRF_LOG_INFO("UART TX done");
         break;
     }
     case NRF_DRV_UART_EVT_RX_DONE: ///< Requested RX transfer completed.
@@ -1458,14 +1549,14 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
-            err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
+            // err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
 
         }
         break;
@@ -1488,28 +1579,31 @@ nrf_gpio_pin_set(11);
             
             NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
-            // // Put the received data in FIFO buffer
-            // err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff);
-            // if (err_code == NRF_ERROR_NO_MEM)
-            // {
-            //     NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
-            // }
-            // if (err_code == NRF_SUCCESS)
-            // {
-            //     // Signal to event handler to execute sprintf + start UART transmission
-            //     // If there are already events in the queue
-            //     if (imu.evt_scheduled > 0)
-            //     {
-            //         imu.evt_scheduled++;
-            //     }
-            //     // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
-            //     else
-            //     {
-            //         imu.evt_scheduled++;
-            //         err_code = app_sched_event_put(0, 0, data_evt_sceduled);
-            //         APP_ERROR_CHECK(err_code);
-            //     }
-            // }
+            // Put the received data in FIFO buffer
+            err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff_len);
+            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
+            // NRF_LOG_FLUSH();
+
+            if (err_code == NRF_ERROR_NO_MEM)
+            {
+                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+            }
+            if (err_code == NRF_SUCCESS)
+            {
+                // Signal to event handler to execute sprintf + start UART transmission
+                // If there are already events in the queue
+                if (imu.evt_scheduled > 0)
+                {
+                    imu.evt_scheduled++;
+                }
+                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+                else
+                {
+                    imu.evt_scheduled++;
+                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                    APP_ERROR_CHECK(err_code);
+                }
+            }
         }
         break;
         
