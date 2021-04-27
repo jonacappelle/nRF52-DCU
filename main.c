@@ -88,7 +88,7 @@
 // Receive data from Thingy motion service
 #include "ble_tes_c.h"
 
-
+#define PRINT() NRF_LOG_INFO()
 
 
 // Create a FIFO structure
@@ -97,6 +97,8 @@ typedef struct buffer
     app_fifo_t uart_dma_difo;
     app_fifo_t received_data_fifo;  
     uint8_t uart_dma_tx_buff[100];
+    app_fifo_t uart_rx_fifo;
+    uint8_t uart_rx_buff[100];
 }BUFFER;
 
 // Initialisation of struct to keep track of different buffers
@@ -116,12 +118,14 @@ typedef struct imu
     int received_packet_counter;
     nrf_drv_uart_t uart;
     uint32_t evt_scheduled;
+    uint32_t uart_rx_evt_scheduled;
 } IMU;
 
 // Initialisation of IMU struct
 IMU imu = {
     .received_packet_counter = 0,
     .evt_scheduled = 0,
+    .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
 };
 
@@ -171,7 +175,211 @@ static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGT
 //static uint16_t m_ble_nus_max_data_len = 247 - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 
 
+typedef enum
+{
+    CMD_TYPE,
+    CMD_FREQ,
+} cmd_received_t;
 
+
+
+#define CMD_GYRO    0x67 //g
+#define CMD_ACCEL   0x61 //a
+#define CMD_MAG     0x6D //m
+
+#define CMD_QUAT    0x71 //q
+#define CMD_QUAT6   0x36 //6
+#define CMD_QUAT9   0x39 //9
+
+#define CMD_EULER   0x65 //e
+
+#define CMD_CR      0x0A //carriage return
+
+#define CMD_FREQ    0x66 //f
+
+#define CMD_FREQ_LEN    3 // Length of the frequency component of uart config
+#define CMD_FREQ_50     50
+#define CMD_FREQ_100    100
+#define CMD_FREQ_225    225
+
+
+uint8_t uart_rx_to_cmd(uint8_t * command_in, uint8_t len)
+{
+    uint8_t temp[len];
+    memcpy(temp, command_in, len);
+
+    NRF_LOG_INFO("%d %d %d", command_in[0], command_in[1], command_in[2]);
+    NRF_LOG_FLUSH();
+
+    uint8_t x =  atoi(temp);
+
+    NRF_LOG_INFO("%d", x);
+    NRF_LOG_FLUSH();
+
+    return x;
+}
+
+void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
+{
+    uint8_t state = CMD_TYPE;
+
+    ret_code_t err_code;
+
+    uint8_t p_byte[3];
+
+    // If there is data left in FIFO and the read byte is not a carriage return
+    while((app_fifo_get(&buffer.uart_rx_fifo, p_byte) != NRF_ERROR_NOT_FOUND))
+    {    
+            // Check if end of message is reached
+            if(p_byte[0] == CMD_CR) 
+            {   
+                NRF_LOG_INFO("Break!");
+                // NRF_LOG_FLUSH();
+                break;
+            }
+            // Here we can process the request received over UART
+
+            NRF_LOG_INFO("p_byte: %d", p_byte[0]);
+            // NRF_LOG_FLUSH();
+
+            switch(state)
+            {
+                case CMD_TYPE:
+                        NRF_LOG_INFO("CMD_INIT");
+                        // NRF_LOG_FLUSH();
+
+                        // Detect parameter
+                        switch(p_byte[0])
+                        {
+                            case CMD_GYRO:
+                                    NRF_LOG_INFO("CMD_GYRO received");
+                                    // NRF_LOG_FLUSH();
+                                    state = CMD_FREQ;
+                                break;
+
+                            case CMD_ACCEL:
+                                    NRF_LOG_INFO("CMD_ACCEL received");
+                                    // NRF_LOG_FLUSH();
+                                    state = CMD_FREQ;
+                                break;
+
+                            case CMD_MAG:
+                                    NRF_LOG_INFO("CMD_MAG received");
+                                    // NRF_LOG_FLUSH();
+                                    state = CMD_FREQ;
+                                break;
+
+                            case CMD_QUAT:
+                                    NRF_LOG_INFO("CMD_QUAT received");
+                                    // NRF_LOG_FLUSH();
+
+                                    uint8_t byte[1];
+                                    err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte);
+
+                                    switch(byte[0])
+                                    {
+                                        case CMD_QUAT6:
+                                                NRF_LOG_INFO("CMD_QUAT6 received");
+                                                // NRF_LOG_FLUSH();
+                                                state = CMD_FREQ;
+                                            break;
+                                        
+                                        case CMD_QUAT9:
+                                                NRF_LOG_INFO("CMD_QUAT9 received");
+                                                // NRF_LOG_FLUSH();
+                                                state = CMD_FREQ;
+                                            break;
+
+                                        default:
+                                                NRF_LOG_INFO("Invalid character after CMD_QUAT");
+                                                // NRF_LOG_FLUSH();
+                                            break;
+                                    }
+                                break;
+
+                            case CMD_EULER:
+                                    NRF_LOG_INFO("CMD_EULER received");
+                                    // NRF_LOG_FLUSH();
+                                    state = CMD_FREQ;
+                                break;
+
+                            default:
+                                    NRF_LOG_INFO("CMD INVALID received");
+                                    NRF_LOG_FLUSH();
+                                break;
+                        }
+                    break;
+                
+                case CMD_FREQ:
+                {
+                        NRF_LOG_INFO("CMD_FREQ");
+                        // NRF_LOG_FLUSH();
+
+                        uint32_t cmd_freq_len = 3;
+
+                        uint8_t p_byte1[3];
+                        err_code = app_fifo_read(&buffer.uart_rx_fifo, p_byte1, &cmd_freq_len);
+
+                        // NRF_LOG_INFO("cmd_freq_len %d", cmd_freq_len);
+                        // NRF_LOG_FLUSH();
+
+                        // Get frequency components
+                        if(err_code == NRF_SUCCESS)
+                        {
+                            // NRF_LOG_INFO("success");
+                            // NRF_LOG_FLUSH();
+                            uint8_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
+                            NRF_LOG_INFO("Frequency received: %d", cmd);
+                            NRF_LOG_FLUSH();
+
+                            switch(cmd)
+                            {
+                                // NRF_LOG_INFO("in switch statement");
+                                // NRF_LOG_FLUSH();
+
+                                case CMD_FREQ_50:
+                                        NRF_LOG_INFO("CMD_FREQ_50 received");
+                                        // NRF_LOG_FLUSH();
+                                    break;
+                                
+                                case CMD_FREQ_100:
+                                        NRF_LOG_INFO("CMD_FREQ_100 received");
+                                        // NRF_LOG_FLUSH();
+                                    break;
+
+                                case CMD_FREQ_225:
+                                        NRF_LOG_INFO("CMD_FREQ_225 received");
+                                        // NRF_LOG_FLUSH();
+                                    break;
+
+                                default:
+                                        NRF_LOG_INFO("Invalid character CMD_FREQ");
+                                        // NRF_LOG_FLUSH();
+                                    break;
+                            }
+                        }
+                        else
+                        {
+                            NRF_LOG_INFO("err_code: %d", err_code);
+                            NRF_LOG_FLUSH();
+                        }
+                }
+                break;
+
+                default:
+                    NRF_LOG_INFO("DEFAULT");
+                    NRF_LOG_FLUSH();
+                    break;
+            }
+    }
+
+    nrf_gpio_pin_set(12);
+    nrf_delay_ms(500);
+    nrf_gpio_pin_clear(12);
+
+    NRF_LOG_INFO("UART CMD detection ended");
+    NRF_LOG_FLUSH();
+}
 
 
 void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
@@ -1437,6 +1645,8 @@ void conn_evt_len_ext_set(void)
     APP_ERROR_CHECK(err_code);
 }
 
+static uint8_t rx_buffer[1];
+
 static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context)
 {
     uint32_t err_code;
@@ -1464,6 +1674,34 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
         break;
     }
     case NRF_DRV_UART_EVT_RX_DONE: ///< Requested RX transfer completed.
+    {
+
+        nrf_drv_uart_rx(&imu.uart, rx_buffer, 1);
+
+
+        NRF_LOG_INFO("NRF_DRV_UART_EVT_RX_DONE");
+
+        // uint8_t received_data_len = p_event->data.rxtx.bytes;
+        // char received_data[received_data_len];
+        // memcpy(received_data, p_event->data.rxtx.p_data, received_data_len);
+
+        // NRF_LOG_INFO("len: %d", received_data_len);
+        
+        // NRF_LOG_INFO("%d %d", received_data[0], received_data[1], received_data[2]);
+
+        err_code = app_fifo_put(&buffer.uart_rx_fifo, p_event->data.rxtx.p_data[0]);
+        if(err_code != NRF_SUCCESS)
+        {
+            NRF_LOG_INFO("app_fifo_put in NRF_DRV_UART_EVT_RX_DONE failed");
+        }
+
+        if(p_event->data.rxtx.p_data[0] == CMD_CR)
+        {
+            NRF_LOG_INFO("app_sched_event_put uart rx");
+            err_code = app_sched_event_put(0, 0, uart_rx_scheduled);
+            APP_ERROR_CHECK(err_code);
+        }
+    }
         break;
     case NRF_DRV_UART_EVT_ERROR: ///< Error reported by UART peripheral.
         NRF_LOG_INFO("Error in NRF_DRV_UART_EVT_ERROR");
@@ -1492,6 +1730,10 @@ void uart_dma_init()
     err_code = nrf_drv_uart_init(&imu.uart, &uart_config_params, usr_uarte_evt_handler);
 
     APP_ERROR_CHECK(err_code);
+
+    nrf_drv_uart_rx_enable(&imu.uart);
+
+    nrf_drv_uart_rx(&imu.uart, rx_buffer, 1);
 }
 
 
@@ -1709,6 +1951,12 @@ int main(void)
     err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
     APP_ERROR_CHECK(err_code);
 
+    uint16_t uart_rx_buff_size = 256;
+    uint8_t uart_rx_buff[uart_rx_buff_size];
+
+    err_code = app_fifo_init(&buffer.uart_rx_fifo, uart_rx_buff, (uint16_t)sizeof(uart_rx_buff));
+    APP_ERROR_CHECK(err_code);
+
     // Application scheduler (soft interrupt like)
     APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
 
@@ -1760,6 +2008,10 @@ int main(void)
     nrf_gpio_cfg_output(10);
 
     nrf_gpio_cfg_output(11);
+nrf_gpio_cfg_output(12);
+
+
+
 
 
     NRF_LOG_DEBUG("DEBUG ACTIVE");

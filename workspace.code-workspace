@@ -22,7 +22,8 @@
 			"sdk_config.h": "c",
 			"app_error.h": "c",
 			"nordic_common.h": "c",
-			"app_util_platform.h": "c"
+			"app_util_platform.h": "c",
+			"nrf_drv_uart.h": "c"
 		}
 	}
 }
