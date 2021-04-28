@@ -92,6 +92,7 @@
 
 #define PRINT() NRF_LOG_INFO()
 
+#define FREQ_TO_MS(x) ((1.000 / x))*1000
 
 // Create a FIFO structure
 typedef struct buffer
@@ -205,8 +206,9 @@ typedef enum
 #define CMD_FREQ_225    225
 
 #define CMD_PRINT       0x68 //h
-#define CMD_SETTINGS    0x73 //s
+#define CMD_SETTINGS    0x70 //p
 #define CMD_RESET       0x72 //r
+#define CMD_SEND        0x73 //s
 
 void uart_print(char msg[])
 {
@@ -262,129 +264,126 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             NRF_LOG_INFO("p_byte: %d", p_byte[0]);
             // NRF_LOG_FLUSH();
 
-            switch(state)
+            switch(p_byte[0])
             {
-                case CMD_TYPE:
-                        NRF_LOG_INFO("CMD_INIT");
+                case CMD_PRINT:
+                        NRF_LOG_INFO("CMD_PRINT received");
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("-----  NOMADE WIRELESS SENSOR NODE   -----\n");
+                        uart_print("------------------------------------------\n");
+                        uart_print("\n");
+                        uart_print("Press:  'h' for help\n");
+                        uart_print("Press:  's' to show current settings\n");
+                        uart_print("Press:  'g' to enable gyroscope\n");
+                        uart_print("Press:  'a' to enable accelerometer\n");
+                        uart_print("Press:  'm' to enable magnetometer\n");
+                        uart_print("Press:  'e' to enable euler angles\n");
+                        uart_print("Press:  'q6 to enable 6 DoF quaternions\n");
+                        uart_print("Press:  'q9 to enable 9 DoF quaternions\n");
+                        uart_print("------------------------------------------\n");
+                        uart_print("Press:  'f' + '3 digital number' to set sampling frequency\n");
+                        uart_print("------------------------------------------\n");
+                        uart_print("Example:    q6f225  Enable 6 DoF Quaternions with sampling rate of 225 Hz\n");
+                        uart_print("------------------------------------------\n");
+                    break;
+
+                case CMD_SETTINGS:
+                        NRF_LOG_INFO("CMD_SETTINGS received");
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("Current settings:\n");
+                        if(imu.gyro_enabled) uart_print("---    Gyroscope enabled\n");
+                        if(imu.accel_enabled) uart_print("---   Accelerometer enabled\n");
+                        if(imu.mag_enabled) uart_print("--- Magnetometer enabled\n");
+                        if(imu.euler_enabled) uart_print("---   Euler angles enabled\n");
+                        if(imu.quat6_enabled) uart_print("---   Quaternions 6 DoF enabled\n");
+                        if(imu.quat9_enabled) uart_print("---   Quaternions 9 DoF enabled\n");
+                        if(imu.period != 0)
+                        {
+                            uart_print("---  Sensor period:  ");
+                            char str[5];
+                            sprintf(str, "%d ms\n", imu.period);
+                            NRF_LOG_INFO("string: %s", str);
+                            uart_print(str);
+                        }
+                        uart_print("------------------------------------------\n");
+                        break;
+
+                case CMD_GYRO:
+                        NRF_LOG_INFO("CMD_GYRO received");
+                        // NRF_LOG_FLUSH();
+                        imu.gyro_enabled = 1;
+                        // state = CMD_FREQ;
+                    break;
+
+                case CMD_ACCEL:
+                        NRF_LOG_INFO("CMD_ACCEL received");
+                        // NRF_LOG_FLUSH();
+                        imu.accel_enabled = 1;
+                        // state = CMD_FREQ;
+                    break;
+
+                case CMD_MAG:
+                        NRF_LOG_INFO("CMD_MAG received");
+                        // NRF_LOG_FLUSH();
+                        imu.mag_enabled = 1;
+                        // state = CMD_FREQ;
+                    break;
+
+                case CMD_QUAT:
+                        NRF_LOG_INFO("CMD_QUAT received");
                         // NRF_LOG_FLUSH();
 
-                        // Detect parameter
-                        switch(p_byte[0])
+                        uint8_t byte[1];
+                        err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte);
+
+                        switch(byte[0])
                         {
-                            case CMD_PRINT:
-                                    NRF_LOG_INFO("CMD_PRINT received");
-
-                                    uart_print("-----  NOMADE WIRELESS SENSOR NODE   -----\n");
-                                    uart_print("Press:  'h' for help\n");
-                                    uart_print("Press:  's' to show current settings\n");
-                                    uart_print("Press:  'g' to enable gyroscope\n");
-                                    uart_print("Press:  'a' to enable accelerometer\n");
-                                    uart_print("Press:  'm' to enable magnetometer\n");
-                                    uart_print("Press:  'e' to enable euler angles\n");
-                                    uart_print("Press:  'q6 to enable 6 DoF quaternions\n");
-                                    uart_print("Press:  'q9 to enable 9 DoF quaternions\n");
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Press:  'f' + '3 digital number' to set sampling frequency\n");
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Example:    q6f225  Enable 6 DoF Quaternions with sampling rate of 225 Hz\n");
-                                    uart_print("------------------------------------------\n");
-                                break;
-
-                            case CMD_SETTINGS:
-                                    NRF_LOG_INFO("CMD_SETTINGS received");
-
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Current settings:\n");
-                                    if(imu.gyro_enabled) uart_print("---    Gyroscope enabled\n");
-                                    if(imu.accel_enabled) uart_print("---   Accelerometer enabled\n");
-                                    if(imu.mag_enabled) uart_print("--- Magnetometer enabled\n");
-                                    if(imu.euler_enabled) uart_print("---   Euler angles enabled\n");
-                                    if(imu.quat6_enabled) uart_print("---   Quaternions 6 DoF enabled\n");
-                                    if(imu.quat9_enabled) uart_print("---   Quaternions 9 DoF enabled\n");
-                                    if(imu.period) uart_print("---  Sensor frequency set\n");
-                                    uart_print("------------------------------------------\n");
-                                    break;
-
-                            case CMD_GYRO:
-                                    NRF_LOG_INFO("CMD_GYRO received");
+                            case CMD_QUAT6:
+                                    NRF_LOG_INFO("CMD_QUAT6 received");
                                     // NRF_LOG_FLUSH();
-                                    imu.gyro_enabled = 1;
-                                    state = CMD_FREQ;
+                                    imu.quat6_enabled = 1;
+                                    // state = CMD_FREQ;
                                 break;
-
-                            case CMD_ACCEL:
-                                    NRF_LOG_INFO("CMD_ACCEL received");
+                            
+                            case CMD_QUAT9:
+                                    NRF_LOG_INFO("CMD_QUAT9 received");
                                     // NRF_LOG_FLUSH();
-                                    imu.accel_enabled = 1;
-                                    state = CMD_FREQ;
-                                break;
-
-                            case CMD_MAG:
-                                    NRF_LOG_INFO("CMD_MAG received");
-                                    // NRF_LOG_FLUSH();
-                                    imu.mag_enabled = 1;
-                                    state = CMD_FREQ;
-                                break;
-
-                            case CMD_QUAT:
-                                    NRF_LOG_INFO("CMD_QUAT received");
-                                    // NRF_LOG_FLUSH();
-
-                                    uint8_t byte[1];
-                                    err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte);
-
-                                    switch(byte[0])
-                                    {
-                                        case CMD_QUAT6:
-                                                NRF_LOG_INFO("CMD_QUAT6 received");
-                                                // NRF_LOG_FLUSH();
-                                                imu.quat6_enabled = 1;
-                                                state = CMD_FREQ;
-                                            break;
-                                        
-                                        case CMD_QUAT9:
-                                                NRF_LOG_INFO("CMD_QUAT9 received");
-                                                // NRF_LOG_FLUSH();
-                                                imu.quat9_enabled = 1;
-                                                state = CMD_FREQ;
-                                            break;
-
-                                        default:
-                                                NRF_LOG_INFO("Invalid character after CMD_QUAT");
-                                                // NRF_LOG_FLUSH();
-                                            break;
-                                    }
-                                break;
-
-                            case CMD_EULER:
-                                    NRF_LOG_INFO("CMD_EULER received");
-                                    // NRF_LOG_FLUSH();
-                                    imu.euler_enabled = 1;
-                                    state = CMD_FREQ;
-                                break;
-
-                            case CMD_RESET:
-                                    NRF_LOG_INFO("CMD_RESET received");
-
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Config reset.\n");
-                                    uart_print("------------------------------------------\n");
-
-                                    imu.gyro_enabled = 0;
-                                    imu.accel_enabled = 0;
-                                    imu.mag_enabled = 0;
-                                    imu.quat6_enabled = 0;
-                                    imu.quat9_enabled = 0;
-                                    imu.euler_enabled = 0;
-                                    imu.period = 0;
+                                    imu.quat9_enabled = 1;
+                                    // state = CMD_FREQ;
                                 break;
 
                             default:
-                                    NRF_LOG_INFO("CMD INVALID received");
-                                    NRF_LOG_FLUSH();
+                                    NRF_LOG_INFO("Invalid character after CMD_QUAT");
+                                    // NRF_LOG_FLUSH();
                                 break;
                         }
                     break;
+
+                case CMD_EULER:
+                        NRF_LOG_INFO("CMD_EULER received");
+                        // NRF_LOG_FLUSH();
+                        imu.euler_enabled = 1;
+                        // state = CMD_FREQ;
+                    break;
+
+                case CMD_RESET:
+                        NRF_LOG_INFO("CMD_RESET received");
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("Config reset.\n");
+                        uart_print("------------------------------------------\n");
+
+                        imu.gyro_enabled = 0;
+                        imu.accel_enabled = 0;
+                        imu.mag_enabled = 0;
+                        imu.quat6_enabled = 0;
+                        imu.quat9_enabled = 0;
+                        imu.euler_enabled = 0;
+                        imu.period = 0;
+                    break;
+
                 
                 case CMD_FREQ:
                 {
@@ -395,9 +394,6 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                         uint8_t p_byte1[3];
                         err_code = app_fifo_read(&buffer.uart_rx_fifo, p_byte1, &cmd_freq_len);
-
-                        // NRF_LOG_INFO("cmd_freq_len %d", cmd_freq_len);
-                        // NRF_LOG_FLUSH();
 
                         // Get frequency components
                         if(err_code == NRF_SUCCESS)
@@ -415,21 +411,27 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                                 case CMD_FREQ_50:
                                         NRF_LOG_INFO("CMD_FREQ_50 received");
+                                        imu.period = FREQ_TO_MS(50);
                                         // NRF_LOG_FLUSH();
                                     break;
                                 
                                 case CMD_FREQ_100:
                                         NRF_LOG_INFO("CMD_FREQ_100 received");
+                                        imu.period = FREQ_TO_MS(100);
                                         // NRF_LOG_FLUSH();
                                     break;
 
                                 case CMD_FREQ_225:
                                         NRF_LOG_INFO("CMD_FREQ_225 received");
+                                        imu.period = FREQ_TO_MS(225);
+                                        NRF_LOG_INFO("freqtoms: %d", FREQ_TO_MS(225));
+                                        NRF_LOG_INFO("imu period:   %d", imu.period);
                                         // NRF_LOG_FLUSH();
                                     break;
 
                                 default:
                                         NRF_LOG_INFO("Invalid character CMD_FREQ");
+                                        uart_print("Invalid frequency selected!\n");
                                         // NRF_LOG_FLUSH();
                                     break;
                             }
@@ -441,6 +443,19 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         }
                 }
                 break;
+
+                case CMD_SEND:
+
+                        // Send config
+                        NRF_LOG_INFO("CMD_CONFIG_SEND received");
+
+                        
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("Configuration send to peripherals.\n");
+                        uart_print("------------------------------------------\n");
+                        
+                    break;
 
                 default:
                     NRF_LOG_INFO("DEFAULT");
@@ -1866,8 +1881,8 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
+            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
             // APP_ERROR_CHECK(err_code);
             // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
