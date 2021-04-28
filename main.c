@@ -153,8 +153,8 @@ static bool m_imu_trigger_enabled;
 #define APP_BLE_CONN_CFG_TAG 1  /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO 3 /**< BLE observer priority of the application. There is no need to modify this value. */
 
-#define UART_TX_BUF_SIZE 2048 /**< UART TX buffer size. */
-#define UART_RX_BUF_SIZE 2048 /**< UART RX buffer size. */
+#define UART_TX_BUF_SIZE 1024 /**< UART TX buffer size. */
+#define UART_RX_BUF_SIZE 1024 /**< UART RX buffer size. */
 
 #define NUS_SERVICE_UUID_TYPE BLE_UUID_TYPE_VENDOR_BEGIN /**< UUID type for the Nordic UART Service (vendor specific). */
 
@@ -448,12 +448,27 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         // Send config
                         NRF_LOG_INFO("CMD_CONFIG_SEND received");
 
-                        
+                        ble_tes_config_t config;
+                        config.gyro_enabled = imu.gyro_enabled;
+                        config.accel_enabled = imu.accel_enabled;
+                        config.mag_enabled = imu.mag_enabled;
+                        config.euler_enabled = imu.euler_enabled;
+                        config.quat6_enabled = imu.quat6_enabled;
+                        config.quat9_enabled = imu.quat9_enabled;
+                        config.motion_freq_hz = imu.frequency;
+                        config.wom_enabled = 1;
 
-                        uart_print("------------------------------------------\n");
-                        uart_print("Configuration send to peripherals.\n");
-                        uart_print("------------------------------------------\n");
-                        
+                        err_code =  ble_tes_config_set(&m_thingy_tes_c[0], &config);
+                        if(err_code != NRF_SUCCESS)
+                        {
+                            NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+                        }
+                        else
+                        {
+                            uart_print("------------------------------------------\n");
+                            uart_print("Configuration send to peripherals.\n");
+                            uart_print("------------------------------------------\n");
+                        }  
                     break;
 
                 default:
@@ -2032,18 +2047,18 @@ int main(void)
     uint16_t uart_dma_buffer_size = 2048;
     uint8_t uart_dma_buffer[uart_dma_buffer_size];
 
-    // Create a buffer for the FIFO
-    uint16_t received_data_buffer_size = 4096;
-    uint8_t received_data_buffer[received_data_buffer_size];
+    // // Create a buffer for the FIFO
+    // uint16_t received_data_buffer_size = 4096;
+    // uint8_t received_data_buffer[received_data_buffer_size];
 
     
     // Initialize FIFO structure for use in UART DMA
     err_code = app_fifo_init(&buffer.uart_dma_difo, uart_dma_buffer, (uint16_t)sizeof(uart_dma_buffer));
     APP_ERROR_CHECK(err_code);
 
-    // Initialize FIFO structure for collecting received data
-    err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
-    APP_ERROR_CHECK(err_code);
+    // // Initialize FIFO structure for collecting received data
+    // err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
+    // APP_ERROR_CHECK(err_code);
 
     uint16_t uart_rx_buff_size = 256;
     uint8_t uart_rx_buff[uart_rx_buff_size];

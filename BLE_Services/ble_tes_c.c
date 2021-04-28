@@ -524,6 +524,36 @@ uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c)
                           true);
 }
 
+uint32_t ble_tes_config_set(ble_thingy_tes_c_t * p_tms, ble_tes_config_t * p_data)
+{
+    uint16_t               length = sizeof(ble_tes_config_t);
+
+    VERIFY_PARAM_NOT_NULL(p_tms);
+
+    if ((p_tms->conn_handle == BLE_CONN_HANDLE_INVALID))// || (!p_tms->is_tap_notif_enabled))
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    if (length > BLE_TMS_MAX_DATA_LEN)
+    {
+        return NRF_ERROR_INVALID_PARAM;
+    }
+
+    ble_gattc_write_params_t write_params;
+
+    memset(&write_params, 0, sizeof(write_params));
+
+    write_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    write_params.handle = p_tms->peer_thingy_tes_db.config_handle;
+    write_params.len = length -1;
+    write_params.p_value = (uint8_t *)p_data;
+    write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+
+    return sd_ble_gattc_write(p_tms->conn_handle, &write_params);
+}
+
 
 uint32_t ble_tes_c_handles_assign(ble_thingy_tes_c_t    * p_ble_tes_c,
                                   uint16_t         conn_handle,

@@ -94,6 +94,18 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
                       ble_tes_c_on_ble_evt, &_name, _cnt)
 
 
+#define OPCODE_LENGTH        1
+#define HANDLE_LENGTH        2
+
+#if defined(NRF_SDH_BLE_GATT_MAX_MTU_SIZE) && (NRF_SDH_BLE_GATT_MAX_MTU_SIZE != 0)
+    #define BLE_TMS_MAX_DATA_LEN (NRF_SDH_BLE_GATT_MAX_MTU_SIZE - OPCODE_LENGTH - HANDLE_LENGTH)
+#else
+    #define BLE_TMS_MAX_DATA_LEN (BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH)
+    #warning NRF_SDH_BLE_GATT_MAX_MTU_SIZE is not defined.
+#endif
+
+
+
 // #define THINGY_UUID_BASE        {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}
 #define THINGY_UUID_BASE                  {0x5d, 0x82, 0x7d, 0x69, 0x83, 0xd1, 0x7c, 0x96, 0x2e, 0x43, 0xfb, 0x95, 0x54, 0x03, 0xaa, 0xcb}
 
@@ -213,8 +225,15 @@ typedef struct
 /**@brief Structure containing the config value received from the peer. */
 typedef struct
 {
-    uint8_t config_value;  /**< Config Value. */
-} ble_config_t; 
+    bool                      gyro_enabled;
+    bool                      accel_enabled;
+    bool                      mag_enabled;
+    bool                      euler_enabled;
+    bool                      quat6_enabled;
+    bool                      quat9_enabled;
+    uint16_t                  motion_freq_hz;
+    bool                      wom_enabled;
+} ble_tes_config_t;
 
 /**@brief Structure containing the event value received from the peer. */
 typedef union
@@ -279,6 +298,7 @@ struct ble_tes_c_s
     tes_db_t                peer_thingy_tes_db;  /**< Handles related to tes on the peer*/
     ble_tes_c_evt_handler_t evt_handler;  /**< Application event handler to be called when there is an event related to the Thingy Enviroment service. */
     uint8_t                 uuid_type;    /**< UUID type. */
+    // ble_gatts_char_handles_t config_handles;               /**< Handles related to the config characteristic (as provided by the S132 SoftDevice). */
 };
 
 /**@brief Thingy Enviroment Client initialization structure. */
@@ -335,6 +355,8 @@ uint32_t ble_tes_c_quaternion_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_adc_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_euler_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
 uint32_t ble_tes_c_raw_notif_enable(ble_thingy_tes_c_t * p_ble_tes_c);
+
+uint32_t ble_tes_config_set(ble_thingy_tes_c_t * p_tms, ble_tes_config_t * p_data);
 
 
 /**@brief Function for handling events from the database discovery module.
