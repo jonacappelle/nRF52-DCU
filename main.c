@@ -116,7 +116,7 @@ typedef struct imu
     bool quat6_enabled;
     bool quat9_enabled;
     bool euler_enabled;
-    uint32_t period; // period in milliseconds (ms)
+    uint32_t frequency; // period in milliseconds (ms)
     uint16_t packet_length;
     int received_packet_counter;
     nrf_drv_uart_t uart;
@@ -126,6 +126,7 @@ typedef struct imu
 
 // Initialisation of IMU struct
 IMU imu = {
+    .frequency = 0,
     .received_packet_counter = 0,
     .evt_scheduled = 0,
     .uart_rx_evt_scheduled = 0,
@@ -299,11 +300,11 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         if(imu.euler_enabled) uart_print("---   Euler angles enabled\n");
                         if(imu.quat6_enabled) uart_print("---   Quaternions 6 DoF enabled\n");
                         if(imu.quat9_enabled) uart_print("---   Quaternions 9 DoF enabled\n");
-                        if(imu.period != 0)
+                        if(imu.frequency != 0)
                         {
-                            uart_print("---  Sensor period:  ");
+                            uart_print("---  Sensor frequency:  ");
                             char str[5];
-                            sprintf(str, "%d ms\n", imu.period);
+                            sprintf(str, "%d Hz\n", imu.frequency);
                             NRF_LOG_INFO("string: %s", str);
                             uart_print(str);
                         }
@@ -381,7 +382,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         imu.quat6_enabled = 0;
                         imu.quat9_enabled = 0;
                         imu.euler_enabled = 0;
-                        imu.period = 0;
+                        imu.frequency = 0;
                     break;
 
                 
@@ -411,21 +412,19 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                                 case CMD_FREQ_50:
                                         NRF_LOG_INFO("CMD_FREQ_50 received");
-                                        imu.period = FREQ_TO_MS(50);
+                                        imu.frequency = 50;
                                         // NRF_LOG_FLUSH();
                                     break;
                                 
                                 case CMD_FREQ_100:
                                         NRF_LOG_INFO("CMD_FREQ_100 received");
-                                        imu.period = FREQ_TO_MS(100);
+                                        imu.frequency = 100;
                                         // NRF_LOG_FLUSH();
                                     break;
 
                                 case CMD_FREQ_225:
                                         NRF_LOG_INFO("CMD_FREQ_225 received");
-                                        imu.period = FREQ_TO_MS(225);
-                                        NRF_LOG_INFO("freqtoms: %d", FREQ_TO_MS(225));
-                                        NRF_LOG_INFO("imu period:   %d", imu.period);
+                                        imu.frequency = 225;
                                         // NRF_LOG_FLUSH();
                                     break;
 
@@ -460,6 +459,9 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 default:
                     NRF_LOG_INFO("DEFAULT");
                     NRF_LOG_FLUSH();
+                    uart_print("------------------------------------------\n");
+                    uart_print("Invalid command.\n");
+                    uart_print("------------------------------------------\n");
                     break;
             }
     }
