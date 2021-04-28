@@ -24,6 +24,8 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_intsup.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h \
+ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h \
  ../../../../../../components/libraries/util/nordic_common.h \
  ../../../../../../components/libraries/util/app_error.h \
  ../../../../../../modules/nrfx/mdk/nrf.h \
@@ -68,8 +70,6 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../config/sdk_config.h \
  ../../../../../../components/ble/nrf_ble_gq/nrf_ble_gq.h \
  ../../../../../../components/libraries/util/sdk_common.h \
- c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h \
- c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h \
  ../../../../../../components/libraries/util/sdk_os.h \
  ../../../../../../components/libraries/util/app_util.h \
  ../../../../../../components/softdevice/s132/headers/nrf52/nrf_mbr.h \
@@ -176,6 +176,8 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gc
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\_intsup.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdbool.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h:
+c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h:
 ../../../../../../components/libraries/util/nordic_common.h:
 ../../../../../../components/libraries/util/app_error.h:
 ../../../../../../modules/nrfx/mdk/nrf.h:
@@ -220,8 +222,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gc
 ../config/sdk_config.h:
 ../../../../../../components/ble/nrf_ble_gq/nrf_ble_gq.h:
 ../../../../../../components/libraries/util/sdk_common.h:
-c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\string.h:
-c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\sys\string.h:
 ../../../../../../components/libraries/util/sdk_os.h:
 ../../../../../../components/libraries/util/app_util.h:
 ../../../../../../components/softdevice/s132/headers/nrf52/nrf_mbr.h:

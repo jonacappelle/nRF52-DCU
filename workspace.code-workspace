@@ -23,7 +23,11 @@
 			"app_error.h": "c",
 			"nordic_common.h": "c",
 			"app_util_platform.h": "c",
-			"nrf_drv_uart.h": "c"
+			"nrf_drv_uart.h": "c",
+			"stdbool.h": "c",
+			"string.h": "c",
+			"stdint.h": "c",
+			"reent.h": "c"
 		}
 	}
 }
