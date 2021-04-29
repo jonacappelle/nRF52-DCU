@@ -116,6 +116,8 @@ typedef struct imu
     bool quat6_enabled;
     bool quat9_enabled;
     bool euler_enabled;
+    bool wom;
+    bool sync_enabled;
     uint32_t frequency; // period in milliseconds (ms)
     uint16_t packet_length;
     int received_packet_counter;
@@ -211,6 +213,13 @@ typedef enum
 #define CMD_RESET       0x72 //r
 #define CMD_SEND        0x73 //s
 
+#define CMD_WOM         0x77//w
+
+#define CMD_SYNC        0x69 //i
+#define CMD_SYNC_ENABLE 0x31 //1
+#define CMD_SYNC_DISABLE 0x30 //0
+
+
 void uart_print(char msg[])
 {
     uint32_t err_code;
@@ -276,6 +285,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         uart_print("\n");
                         uart_print("Press:  'h' for help\n");
                         uart_print("Press:  's' to show current settings\n");
+                        uart_print("Press:  '1' to set up sync\n");
                         uart_print("Press:  'g' to enable gyroscope\n");
                         uart_print("Press:  'a' to enable accelerometer\n");
                         uart_print("Press:  'm' to enable magnetometer\n");
@@ -310,6 +320,56 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         }
                         uart_print("------------------------------------------\n");
                         break;
+
+                case CMD_SYNC:
+                        NRF_LOG_INFO("CMD_SYNC received");
+
+                        // Get byte after sync command
+                        uint8_t byte2[1];
+                        err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte2);
+
+                        switch(byte2[0])
+                        {
+                            case CMD_SYNC_ENABLE:
+                                    NRF_LOG_INFO("CMD_SYNC_DISABLE received");
+
+                                    // Start synchronization
+                                    err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+                                    APP_ERROR_CHECK(err_code);
+                                    // ts_gpio_trigger_enable();
+                                    ts_imu_trigger_enable();
+                                    NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+
+                                    imu.sync_enabled = 1;
+
+                                    uart_print("------------------------------------------\n");
+                                    uart_print("Synchonization started.\n");
+                                    uart_print("------------------------------------------\n");
+
+                                break;
+                            
+                            case CMD_SYNC_DISABLE:
+                                    NRF_LOG_INFO("CMD_SYNC_DISABLE received");
+
+                                    // Stop synchronization
+                                    err_code = ts_tx_stop();
+                                    APP_ERROR_CHECK(err_code);
+                                    NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+
+                                    imu.sync_enabled = 0;
+
+                                    uart_print("------------------------------------------\n");
+                                    uart_print("Synchonization stopped.\n");
+                                    uart_print("------------------------------------------\n");
+
+                                break;
+
+                            default:
+                                    NRF_LOG_INFO("Invalid character after CMD_SYNC");
+                                break;
+                        }
+
+                    break;
 
                 case CMD_GYRO:
                         NRF_LOG_INFO("CMD_GYRO received");
@@ -443,6 +503,15 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 }
                 break;
 
+                case CMD_WOM:
+                        NRF_LOG_INFO("CMD_WOM received");
+                        uart_print("------------------------------------------\n");
+                        uart_print("Wake On Motion Enabled.\n");
+                        uart_print("------------------------------------------\n");
+
+                        imu.wom = 1;
+                    break;
+
                 case CMD_SEND:
 
                         // Send config
@@ -456,19 +525,22 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         config.quat6_enabled = imu.quat6_enabled;
                         config.quat9_enabled = imu.quat9_enabled;
                         config.motion_freq_hz = imu.frequency;
-                        config.wom_enabled = 1;
+                        config.wom_enabled = imu.wom;
+                        config.sync_enabled = imu.sync_enabled;
 
-                        err_code =  ble_tes_config_set(&m_thingy_tes_c[0], &config);
-                        if(err_code != NRF_SUCCESS)
+                        // Send config to peripheral
+                        for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
                         {
-                            NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+                            err_code =  ble_tes_config_set(&m_thingy_tes_c[i], &config);
+                            if(err_code != NRF_SUCCESS)
+                            {
+                                NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+                            }
                         }
-                        else
-                        {
-                            uart_print("------------------------------------------\n");
-                            uart_print("Configuration send to peripherals.\n");
-                            uart_print("------------------------------------------\n");
-                        }  
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("Configuration send to peripherals.\n");
+                        uart_print("------------------------------------------\n");
                     break;
 
                 default:
@@ -1348,7 +1420,7 @@ static void ts_gpio_trigger_disable(void)
 }
 
 
-static void ts_imu_trigger_enable(void)
+void ts_imu_trigger_enable(void)
 {
     uint64_t time_now_ticks;
     uint32_t time_now_msec;
@@ -1514,8 +1586,8 @@ void bsp_event_handler(bsp_event_t event)
 
             // bsp_board_leds_on();
 
-            err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
             APP_ERROR_CHECK(err_code);
+            err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
 
             // ts_gpio_trigger_enable();
             ts_imu_trigger_enable();
@@ -1898,14 +1970,14 @@ nrf_gpio_pin_set(11);
             NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
             
             // Enable notifications - in peripheral this equates to turning on the sensors
-            // err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
-            // err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
-            // err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
-            // err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            // APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
+            err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+            APP_ERROR_CHECK(err_code);
 
         }
         break;
@@ -1926,7 +1998,9 @@ nrf_gpio_pin_set(11);
             quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             
-            NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+
+            NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
 
             // Put the received data in FIFO buffer
             err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff_len);
@@ -2048,8 +2122,8 @@ int main(void)
     uint8_t uart_dma_buffer[uart_dma_buffer_size];
 
     // // Create a buffer for the FIFO
-    // uint16_t received_data_buffer_size = 4096;
-    // uint8_t received_data_buffer[received_data_buffer_size];
+    uint16_t received_data_buffer_size = 4096;
+    uint8_t received_data_buffer[received_data_buffer_size];
 
     
     // Initialize FIFO structure for use in UART DMA
@@ -2057,8 +2131,8 @@ int main(void)
     APP_ERROR_CHECK(err_code);
 
     // // Initialize FIFO structure for collecting received data
-    // err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
-    // APP_ERROR_CHECK(err_code);
+    err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
+    APP_ERROR_CHECK(err_code);
 
     uint16_t uart_rx_buff_size = 256;
     uint8_t uart_rx_buff[uart_rx_buff_size];
