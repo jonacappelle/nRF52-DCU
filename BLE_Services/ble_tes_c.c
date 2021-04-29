@@ -546,7 +546,7 @@ uint32_t ble_tes_config_set(ble_thingy_tes_c_t * p_tms, ble_tes_config_t * p_dat
 
     write_params.write_op = BLE_GATT_OP_WRITE_REQ;
     write_params.handle = p_tms->peer_thingy_tes_db.config_handle;
-    write_params.len = length -1;
+    write_params.len = length;
     write_params.p_value = (uint8_t *)p_data;
     write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
