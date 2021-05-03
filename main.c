@@ -117,19 +117,24 @@ typedef struct imu
     bool quat9_enabled;
     bool euler_enabled;
     bool wom;
+    bool stop;
     bool sync_enabled;
     uint32_t frequency; // period in milliseconds (ms)
     uint16_t packet_length;
-    int received_packet_counter;
+    int received_packet_counter1;
+    int received_packet_counter2;
     nrf_drv_uart_t uart;
     uint32_t evt_scheduled;
     uint32_t uart_rx_evt_scheduled;
+    bool adc;
 } IMU;
 
 // Initialisation of IMU struct
 IMU imu = {
     .frequency = 0,
-    .received_packet_counter = 0,
+    .stop = 0,
+    .received_packet_counter1 = 0,
+    .received_packet_counter2 = 0,
     .evt_scheduled = 0,
     .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
@@ -219,6 +224,10 @@ typedef enum
 #define CMD_SYNC_ENABLE 0x31 //1
 #define CMD_SYNC_DISABLE 0x30 //0
 
+#define CMD_STOP        0x74 //t
+
+#define CMD_ADC         0x64 //d
+
 
 void uart_print(char msg[])
 {
@@ -290,8 +299,9 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         uart_print("Press:  'a' to enable accelerometer\n");
                         uart_print("Press:  'm' to enable magnetometer\n");
                         uart_print("Press:  'e' to enable euler angles\n");
-                        uart_print("Press:  'q6 to enable 6 DoF quaternions\n");
-                        uart_print("Press:  'q9 to enable 9 DoF quaternions\n");
+                        uart_print("Press:  'q6' to enable 6 DoF quaternions\n");
+                        uart_print("Press:  'q9' to enable 9 DoF quaternions\n");
+                        uart_print("Press:  't' to stop sampling\n");
                         uart_print("------------------------------------------\n");
                         uart_print("Press:  'f' + '3 digital number' to set sampling frequency\n");
                         uart_print("------------------------------------------\n");
@@ -318,6 +328,8 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                             NRF_LOG_INFO("string: %s", str);
                             uart_print(str);
                         }
+                        if(imu.adc) uart_print("---   ADC enabled\n");
+                        if(imu.sync_enabled) uart_print("---   Synchonization enabled\n");
                         uart_print("------------------------------------------\n");
                         break;
 
@@ -335,6 +347,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                                     // Start synchronization
                                     err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+                                    // err_code = ts_tx_start(2);
                                     APP_ERROR_CHECK(err_code);
                                     // ts_gpio_trigger_enable();
                                     ts_imu_trigger_enable();
@@ -368,6 +381,17 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                                     NRF_LOG_INFO("Invalid character after CMD_SYNC");
                                 break;
                         }
+
+                    break;
+
+                case CMD_ADC:
+                        NRF_LOG_INFO("CMD_ADC received");
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("ADC enabled.\n");
+                        uart_print("------------------------------------------\n");
+
+                        imu.adc = 1;
 
                     break;
 
@@ -443,6 +467,8 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         imu.quat9_enabled = 0;
                         imu.euler_enabled = 0;
                         imu.frequency = 0;
+                        imu.sync_enabled = 0;
+                        imu.stop = 0;
                     break;
 
                 
@@ -512,6 +538,29 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         imu.wom = 1;
                     break;
 
+                case CMD_STOP:
+                        NRF_LOG_INFO("CMD_STOP received");
+                        uart_print("------------------------------------------\n");
+                        uart_print("Sampling stopped.\n");
+                        uart_print("------------------------------------------\n");
+
+                        ble_tes_config_t stop_config;
+                        memset(&stop_config, 0, sizeof(stop_config));
+
+                        imu.stop = 1;
+
+                        // Send config to peripheral
+                        for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+                        {
+                            err_code =  ble_tes_config_set(&m_thingy_tes_c[i], &stop_config);
+                            if(err_code != NRF_SUCCESS)
+                            {
+                                NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+                            }
+                        }
+
+                    break;
+
                 case CMD_SEND:
 
                         // Send config
@@ -527,6 +576,8 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         config.motion_freq_hz = imu.frequency;
                         config.wom_enabled = imu.wom;
                         config.sync_enabled = imu.sync_enabled;
+                        config.stop = imu.stop;
+                        config.adc_enabled = imu.adc;
 
                         // Send config to peripheral
                         for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
@@ -1150,7 +1201,7 @@ static void ble_nus_c_evt_handler(ble_nus_c_t *p_ble_nus_c, ble_nus_c_evt_t cons
         ble_nus_data_received_uart_print(p_ble_nus_evt->p_data, p_ble_nus_evt->data_len);
         // NRF_LOG_INFO("Character received");
         // NRF_LOG_INFO("Receive counter:	%d", imu.received_packet_counter);
-        imu.received_packet_counter++;
+        imu.received_packet_counter1++;
         break;
 
     case BLE_NUS_C_EVT_DISCONNECTED:
@@ -1587,7 +1638,8 @@ void bsp_event_handler(bsp_event_t event)
             // bsp_board_leds_on();
 
             APP_ERROR_CHECK(err_code);
-            err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+            // err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+            err_code = ts_tx_start(2);
 
             // ts_gpio_trigger_enable();
             ts_imu_trigger_enable();
@@ -1984,9 +2036,6 @@ nrf_gpio_pin_set(11);
 
         case BLE_TMS_EVT_QUAT:
         {
-            imu.received_packet_counter++;
-            // NRF_LOG_INFO("%d", imu.received_packet_counter);
-
             float quat_buff[4];
             uint32_t quat_buff_len = sizeof(quat_buff);
 
@@ -2001,6 +2050,19 @@ nrf_gpio_pin_set(11);
             // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
             NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
+
+            // Print number of packets received from each slave
+            if(p_evt->conn_handle == 0)
+            {
+                imu.received_packet_counter1++;
+                NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
+            }else if(p_evt->conn_handle == 1)
+            {
+                imu.received_packet_counter2++;
+                NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
+            }
+
+
 
             // Put the received data in FIFO buffer
             err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff_len);
