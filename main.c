@@ -123,6 +123,8 @@ typedef struct imu
     uint16_t packet_length;
     int received_packet_counter1;
     int received_packet_counter2;
+    int received_packet_counter3;
+    int received_packet_counter4;
     nrf_drv_uart_t uart;
     uint32_t evt_scheduled;
     uint32_t uart_rx_evt_scheduled;
@@ -135,6 +137,8 @@ IMU imu = {
     .stop = 0,
     .received_packet_counter1 = 0,
     .received_packet_counter2 = 0,
+    .received_packet_counter3 = 0,
+    .received_packet_counter4 = 0,
     .evt_scheduled = 0,
     .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
@@ -469,6 +473,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         imu.frequency = 0;
                         imu.sync_enabled = 0;
                         imu.stop = 0;
+                        imu.adc = 0;
                     break;
 
                 
@@ -2060,6 +2065,14 @@ nrf_gpio_pin_set(11);
             {
                 imu.received_packet_counter2++;
                 NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
+            }else if(p_evt->conn_handle == 2)
+            {
+                imu.received_packet_counter3++;
+                NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
+            }else if(p_evt->conn_handle == 3)
+            {
+                imu.received_packet_counter4++;
+                NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
             }
 
 
@@ -2139,7 +2152,25 @@ nrf_gpio_pin_set(11);
 
         case BLE_TMS_EVT_ADC:
         {
-            NRF_LOG_INFO("ADC data: %d", p_evt->params.value.adc_data.raw[1]);
+            // NRF_LOG_INFO("ADC data: %d", p_evt->params.value.adc_data.raw[1]);
+                        // Print number of packets received from each slave
+            if(p_evt->conn_handle == 0)
+            {
+                imu.received_packet_counter1++;
+                NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
+            }else if(p_evt->conn_handle == 1)
+            {
+                imu.received_packet_counter2++;
+                NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
+            }else if(p_evt->conn_handle == 2)
+            {
+                imu.received_packet_counter3++;
+                NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
+            }else if(p_evt->conn_handle == 3)
+            {
+                imu.received_packet_counter4++;
+                NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
+            }
         }
         break;
 
