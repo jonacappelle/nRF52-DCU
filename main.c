@@ -95,24 +95,22 @@
 
 #define PRINT() NRF_LOG_INFO()
 
-#define FREQ_TO_MS(x) ((1.000 / x))*1000
+#define FREQ_TO_MS(x) ((1.000 / x)) * 1000
 
 // Create a FIFO structure
 typedef struct buffer
 {
     app_fifo_t uart_dma_difo;
-    app_fifo_t received_data_fifo;  
+    app_fifo_t received_data_fifo;
     uint8_t uart_dma_tx_buff[512];
     app_fifo_t uart_rx_fifo;
     uint8_t uart_rx_buff[100];
-}BUFFER;
+} BUFFER;
 
 // Initialisation of struct to keep track of different buffers
 BUFFER buffer;
 
-
 // Struct to keep track of received data
-
 
 typedef struct gyro
 {
@@ -137,9 +135,9 @@ typedef struct mag
 
 typedef struct raw_data
 {
-    gyro_t      gryo;
-    accel_t     accel;
-    mag_t       mag;
+    gyro_t gryo;
+    accel_t accel;
+    mag_t mag;
 } raw_data_t;
 
 typedef struct quat_data
@@ -157,17 +155,14 @@ typedef struct adc_data
 
 typedef struct received_data
 {
-    bool            raw_data_present;
-    bool            quat_data_present;
-    bool            adc_data_present;
-    raw_data_t      raw_data;
-    quat_data_t     quat_data;
-    adc_data_t      adc_data;
-    uint16_t        conn_handle;
+    bool raw_data_present;
+    bool quat_data_present;
+    bool adc_data_present;
+    raw_data_t raw_data;
+    quat_data_t quat_data;
+    adc_data_t adc_data;
+    uint16_t conn_handle;
 } received_data_t;
-
-
-
 
 typedef struct imu
 {
@@ -237,9 +232,7 @@ static bool m_imu_trigger_enabled;
 //BLE_NUS_C_DEF(m_ble_nus_c);                                             /**< BLE Nordic UART Service (NUS) client instance. */
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< BLE Nordic UART Service (NUS) client instances. */
 /* END CHANGES */
-BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);                  /**< Structure used to identify the battery service. */
-
-
+BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
 
 NRF_BLE_GATT_DEF(m_gatt);        /**< GATT module instance. */
 BLE_DB_DISCOVERY_DEF(m_db_disc); /**< Database discovery module instance. */
@@ -251,91 +244,86 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue, /**< BLE GATT Queue instance. */
 static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 //static uint16_t m_ble_nus_max_data_len = 247 - OPCODE_LENGTH - HANDLE_LENGTH; /**< Maximum length of data (in bytes) that can be transmitted to the peer by the Nordic UART service module. */
 
-
 typedef enum
 {
     CMD_TYPE,
     CMD_FREQ,
 } cmd_received_t;
 
+#define CMD_GYRO 0x67  //g
+#define CMD_ACCEL 0x61 //a
+#define CMD_MAG 0x6D   //m
 
+#define CMD_QUAT 0x71  //q
+#define CMD_QUAT6 0x36 //6
+#define CMD_QUAT9 0x39 //9
 
-#define CMD_GYRO    0x67 //g
-#define CMD_ACCEL   0x61 //a
-#define CMD_MAG     0x6D //m
+#define CMD_EULER 0x65 //e
 
-#define CMD_QUAT    0x71 //q
-#define CMD_QUAT6   0x36 //6
-#define CMD_QUAT9   0x39 //9
+#define CMD_CR 0x0A //carriage return
 
-#define CMD_EULER   0x65 //e
+#define CMD_FREQ 0x66 //f
 
-#define CMD_CR      0x0A //carriage return
+#define CMD_FREQ_LEN 3 // Length of the frequency component of uart config
+#define CMD_FREQ_10 10
+#define CMD_FREQ_50 50
+#define CMD_FREQ_100 100
+#define CMD_FREQ_225 225
+#define CMD_FREQ_200 200
 
-#define CMD_FREQ    0x66 //f
+#define CMD_PRINT 0x68    //h
+#define CMD_SETTINGS 0x70 //p
+#define CMD_RESET 0x72    //r
+#define CMD_SEND 0x73     //s
 
-#define CMD_FREQ_LEN    3 // Length of the frequency component of uart config
-#define CMD_FREQ_10     10
-#define CMD_FREQ_50     50
-#define CMD_FREQ_100    100
-#define CMD_FREQ_225    225
-#define CMD_FREQ_200    200
+#define CMD_WOM 0x77 //w
 
-#define CMD_PRINT       0x68 //h
-#define CMD_SETTINGS    0x70 //p
-#define CMD_RESET       0x72 //r
-#define CMD_SEND        0x73 //s
-
-#define CMD_WOM         0x77//w
-
-#define CMD_SYNC        0x69 //i
-#define CMD_SYNC_ENABLE 0x31 //1
+#define CMD_SYNC 0x69         //i
+#define CMD_SYNC_ENABLE 0x31  //1
 #define CMD_SYNC_DISABLE 0x30 //0
 
-#define CMD_STOP        0x74 //t
+#define CMD_STOP 0x74 //t
 
-#define CMD_ADC         0x64 //d
+#define CMD_ADC 0x64 //d
 
-#define CMD_LIST        0x6c //l
+#define CMD_LIST 0x6c //l
 
-
-uint32_t config_send(IMU * imu)
+uint32_t config_send(IMU *imu)
 {
     uint32_t err_code;
 
     ble_tes_config_t config;
-    config.gyro_enabled     =   imu->gyro_enabled;
-    config.accel_enabled    =   imu->accel_enabled;
-    config.mag_enabled      =   imu->mag_enabled;
-    config.euler_enabled    =   imu->euler_enabled;
-    config.quat6_enabled    =   imu->quat6_enabled;
-    config.quat9_enabled    =   imu->quat9_enabled;
-    config.motion_freq_hz   =   imu->frequency;
-    config.wom_enabled      =   imu->wom;
-    config.sync_enabled     =   imu->sync_enabled;
-    config.stop             =   imu->stop;
-    config.adc_enabled      =   imu->adc;
+    config.gyro_enabled = imu->gyro_enabled;
+    config.accel_enabled = imu->accel_enabled;
+    config.mag_enabled = imu->mag_enabled;
+    config.euler_enabled = imu->euler_enabled;
+    config.quat6_enabled = imu->quat6_enabled;
+    config.quat9_enabled = imu->quat9_enabled;
+    config.motion_freq_hz = imu->frequency;
+    config.wom_enabled = imu->wom;
+    config.sync_enabled = imu->sync_enabled;
+    config.stop = imu->stop;
+    config.adc_enabled = imu->adc;
 
     NRF_LOG_INFO("config.adc_enabled %d", config.adc_enabled);
 
     // Send config to peripheral
-    for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        // do 
+        // do
         // {
-            err_code =  ble_tes_config_set(&m_thingy_tes_c[i], &config);
-            // if(err_code != NRF_SUCCESS)
-            // {
-            //     NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
-            // }
-            NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+        err_code = ble_tes_config_set(&m_thingy_tes_c[i], &config);
+        // if(err_code != NRF_SUCCESS)
+        // {
+        //     NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+        // }
+        NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
         // }while(err_code == NRF_ERROR_RESOURCES);
-
     }
     return err_code;
 }
 
-void config_reset(IMU * imu)
+void config_reset(IMU *imu)
 {
     imu->gyro_enabled = 0;
     imu->accel_enabled = 0;
@@ -349,14 +337,13 @@ void config_reset(IMU * imu)
     imu->adc = 0;
 }
 
-
 void uart_print(char msg[])
 {
     uint32_t err_code;
 
     do
     {
-        err_code = nrf_drv_uart_tx(&imu.uart, (uint8_t *) msg, (uint8_t)strlen(msg));
+        err_code = nrf_drv_uart_tx(&imu.uart, (uint8_t *)msg, (uint8_t)strlen(msg));
         if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
         {
             APP_ERROR_CHECK(err_code);
@@ -365,7 +352,7 @@ void uart_print(char msg[])
     // nrf_delay_ms(10);
 }
 
-uint8_t uart_rx_to_cmd(uint8_t * command_in, uint8_t len)
+uint8_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
 {
     uint8_t temp[len];
     memcpy(temp, command_in, len);
@@ -373,7 +360,7 @@ uint8_t uart_rx_to_cmd(uint8_t * command_in, uint8_t len)
     NRF_LOG_INFO("%d %d %d", command_in[0], command_in[1], command_in[2]);
     NRF_LOG_FLUSH();
 
-    uint8_t x =  atoi(temp);
+    uint8_t x = atoi(temp);
 
     NRF_LOG_INFO("%d", x);
     NRF_LOG_FLUSH();
@@ -381,11 +368,10 @@ uint8_t uart_rx_to_cmd(uint8_t * command_in, uint8_t len)
     return x;
 }
 
-
 void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 {
-    NRF_LOG_INFO("uart_rx_scheduled"); 
-    NRF_LOG_FLUSH();   
+    NRF_LOG_INFO("uart_rx_scheduled");
+    NRF_LOG_FLUSH();
 
     uint8_t state = CMD_TYPE;
 
@@ -394,351 +380,358 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
     uint8_t p_byte[3];
 
     // If there is data left in FIFO and the read byte is not a carriage return
-    while((app_fifo_get(&buffer.uart_rx_fifo, p_byte) != NRF_ERROR_NOT_FOUND))
-    {    
-            NRF_LOG_INFO("FIFO get");
-            NRF_LOG_FLUSH();
+    while ((app_fifo_get(&buffer.uart_rx_fifo, p_byte) != NRF_ERROR_NOT_FOUND))
+    {
+        NRF_LOG_INFO("FIFO get");
+        NRF_LOG_FLUSH();
 
-            // Check if end of message is reached
-            if(p_byte[0] == CMD_CR) 
-            {   
-                NRF_LOG_INFO("Break!");
+        // Check if end of message is reached
+        if (p_byte[0] == CMD_CR)
+        {
+            NRF_LOG_INFO("Break!");
+            // NRF_LOG_FLUSH();
+            break;
+        }
+        // Here we can process the request received over UART
+
+        NRF_LOG_INFO("p_byte: %d", p_byte[0]);
+        // NRF_LOG_FLUSH();
+
+        switch (p_byte[0])
+        {
+        case CMD_PRINT:
+            NRF_LOG_INFO("CMD_PRINT received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("-----  NOMADE WIRELESS SENSOR NODE   -----\n");
+            uart_print("------------------------------------------\n");
+            uart_print("\n");
+            uart_print("Press:  'h' for help\n");
+            uart_print("Press:  's' to show current settings\n");
+            uart_print("Press:  '1' to set up sync\n");
+            uart_print("Press:  'g' to enable gyroscope\n");
+            uart_print("Press:  'a' to enable accelerometer\n");
+            uart_print("Press:  'm' to enable magnetometer\n");
+            uart_print("Press:  'e' to enable euler angles\n");
+            uart_print("Press:  'q6' to enable 6 DoF quaternions\n");
+            uart_print("Press:  'q9' to enable 9 DoF quaternions\n");
+            uart_print("Press:  't' to stop sampling\n");
+            uart_print("------------------------------------------\n");
+            uart_print("Press:  'f' + '3 digital number' to set sampling frequency\n");
+            uart_print("------------------------------------------\n");
+            uart_print("Example:    q6f225  Enable 6 DoF Quaternions with sampling rate of 225 Hz\n");
+            uart_print("------------------------------------------\n");
+            break;
+
+        case CMD_SETTINGS:
+            NRF_LOG_INFO("CMD_SETTINGS received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("Current settings:\n");
+            if (imu.gyro_enabled)
+                uart_print("---    Gyroscope enabled\n");
+            if (imu.accel_enabled)
+                uart_print("---   Accelerometer enabled\n");
+            if (imu.mag_enabled)
+                uart_print("--- Magnetometer enabled\n");
+            if (imu.euler_enabled)
+                uart_print("---   Euler angles enabled\n");
+            if (imu.quat6_enabled)
+                uart_print("---   Quaternions 6 DoF enabled\n");
+            if (imu.quat9_enabled)
+                uart_print("---   Quaternions 9 DoF enabled\n");
+            if (imu.frequency != 0)
+            {
+                uart_print("---  Sensor frequency:  ");
+                char str[5];
+                sprintf(str, "%d Hz\n", imu.frequency);
+                NRF_LOG_INFO("string: %s", str);
+                uart_print(str);
+            }
+            if (imu.adc)
+                uart_print("---   ADC enabled\n");
+            if (imu.sync_enabled)
+                uart_print("---   Synchonization enabled\n");
+            uart_print("------------------------------------------\n");
+            break;
+
+        case CMD_LIST:
+            NRF_LOG_INFO("CMD_LIST received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("Connected devices list:\n");
+
+            // Get connection handles
+            ble_conn_state_conn_handle_list_t conn_central_handles = ble_conn_state_central_handles();
+            //You can iterate through the list of connection handles:
+
+            NRF_LOG_INFO("conn_central_handles.len %d", conn_central_handles.len);
+            for (uint32_t i = 0; i < conn_central_handles.len; i++)
+            {
+                uint16_t conn_handle = conn_central_handles.conn_handles[i];
+
+                // Print Connected Devices
+                uint8_t str[100];
+                sprintf(str, "Sensor    %d  --> conn handle  %d\n", (i + 1), conn_handle);
+                uart_print(str);
+                // NRF_LOG_INFO("Connection handle: %d\n", (i+1), conn_handle);
+                nrf_delay_ms(1);
+            }
+
+            // uart_print("This feature is in progress...\n");
+            uart_print("------------------------------------------\n");
+
+            break;
+
+        case CMD_SYNC:
+            NRF_LOG_INFO("CMD_SYNC received");
+
+            // Get byte after sync command
+            uint8_t byte2[1];
+            err_code = app_fifo_get(&buffer.uart_rx_fifo, byte2);
+
+            switch (byte2[0])
+            {
+            case CMD_SYNC_ENABLE:
+                NRF_LOG_INFO("CMD_SYNC_ENABLE received");
+
+                // Start synchronization
+                err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+                // err_code = ts_tx_start(2);
+                APP_ERROR_CHECK(err_code);
+                // ts_gpio_trigger_enable();
+                ts_imu_trigger_enable();
+                NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+
+                imu.sync_enabled = 1;
+
+                uart_print("------------------------------------------\n");
+                uart_print("Synchonization started.\n");
+                uart_print("------------------------------------------\n");
+
+                break;
+
+            case CMD_SYNC_DISABLE:
+                NRF_LOG_INFO("CMD_SYNC_DISABLE received");
+
+                // Stop synchronization
+                err_code = ts_tx_stop();
+                ts_imu_trigger_disable();
+                APP_ERROR_CHECK(err_code);
+                NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+
+                imu.sync_enabled = 0;
+
+                uart_print("------------------------------------------\n");
+                uart_print("Synchonization stopped.\n");
+                uart_print("------------------------------------------\n");
+
+                break;
+
+            default:
+                NRF_LOG_INFO("Invalid character after CMD_SYNC");
+                break;
+            }
+
+            break;
+
+        case CMD_ADC:
+            NRF_LOG_INFO("CMD_ADC received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("ADC enabled.\n");
+            uart_print("------------------------------------------\n");
+
+            imu.adc = 1;
+
+            break;
+
+        case CMD_GYRO:
+            NRF_LOG_INFO("CMD_GYRO received");
+            // NRF_LOG_FLUSH();
+            imu.gyro_enabled = 1;
+            // state = CMD_FREQ;
+            break;
+
+        case CMD_ACCEL:
+            NRF_LOG_INFO("CMD_ACCEL received");
+            // NRF_LOG_FLUSH();
+            imu.accel_enabled = 1;
+            // state = CMD_FREQ;
+            break;
+
+        case CMD_MAG:
+            NRF_LOG_INFO("CMD_MAG received");
+            // NRF_LOG_FLUSH();
+            imu.mag_enabled = 1;
+            // state = CMD_FREQ;
+            break;
+
+        case CMD_QUAT:
+            NRF_LOG_INFO("CMD_QUAT received");
+            // NRF_LOG_FLUSH();
+
+            uint8_t byte[1];
+            err_code = app_fifo_get(&buffer.uart_rx_fifo, byte);
+
+            switch (byte[0])
+            {
+            case CMD_QUAT6:
+                NRF_LOG_INFO("CMD_QUAT6 received");
+                // NRF_LOG_FLUSH();
+                imu.quat6_enabled = 1;
+                // state = CMD_FREQ;
+                break;
+
+            case CMD_QUAT9:
+                NRF_LOG_INFO("CMD_QUAT9 received");
+                // NRF_LOG_FLUSH();
+                imu.quat9_enabled = 1;
+                // state = CMD_FREQ;
+                break;
+
+            default:
+                NRF_LOG_INFO("Invalid character after CMD_QUAT");
                 // NRF_LOG_FLUSH();
                 break;
             }
-            // Here we can process the request received over UART
+            break;
 
-            NRF_LOG_INFO("p_byte: %d", p_byte[0]);
+        case CMD_EULER:
+            NRF_LOG_INFO("CMD_EULER received");
+            // NRF_LOG_FLUSH();
+            imu.euler_enabled = 1;
+            // state = CMD_FREQ;
+            break;
+
+        case CMD_RESET:
+            NRF_LOG_INFO("CMD_RESET received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("Config reset.\n");
+            uart_print("------------------------------------------\n");
+
+            config_reset(&imu);
+            break;
+
+        case CMD_FREQ:
+        {
+            NRF_LOG_INFO("CMD_FREQ");
             // NRF_LOG_FLUSH();
 
-            switch(p_byte[0])
+            uint32_t cmd_freq_len = 3;
+
+            uint8_t p_byte1[3];
+            err_code = app_fifo_read(&buffer.uart_rx_fifo, p_byte1, &cmd_freq_len);
+
+            // Get frequency components
+            if (err_code == NRF_SUCCESS)
             {
-                case CMD_PRINT:
-                        NRF_LOG_INFO("CMD_PRINT received");
+                // NRF_LOG_INFO("success");
+                // NRF_LOG_FLUSH();
+                uint8_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
+                NRF_LOG_INFO("Frequency received: %d", cmd);
+                NRF_LOG_FLUSH();
 
-                        uart_print("------------------------------------------\n");
-                        uart_print("-----  NOMADE WIRELESS SENSOR NODE   -----\n");
-                        uart_print("------------------------------------------\n");
-                        uart_print("\n");
-                        uart_print("Press:  'h' for help\n");
-                        uart_print("Press:  's' to show current settings\n");
-                        uart_print("Press:  '1' to set up sync\n");
-                        uart_print("Press:  'g' to enable gyroscope\n");
-                        uart_print("Press:  'a' to enable accelerometer\n");
-                        uart_print("Press:  'm' to enable magnetometer\n");
-                        uart_print("Press:  'e' to enable euler angles\n");
-                        uart_print("Press:  'q6' to enable 6 DoF quaternions\n");
-                        uart_print("Press:  'q9' to enable 9 DoF quaternions\n");
-                        uart_print("Press:  't' to stop sampling\n");
-                        uart_print("------------------------------------------\n");
-                        uart_print("Press:  'f' + '3 digital number' to set sampling frequency\n");
-                        uart_print("------------------------------------------\n");
-                        uart_print("Example:    q6f225  Enable 6 DoF Quaternions with sampling rate of 225 Hz\n");
-                        uart_print("------------------------------------------\n");
-                    break;
-
-                case CMD_SETTINGS:
-                        NRF_LOG_INFO("CMD_SETTINGS received");
-
-                        uart_print("------------------------------------------\n");
-                        uart_print("Current settings:\n");
-                        if(imu.gyro_enabled) uart_print("---    Gyroscope enabled\n");
-                        if(imu.accel_enabled) uart_print("---   Accelerometer enabled\n");
-                        if(imu.mag_enabled) uart_print("--- Magnetometer enabled\n");
-                        if(imu.euler_enabled) uart_print("---   Euler angles enabled\n");
-                        if(imu.quat6_enabled) uart_print("---   Quaternions 6 DoF enabled\n");
-                        if(imu.quat9_enabled) uart_print("---   Quaternions 9 DoF enabled\n");
-                        if(imu.frequency != 0)
-                        {
-                            uart_print("---  Sensor frequency:  ");
-                            char str[5];
-                            sprintf(str, "%d Hz\n", imu.frequency);
-                            NRF_LOG_INFO("string: %s", str);
-                            uart_print(str);
-                        }
-                        if(imu.adc) uart_print("---   ADC enabled\n");
-                        if(imu.sync_enabled) uart_print("---   Synchonization enabled\n");
-                        uart_print("------------------------------------------\n");
-                        break;
-
-                case CMD_LIST:
-                        NRF_LOG_INFO("CMD_LIST received");
-
-                        uart_print("------------------------------------------\n");
-                        uart_print("Connected devices list:\n");
-
-                        // Get connection handles
-                        ble_conn_state_conn_handle_list_t conn_central_handles = ble_conn_state_central_handles();
-                        //You can iterate through the list of connection handles:
-
-                        NRF_LOG_INFO("conn_central_handles.len %d", conn_central_handles.len);
-                        for (uint32_t i = 0; i < conn_central_handles.len; i++)
-                        {
-                            uint16_t conn_handle = conn_central_handles.conn_handles[i];
-
-                            // Print Connected Devices
-                            uint8_t str[100];
-                            sprintf(str, "Sensor    %d  --> conn handle  %d\n", (i+1), conn_handle);
-                            uart_print(str);
-                            // NRF_LOG_INFO("Connection handle: %d\n", (i+1), conn_handle);
-                            nrf_delay_ms(1);
-                        }
-
-                        // uart_print("This feature is in progress...\n");
-                        uart_print("------------------------------------------\n");
-
-                    break;
-
-                case CMD_SYNC:
-                        NRF_LOG_INFO("CMD_SYNC received");
-
-                        // Get byte after sync command
-                        uint8_t byte2[1];
-                        err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte2);
-
-                        switch(byte2[0])
-                        {
-                            case CMD_SYNC_ENABLE:
-                                    NRF_LOG_INFO("CMD_SYNC_ENABLE received");
-
-                                    // Start synchronization
-                                    err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
-                                    // err_code = ts_tx_start(2);
-                                    APP_ERROR_CHECK(err_code);
-                                    // ts_gpio_trigger_enable();
-                                    ts_imu_trigger_enable();
-                                    NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
-
-                                    imu.sync_enabled = 1;
-
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Synchonization started.\n");
-                                    uart_print("------------------------------------------\n");
-
-                                break;
-                            
-                            case CMD_SYNC_DISABLE:
-                                    NRF_LOG_INFO("CMD_SYNC_DISABLE received");
-
-                                    // Stop synchronization
-                                    err_code = ts_tx_stop();
-                                    ts_imu_trigger_disable();
-                                    APP_ERROR_CHECK(err_code);
-                                    NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
-
-                                    imu.sync_enabled = 0;
-
-                                    uart_print("------------------------------------------\n");
-                                    uart_print("Synchonization stopped.\n");
-                                    uart_print("------------------------------------------\n");
-
-                                break;
-
-                            default:
-                                    NRF_LOG_INFO("Invalid character after CMD_SYNC");
-                                break;
-                        }
-
-                    break;
-
-                case CMD_ADC:
-                        NRF_LOG_INFO("CMD_ADC received");
-
-                        uart_print("------------------------------------------\n");
-                        uart_print("ADC enabled.\n");
-                        uart_print("------------------------------------------\n");
-
-                        imu.adc = 1;
-
-                    break;
-
-                case CMD_GYRO:
-                        NRF_LOG_INFO("CMD_GYRO received");
-                        // NRF_LOG_FLUSH();
-                        imu.gyro_enabled = 1;
-                        // state = CMD_FREQ;
-                    break;
-
-                case CMD_ACCEL:
-                        NRF_LOG_INFO("CMD_ACCEL received");
-                        // NRF_LOG_FLUSH();
-                        imu.accel_enabled = 1;
-                        // state = CMD_FREQ;
-                    break;
-
-                case CMD_MAG:
-                        NRF_LOG_INFO("CMD_MAG received");
-                        // NRF_LOG_FLUSH();
-                        imu.mag_enabled = 1;
-                        // state = CMD_FREQ;
-                    break;
-
-                case CMD_QUAT:
-                        NRF_LOG_INFO("CMD_QUAT received");
-                        // NRF_LOG_FLUSH();
-
-                        uint8_t byte[1];
-                        err_code =  app_fifo_get(&buffer.uart_rx_fifo, byte);
-
-                        switch(byte[0])
-                        {
-                            case CMD_QUAT6:
-                                    NRF_LOG_INFO("CMD_QUAT6 received");
-                                    // NRF_LOG_FLUSH();
-                                    imu.quat6_enabled = 1;
-                                    // state = CMD_FREQ;
-                                break;
-                            
-                            case CMD_QUAT9:
-                                    NRF_LOG_INFO("CMD_QUAT9 received");
-                                    // NRF_LOG_FLUSH();
-                                    imu.quat9_enabled = 1;
-                                    // state = CMD_FREQ;
-                                break;
-
-                            default:
-                                    NRF_LOG_INFO("Invalid character after CMD_QUAT");
-                                    // NRF_LOG_FLUSH();
-                                break;
-                        }
-                    break;
-
-                case CMD_EULER:
-                        NRF_LOG_INFO("CMD_EULER received");
-                        // NRF_LOG_FLUSH();
-                        imu.euler_enabled = 1;
-                        // state = CMD_FREQ;
-                    break;
-
-                case CMD_RESET:
-                        NRF_LOG_INFO("CMD_RESET received");
-
-                        uart_print("------------------------------------------\n");
-                        uart_print("Config reset.\n");
-                        uart_print("------------------------------------------\n");
-
-                        config_reset(&imu);
-                    break;
-
-                
-                case CMD_FREQ:
+                switch (cmd)
                 {
-                        NRF_LOG_INFO("CMD_FREQ");
-                        // NRF_LOG_FLUSH();
-
-                        uint32_t cmd_freq_len = 3;
-
-                        uint8_t p_byte1[3];
-                        err_code = app_fifo_read(&buffer.uart_rx_fifo, p_byte1, &cmd_freq_len);
-
-                        // Get frequency components
-                        if(err_code == NRF_SUCCESS)
-                        {
-                            // NRF_LOG_INFO("success");
-                            // NRF_LOG_FLUSH();
-                            uint8_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
-                            NRF_LOG_INFO("Frequency received: %d", cmd);
-                            NRF_LOG_FLUSH();
-
-                            switch(cmd)
-                            {
-                                case CMD_FREQ_10:
-                                        NRF_LOG_INFO("CMD_FREQ_10 received");
-                                        imu.frequency = 10;
-                                        // NRF_LOG_FLUSH();
-                                    break;
-
-                                case CMD_FREQ_50:
-                                        NRF_LOG_INFO("CMD_FREQ_50 received");
-                                        imu.frequency = 50;
-                                        // NRF_LOG_FLUSH();
-                                    break;
-                                
-                                case CMD_FREQ_100:
-                                        NRF_LOG_INFO("CMD_FREQ_100 received");
-                                        imu.frequency = 100;
-                                        // NRF_LOG_FLUSH();
-                                    break;
-
-                                case CMD_FREQ_200:
-                                        NRF_LOG_INFO("CMD_FREQ_200 received");
-                                        imu.frequency = 200;
-                                        // NRF_LOG_FLUSH();
-                                    break;
-
-                                case CMD_FREQ_225:
-                                        NRF_LOG_INFO("CMD_FREQ_225 received");
-                                        imu.frequency = 225;
-                                        // NRF_LOG_FLUSH();
-                                    break;
-
-                                default:
-                                        NRF_LOG_INFO("Invalid character CMD_FREQ");
-                                        uart_print("Invalid frequency selected!\n");
-                                        // NRF_LOG_FLUSH();
-                                    break;
-                            }
-                        }
-                        else
-                        {
-                            NRF_LOG_INFO("err_code: %d", err_code);
-                            NRF_LOG_FLUSH();
-                        }
-                }
-                break;
-
-                case CMD_WOM:
-                        NRF_LOG_INFO("CMD_WOM received");
-                        uart_print("------------------------------------------\n");
-                        uart_print("Wake On Motion Enabled.\n");
-                        uart_print("------------------------------------------\n");
-
-                        imu.wom = 1;
+                case CMD_FREQ_10:
+                    NRF_LOG_INFO("CMD_FREQ_10 received");
+                    imu.frequency = 10;
+                    // NRF_LOG_FLUSH();
                     break;
 
-                case CMD_STOP:
-                        NRF_LOG_INFO("CMD_STOP received");
-                        uart_print("------------------------------------------\n");
-                        uart_print("Sampling stopped.\n");
-                        uart_print("------------------------------------------\n");
-
-                        ble_tes_config_t stop_config;
-                        memset(&stop_config, 0, sizeof(stop_config));
-
-                        imu.stop = 1;
-
-                        // Send config to peripheral
-                        for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-                        {
-                            err_code =  ble_tes_config_set(&m_thingy_tes_c[i], &stop_config);
-                            if(err_code != NRF_SUCCESS)
-                            {
-                                NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
-                            }
-                        }
-
+                case CMD_FREQ_50:
+                    NRF_LOG_INFO("CMD_FREQ_50 received");
+                    imu.frequency = 50;
+                    // NRF_LOG_FLUSH();
                     break;
 
-                case CMD_SEND:
+                case CMD_FREQ_100:
+                    NRF_LOG_INFO("CMD_FREQ_100 received");
+                    imu.frequency = 100;
+                    // NRF_LOG_FLUSH();
+                    break;
 
-                        // Send config
-                        NRF_LOG_INFO("CMD_CONFIG_SEND received");
+                case CMD_FREQ_200:
+                    NRF_LOG_INFO("CMD_FREQ_200 received");
+                    imu.frequency = 200;
+                    // NRF_LOG_FLUSH();
+                    break;
 
-                        config_send(&imu);
-
-                        uart_print("------------------------------------------\n");
-                        uart_print("Configuration send to peripherals.\n");
-                        uart_print("------------------------------------------\n");
+                case CMD_FREQ_225:
+                    NRF_LOG_INFO("CMD_FREQ_225 received");
+                    imu.frequency = 225;
+                    // NRF_LOG_FLUSH();
                     break;
 
                 default:
-                    NRF_LOG_INFO("DEFAULT");
-                    NRF_LOG_FLUSH();
-                    uart_print("------------------------------------------\n");
-                    uart_print("Invalid command.\n");
-                    uart_print("------------------------------------------\n");
+                    NRF_LOG_INFO("Invalid character CMD_FREQ");
+                    uart_print("Invalid frequency selected!\n");
+                    // NRF_LOG_FLUSH();
                     break;
+                }
             }
+            else
+            {
+                NRF_LOG_INFO("err_code: %d", err_code);
+                NRF_LOG_FLUSH();
+            }
+        }
+        break;
+
+        case CMD_WOM:
+            NRF_LOG_INFO("CMD_WOM received");
+            uart_print("------------------------------------------\n");
+            uart_print("Wake On Motion Enabled.\n");
+            uart_print("------------------------------------------\n");
+
+            imu.wom = 1;
+            break;
+
+        case CMD_STOP:
+            NRF_LOG_INFO("CMD_STOP received");
+            uart_print("------------------------------------------\n");
+            uart_print("Sampling stopped.\n");
+            uart_print("------------------------------------------\n");
+
+            ble_tes_config_t stop_config;
+            memset(&stop_config, 0, sizeof(stop_config));
+
+            imu.stop = 1;
+
+            // Send config to peripheral
+            for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+            {
+                err_code = ble_tes_config_set(&m_thingy_tes_c[i], &stop_config);
+                if (err_code != NRF_SUCCESS)
+                {
+                    NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+                }
+            }
+
+            break;
+
+        case CMD_SEND:
+
+            // Send config
+            NRF_LOG_INFO("CMD_CONFIG_SEND received");
+
+            config_send(&imu);
+
+            uart_print("------------------------------------------\n");
+            uart_print("Configuration send to peripherals.\n");
+            uart_print("------------------------------------------\n");
+            break;
+
+        default:
+            NRF_LOG_INFO("DEFAULT");
+            NRF_LOG_FLUSH();
+            uart_print("------------------------------------------\n");
+            uart_print("Invalid command.\n");
+            uart_print("------------------------------------------\n");
+            break;
+        }
     }
 
     nrf_gpio_pin_set(12);
@@ -747,9 +740,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
     NRF_LOG_INFO("UART CMD detection ended");
     NRF_LOG_FLUSH();
-
 }
-
 
 void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 {
@@ -769,22 +760,24 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
         float quat[4];
         uint32_t quat_len = sizeof(quat);
 
-        if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *) &temp, &temp_len) == NRF_SUCCESS)
+        if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)&temp, &temp_len) == NRF_SUCCESS)
         {
             // sprintf(string, "%d w%.3fwa%.3fab%.3fbc%.3fc\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
 
             // If packet contains QUATERNIONS
-            if( temp.quat_data_present )
+            if (temp.quat_data_present)
             {
                 sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
-            }else 
-            // if packet contains RAW DATA
-            if ( temp.raw_data_present )
+            }
+            else
+                // if packet contains RAW DATA
+                if (temp.raw_data_present)
             {
                 sprintf(string, "%d G %.3f %.3f %.3f        A %.3f %.3f %.3f        M %.3f %.3f %.3f\n", temp.conn_handle, temp.raw_data.gryo.x, temp.raw_data.gryo.y, temp.raw_data.gryo.z, temp.raw_data.accel.x, temp.raw_data.accel.y, temp.raw_data.accel.z, temp.raw_data.mag.x, temp.raw_data.mag.y, temp.raw_data.mag.z);
-            }else 
-            // If packet contains ADC DATA
-            if ( temp.adc_data_present )
+            }
+            else
+                // If packet contains ADC DATA
+                if (temp.adc_data_present)
             {
                 sprintf(string, "%d ADC %.3f\n", temp.conn_handle, temp.adc_data.raw[0]);
                 NRF_LOG_INFO("To be implemented.");
@@ -830,29 +823,23 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
                         //												NRF_LOG_INFO("FIFO read");
                         // if(uart_free)
                         // {
-                            do
+                        do
+                        {
+                            err_code = nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)string_len);
+                            if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
                             {
-                                err_code = nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)string_len);
-                                if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
-                                {
-                                    NRF_LOG_ERROR("nrf_drv_uart_tx failed");
-                                    APP_ERROR_CHECK(err_code);
-                                }
-                            } while (err_code == NRF_ERROR_BUSY);
-                            //												NRF_LOG_INFO("UART TX OK"); 
+                                NRF_LOG_ERROR("nrf_drv_uart_tx failed");
+                                APP_ERROR_CHECK(err_code);
+                            }
+                        } while (err_code == NRF_ERROR_BUSY);
+                        //												NRF_LOG_INFO("UART TX OK");
                         // }
-
                     }
                 }
             }
-
         }
     }
 }
-
-
-
-
 
 // Event handler DIY
 void data_evt_sceduled(void *p_event_data, uint16_t event_size)
@@ -886,7 +873,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                 if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read QUAT6");
-                    NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
+                    NRF_LOG_INFO("%d %d %d %d", 1000 * quat[0], 1000 * quat[1], 1000 * quat[2], 1000 * quat[3]);
                     read_success = true;
                     sprintf(string_send, "w%.2fwa%.2fab%.2fbc%.2fc\n", quat[0], quat[1], quat[2], quat[3]);
                     NRF_LOG_INFO("%s", string_send);
@@ -899,7 +886,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                 if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)quat, &temp_len) == NRF_SUCCESS)
                 {
                     NRF_LOG_INFO("Read QUAT9");
-                    NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
+                    NRF_LOG_INFO("%d %d %d %d", 1000 * quat[0], 1000 * quat[1], 1000 * quat[2], 1000 * quat[3]);
                     read_success = true;
                     sprintf(string_send, "w%fwa%fab%fbc%fc\n", quat[0], quat[1], quat[2], quat[3]);
                     NRF_LOG_INFO("%s", string_send);
@@ -1009,7 +996,6 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             }
             imu.evt_scheduled--; // Needs to be here: problem: can skip some malformed packets - otherwise the app_scheduler will continue to execute and block the cpu
         }
-        
     }
     nrf_gpio_pin_clear(22);
 }
@@ -1138,7 +1124,6 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
 
     // Add discovery for TMS service
     ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c[p_evt->conn_handle], p_evt);
-
 }
 
 /**@brief Function for handling characters received by the Nordic UART Service (NUS).
@@ -1409,7 +1394,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
     switch (p_ble_evt->header.evt_id)
     {
     case BLE_GAP_EVT_CONNECTED:
-        {
+    {
         /* CHANGES */
         //err_code = ble_nus_c_handles_assign(&m_ble_nus_c, p_ble_evt->evt.gap_evt.conn_handle, NULL);
         err_code = ble_nus_c_handles_assign(&m_ble_nus_c[p_ble_evt->evt.gap_evt.conn_handle], p_ble_evt->evt.gap_evt.conn_handle, NULL);
@@ -1452,12 +1437,11 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         // uart_print("------------------------------------------\n");
         uart_print(str1);
         // uart_print("------------------------------------------\n");
-
-        }
-        break;
+    }
+    break;
 
     case BLE_GAP_EVT_DISCONNECTED:
-        {
+    {
         // Print to uart if device disconnects
         char str2[100];
         sprintf(str2, "Disconnected: %d\n", p_gap_evt->conn_handle);
@@ -1465,12 +1449,11 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         uart_print(str2);
         // uart_print("------------------------------------------\n");
 
-
         NRF_LOG_INFO("Disconnected. conn_handle: 0x%x, reason: 0x%x",
                      p_gap_evt->conn_handle,
                      p_gap_evt->params.disconnected.reason);
-        }
-        break;
+    }
+    break;
 
     case BLE_GAP_EVT_TIMEOUT:
         if (p_gap_evt->params.timeout.src == BLE_GAP_TIMEOUT_SRC_CONN)
@@ -1521,11 +1504,11 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         APP_ERROR_CHECK(err_code);
         break;
 
-    // case BLE_GATTS_EVT_SYS_ATTR_MISSING:
-    //     // No system attributes have been stored.
-    //     err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
-    //     APP_ERROR_CHECK(err_code);
-    //     break;
+        // case BLE_GATTS_EVT_SYS_ATTR_MISSING:
+        //     // No system attributes have been stored.
+        //     err_code = sd_ble_gatts_sys_attr_set(m_conn_handle, NULL, 0, 0);
+        //     APP_ERROR_CHECK(err_code);
+        //     break;
 
     default:
         break;
@@ -1605,10 +1588,6 @@ void config_imu(uint8_t *config, uint8_t len)
     NRF_LOG_INFO("CONFIG SEND!");
 }
 
-
-
-
-
 static void ts_gpio_trigger_enable(void)
 {
     uint64_t time_now_ticks;
@@ -1642,7 +1621,6 @@ static void ts_gpio_trigger_disable(void)
 {
     m_gpio_trigger_enabled = false;
 }
-
 
 void ts_imu_trigger_enable(void)
 {
@@ -1678,56 +1656,56 @@ void ts_imu_trigger_disable(void)
     m_imu_trigger_enabled = false;
 }
 
-static void ts_evt_callback(const ts_evt_t* evt)
+static void ts_evt_callback(const ts_evt_t *evt)
 {
 
     APP_ERROR_CHECK_BOOL(evt != NULL);
 
     switch (evt->type)
     {
-        case TS_EVT_SYNCHRONIZED:
-            NRF_LOG_INFO("TS_EVT_SYNCHRONIZED");
-            // ts_gpio_trigger_enable();
-            ts_imu_trigger_enable();
-            break;
-        case TS_EVT_DESYNCHRONIZED:
-            NRF_LOG_INFO("TS_EVT_DESYNCHRONIZED");
-            // ts_gpio_trigger_disable();
-            ts_imu_trigger_disable();
-            break;
-        case TS_EVT_TRIGGERED:
-            // NRF_LOG_INFO("TS_EVT_TRIGGERED");
-            if (m_imu_trigger_enabled)
+    case TS_EVT_SYNCHRONIZED:
+        NRF_LOG_INFO("TS_EVT_SYNCHRONIZED");
+        // ts_gpio_trigger_enable();
+        ts_imu_trigger_enable();
+        break;
+    case TS_EVT_DESYNCHRONIZED:
+        NRF_LOG_INFO("TS_EVT_DESYNCHRONIZED");
+        // ts_gpio_trigger_disable();
+        ts_imu_trigger_disable();
+        break;
+    case TS_EVT_TRIGGERED:
+        // NRF_LOG_INFO("TS_EVT_TRIGGERED");
+        if (m_imu_trigger_enabled)
+        {
+            uint32_t tick_target;
+
+            tick_target = evt->params.triggered.tick_target + 4;
+
+            // NRF_LOG_INFO("tick_target %d", tick_target);
+
+            uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+
+            if (err_code != NRF_SUCCESS)
             {
-                uint32_t tick_target;
-
-                tick_target = evt->params.triggered.tick_target + 4;
-
-                // NRF_LOG_INFO("tick_target %d", tick_target);
-
-                uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
-                
-                if(err_code != NRF_SUCCESS)
-                {
-                    NRF_LOG_INFO("ts_evt_callback ERROR: %d", err_code);
-                    NRF_LOG_FLUSH();
-                }
-                APP_ERROR_CHECK(err_code);
+                NRF_LOG_INFO("ts_evt_callback ERROR: %d", err_code);
+                NRF_LOG_FLUSH();
             }
-            else
-            {
-                // Ensure pin is low when triggering is stopped
-                nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
-            }
-            uint64_t time_now_ticks;
-            uint32_t time_now_msec;
-            time_now_ticks = ts_timestamp_get_ticks_u64();
-            time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
-            // NRF_LOG_INFO("Time: %d", time_now_msec);
-            break;
-        default:
-            APP_ERROR_CHECK_BOOL(false);
-            break;
+            APP_ERROR_CHECK(err_code);
+        }
+        else
+        {
+            // Ensure pin is low when triggering is stopped
+            nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
+        }
+        uint64_t time_now_ticks;
+        uint32_t time_now_msec;
+        time_now_ticks = ts_timestamp_get_ticks_u64();
+        time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+        // NRF_LOG_INFO("Time: %d", time_now_msec);
+        break;
+    default:
+        APP_ERROR_CHECK_BOOL(false);
+        break;
     }
 }
 
@@ -1749,22 +1727,21 @@ static void sync_timer_init(void)
 #endif
 
     ts_init_t init_ts =
-    {
-        .high_freq_timer[0] = NRF_TIMER3,
-        .high_freq_timer[1] = NRF_TIMER4,
-        .egu                = NRF_EGU3,
-        .egu_irq_type       = SWI3_EGU3_IRQn,
-        .evt_handler        = ts_evt_callback,
-    };
+        {
+            .high_freq_timer[0] = NRF_TIMER3,
+            .high_freq_timer[1] = NRF_TIMER4,
+            .egu = NRF_EGU3,
+            .egu_irq_type = SWI3_EGU3_IRQn,
+            .evt_handler = ts_evt_callback,
+        };
 
     err_code = ts_init(&init_ts);
     APP_ERROR_CHECK(err_code);
 
-	ts_rf_config_t rf_config =
-	{
-		.rf_chn = 80,
-		.rf_addr = { 0xDE, 0xAD, 0xBE, 0xEF, 0x19 }
-	};
+    ts_rf_config_t rf_config =
+        {
+            .rf_chn = 80,
+            .rf_addr = {0xDE, 0xAD, 0xBE, 0xEF, 0x19}};
 
     err_code = ts_enable(&rf_config);
     APP_ERROR_CHECK(err_code);
@@ -1773,9 +1750,6 @@ static void sync_timer_init(void)
     NRF_LOG_INFO("Press Button 1 to start transmitting sync beacons\r\n");
     NRF_LOG_INFO("GPIO toggling will begin when transmission has started.\r\n");
 }
-
-
-
 
 /**@brief Function for handling events from the BSP module.
  *
@@ -1790,45 +1764,41 @@ void bsp_event_handler(bsp_event_t event)
     // TimeSync begin
     case BSP_EVENT_KEY_0:
     {
-    //     static bool m_send_sync_pkt = false;
+        //     static bool m_send_sync_pkt = false;
 
-    //     if (m_send_sync_pkt)
-    //     {
-    //         m_send_sync_pkt = false;
-    //         m_gpio_trigger_enabled = false;
+        //     if (m_send_sync_pkt)
+        //     {
+        //         m_send_sync_pkt = false;
+        //         m_gpio_trigger_enabled = false;
 
-    //         // bsp_board_leds_off();
+        //         // bsp_board_leds_off();
 
-    //         err_code = ts_tx_stop();
-    //         APP_ERROR_CHECK(err_code);
+        //         err_code = ts_tx_stop();
+        //         APP_ERROR_CHECK(err_code);
 
-    //         NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
-    //     }
-    //     else
-    //     {
-    //         m_send_sync_pkt = true;
+        //         NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+        //     }
+        //     else
+        //     {
+        //         m_send_sync_pkt = true;
 
-    //         // bsp_board_leds_on();
+        //         // bsp_board_leds_on();
 
-    //         APP_ERROR_CHECK(err_code);
-    //         // err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
-    //         err_code = ts_tx_start(2);
+        //         APP_ERROR_CHECK(err_code);
+        //         // err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+        //         err_code = ts_tx_start(2);
 
-    //         // ts_gpio_trigger_enable();
-    //         ts_imu_trigger_enable();
+        //         // ts_gpio_trigger_enable();
+        //         ts_imu_trigger_enable();
 
-    //         NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
-    //     }
-
+        //         NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+        //     }
 
         // Clear config and send it: Stop measurements
         config_reset(&imu);
         config_send(&imu);
 
         NRF_LOG_INFO("BSP KEY 0: SENSORS STOP!");
-
-
-
     }
     break;
         // TimeSync end
@@ -2005,7 +1975,6 @@ static void idle_state_handle(void)
     }
 }
 
-
 /////////////// LED BUTTON BLINK /////////////////////
 void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 {
@@ -2017,7 +1986,6 @@ void in_pin_handler(nrf_drv_gpiote_pin_t pin, nrf_gpiote_polarity_t action)
 
     /* END CHANGES */
 }
-
 
 char const *phy_str(ble_gap_phys_t phys)
 {
@@ -2045,7 +2013,6 @@ char const *phy_str(ble_gap_phys_t phys)
         return str[3];
     }
 }
-
 
 void conn_evt_len_ext_set(void)
 {
@@ -2079,10 +2046,10 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
         }
         else
         {
-                // Last byte from FIFO transmitted, notify the application.
-                // app_uart_event.evt_type = APP_UART_TX_EMPTY;
-                // m_event_handler(&app_uart_event);
-                // NRF_LOG_INFO("UART TX EMPTY");
+            // Last byte from FIFO transmitted, notify the application.
+            // app_uart_event.evt_type = APP_UART_TX_EMPTY;
+            // m_event_handler(&app_uart_event);
+            // NRF_LOG_INFO("UART TX EMPTY");
         }
         // NRF_LOG_INFO("UART TX done");
         break;
@@ -2094,7 +2061,6 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
         nrf_drv_uart_rx(&imu.uart, rx_buffer, 1);
         NRF_LOG_INFO("rx_buffer: %d", p_event->data.rxtx.p_data[0]);
 
-
         NRF_LOG_INFO("NRF_DRV_UART_EVT_RX_DONE");
         // NRF_LOG_FLUSH();
 
@@ -2103,11 +2069,11 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
         // memcpy(received_data, p_event->data.rxtx.p_data, received_data_len);
 
         // NRF_LOG_INFO("len: %d", received_data_len);
-        
+
         // NRF_LOG_INFO("%d %d", received_data[0], received_data[1], received_data[2]);
 
         err_code = app_fifo_put(&buffer.uart_rx_fifo, p_event->data.rxtx.p_data[0]);
-        if(err_code != NRF_SUCCESS)
+        if (err_code != NRF_SUCCESS)
         {
             NRF_LOG_INFO("app_fifo_put in NRF_DRV_UART_EVT_RX_DONE failed");
             NRF_LOG_FLUSH();
@@ -2124,14 +2090,14 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
 
         NRF_LOG_INFO("FIFO put");
 
-        if((p_event->data.rxtx.p_data[0] == CMD_CR) && (err_code == NRF_SUCCESS))
+        if ((p_event->data.rxtx.p_data[0] == CMD_CR) && (err_code == NRF_SUCCESS))
         {
             NRF_LOG_INFO("app_sched_event_put uart rx");
             err_code = app_sched_event_put(0, 0, uart_rx_scheduled);
             APP_ERROR_CHECK(err_code);
         }
     }
-        break;
+    break;
     case NRF_DRV_UART_EVT_ERROR: ///< Error reported by UART peripheral.
         NRF_LOG_INFO("Error in NRF_DRV_UART_EVT_ERROR");
         break;
@@ -2165,8 +2131,6 @@ void uart_dma_init()
     nrf_drv_uart_rx(&imu.uart, rx_buffer, 1);
 }
 
-
-
 void set_imu_packet_length()
 {
     imu.packet_length = 0;
@@ -2199,251 +2163,250 @@ void set_imu_packet_length()
     NRF_LOG_INFO("Packet Len set to: %d", imu.packet_length);
 }
 
-
-
-
-
-void thingy_tes_c_evt_handler(ble_thingy_tes_c_t * p_ble_tes_c, ble_tes_c_evt_t * p_evt)
+void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
 {
 
-nrf_gpio_pin_set(11);
+    nrf_gpio_pin_set(11);
 
     switch (p_evt->evt_type)
     {
         ret_code_t err_code;
 
-        case BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE:
-        {
-            err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_evt->conn_handle],
-                                                p_evt->conn_handle,
-                                                &p_evt->params.peer_db);
-            NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
-            
-            // Enable notifications - in peripheral this equates to turning on the sensors
-            err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
-            err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
-            err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
-            err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
-            APP_ERROR_CHECK(err_code);
+    case BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE:
+    {
+        err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_evt->conn_handle],
+                                            p_evt->conn_handle,
+                                            &p_evt->params.peer_db);
+        NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
 
+        // Enable notifications - in peripheral this equates to turning on the sensors
+        err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+        APP_ERROR_CHECK(err_code);
+        err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+        APP_ERROR_CHECK(err_code);
+        err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+        APP_ERROR_CHECK(err_code);
+        err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+        APP_ERROR_CHECK(err_code);
+    }
+    break;
+
+    case BLE_TMS_EVT_QUAT:
+    {
+        received_data_t received_quat;
+        uint32_t received_quat_len = sizeof(received_quat);
+
+        // Initialize struct to all zeros
+        memset(&received_quat, 0, received_quat_len);
+
+#define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
+
+        received_quat.conn_handle = p_evt->conn_handle;
+        received_quat.quat_data_present = 1;
+        received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+        received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+        received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+        received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+
+        // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+
+        NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
+
+        // Print number of packets received from each slave
+        if (p_evt->conn_handle == 0)
+        {
+            imu.received_packet_counter1++;
+            NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
         }
-        break;
-
-        case BLE_TMS_EVT_QUAT:
+        else if (p_evt->conn_handle == 1)
         {
-            received_data_t received_quat;
-            uint32_t received_quat_len = sizeof(received_quat);
-
-            // Initialize struct to all zeros
-            memset (&received_quat, 0, received_quat_len);
-
-            #define FIXED_POINT_FRACTIONAL_BITS_QUAT        30
-
-            received_quat.conn_handle = p_evt->conn_handle;
-            received_quat.quat_data_present = 1;
-            received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            
-            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
-
-            NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
-
-            // Print number of packets received from each slave
-            if(p_evt->conn_handle == 0)
-            {
-                imu.received_packet_counter1++;
-                NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
-            }else if(p_evt->conn_handle == 1)
-            {
-                imu.received_packet_counter2++;
-                NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
-            }else if(p_evt->conn_handle == 2)
-            {
-                imu.received_packet_counter3++;
-                NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
-            }else if(p_evt->conn_handle == 3)
-            {
-                imu.received_packet_counter4++;
-                NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
-            }
-
-            // Put the received data in FIFO buffer
-            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_quat, &received_quat_len);
-
-            if (err_code == NRF_ERROR_NO_MEM)
-            {
-                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
-            }
-            if (err_code == NRF_SUCCESS)
-            {
-                // Signal to event handler to execute sprintf + start UART transmission
-                // If there are already events in the queue
-                if (imu.evt_scheduled > 0)
-                {
-                    imu.evt_scheduled++;
-                }
-                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
-                else
-                {
-                    imu.evt_scheduled++;
-                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
-                    APP_ERROR_CHECK(err_code);
-                }
-            }
+            imu.received_packet_counter2++;
+            NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
         }
-        break;
-        
-        case BLE_TMS_EVT_EULER:
+        else if (p_evt->conn_handle == 2)
         {
-            float euler_buff[3];
-            uint32_t euler_buff_len = sizeof(euler_buff);
-
-            #define FIXED_POINT_FRACTIONAL_BITS_EULER       16
-
-            euler_buff[0] = ((float)p_evt->params.value.euler_data.yaw / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
-            euler_buff[1] = ((float)p_evt->params.value.euler_data.pitch / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
-            euler_buff[2] = ((float)p_evt->params.value.euler_data.roll / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));            
-            
-            NRF_LOG_INFO("euler: %d %d  %d", (int)euler_buff[0], (int)euler_buff[1], (int)euler_buff[2]);
+            imu.received_packet_counter3++;
+            NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
         }
-        break;
-
-        case BLE_TMS_EVT_RAW:
+        else if (p_evt->conn_handle == 3)
         {
-            #define RAW_Q_FORMAT_GYR_COMMA_BITS 5    // Number of bits used for comma part of raw data.
-            #define RAW_Q_FORMAT_ACC_COMMA_BITS 10     // Number of bits used for comma part of raw data.
-            #define RAW_Q_FORMAT_CMP_COMMA_BITS 4    // Number of bits used for comma part of raw data.
-
-            received_data_t received_raw;
-            uint32_t received_raw_len = sizeof(received_raw);
-
-            // Initialize struct to all zeros
-            memset (&received_raw, 0, received_raw_len);
-
-            received_raw.conn_handle = p_evt->conn_handle;
-            received_raw.raw_data_present = 1;
-            received_raw.raw_data.gryo.x = ((float)p_evt->params.value.raw_data.gyro.x / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
-            received_raw.raw_data.gryo.y = ((float)p_evt->params.value.raw_data.gyro.y / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
-            received_raw.raw_data.gryo.z = ((float)p_evt->params.value.raw_data.gyro.z / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));   
-            
-            received_raw.raw_data.accel.x = ((float)p_evt->params.value.raw_data.accel.x / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
-            received_raw.raw_data.accel.y = ((float)p_evt->params.value.raw_data.accel.y / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
-            received_raw.raw_data.accel.z = ((float)p_evt->params.value.raw_data.accel.z / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));   
-
-            received_raw.raw_data.mag.x = ((float)p_evt->params.value.raw_data.compass.x / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
-            received_raw.raw_data.mag.y = ((float)p_evt->params.value.raw_data.compass.y / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
-            received_raw.raw_data.mag.z = ((float)p_evt->params.value.raw_data.compass.z / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));   
-
-
-            // Put the received data in FIFO buffer
-            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_raw, &received_raw_len);
-            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
-            // NRF_LOG_FLUSH();
-
-            if (err_code == NRF_ERROR_NO_MEM)
-            {
-                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
-            }
-            if (err_code == NRF_SUCCESS)
-            {
-                // Signal to event handler to execute sprintf + start UART transmission
-                // If there are already events in the queue
-                if (imu.evt_scheduled > 0)
-                {
-                    imu.evt_scheduled++;
-                }
-                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
-                else
-                {
-                    imu.evt_scheduled++;
-                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
-                    APP_ERROR_CHECK(err_code);
-                }
-            }
-
-            // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(received_raw.raw_data.gryo.x*1000), (int)(received_raw.raw_data.gryo.y*1000), (int)(received_raw.raw_data.gryo.z*1000));
-            // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
-            // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));     
-
-            // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(gyro[0]*1000), (int)(gyro[1]*1000), (int)(gyro[2]*1000));
-            // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
-            // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));            
-
+            imu.received_packet_counter4++;
+            NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
         }
-        break;
 
-        case BLE_TMS_EVT_ADC:
+        // Put the received data in FIFO buffer
+        err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_quat, &received_quat_len);
+
+        if (err_code == NRF_ERROR_NO_MEM)
         {
-            // NRF_LOG_INFO("ADC data: %d", p_evt->params.value.adc_data.raw[1]);
-                        // Print number of packets received from each slave
-            if(p_evt->conn_handle == 0)
+            NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+        }
+        if (err_code == NRF_SUCCESS)
+        {
+            // Signal to event handler to execute sprintf + start UART transmission
+            // If there are already events in the queue
+            if (imu.evt_scheduled > 0)
             {
-                imu.received_packet_counter1++;
-                NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
-            }else if(p_evt->conn_handle == 1)
-            {
-                imu.received_packet_counter2++;
-                NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
-            }else if(p_evt->conn_handle == 2)
-            {
-                imu.received_packet_counter3++;
-                NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
-            }else if(p_evt->conn_handle == 3)
-            {
-                imu.received_packet_counter4++;
-                NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
+                imu.evt_scheduled++;
             }
-
-            received_data_t received_adc;
-            uint32_t received_adc_len = sizeof(received_adc);
-
-            // Initialize struct to all zeros
-            memset (&received_adc, 0, received_adc_len);
-
-            received_adc.conn_handle = p_evt->conn_handle;
-            received_adc.adc_data_present = 1;
-
-            // TODO copy all data to print buffers
-            received_adc.adc_data.raw[0] = p_evt->params.value.adc_data.raw[0];
-
-            // Put the received data in FIFO buffer
-            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_adc, &received_adc_len);
-            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
-            // NRF_LOG_FLUSH();
-
-            if (err_code == NRF_ERROR_NO_MEM)
+            // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+            else
             {
-                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
-            }
-            if (err_code == NRF_SUCCESS)
-            {
-                // Signal to event handler to execute sprintf + start UART transmission
-                // If there are already events in the queue
-                if (imu.evt_scheduled > 0)
-                {
-                    imu.evt_scheduled++;
-                }
-                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
-                else
-                {
-                    imu.evt_scheduled++;
-                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
-                    APP_ERROR_CHECK(err_code);
-                }
+                imu.evt_scheduled++;
+                err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                APP_ERROR_CHECK(err_code);
             }
         }
-        break;
+    }
+    break;
 
-        default:
+    case BLE_TMS_EVT_EULER:
+    {
+        float euler_buff[3];
+        uint32_t euler_buff_len = sizeof(euler_buff);
+
+#define FIXED_POINT_FRACTIONAL_BITS_EULER 16
+
+        euler_buff[0] = ((float)p_evt->params.value.euler_data.yaw / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
+        euler_buff[1] = ((float)p_evt->params.value.euler_data.pitch / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
+        euler_buff[2] = ((float)p_evt->params.value.euler_data.roll / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
+
+        NRF_LOG_INFO("euler: %d %d  %d", (int)euler_buff[0], (int)euler_buff[1], (int)euler_buff[2]);
+    }
+    break;
+
+    case BLE_TMS_EVT_RAW:
+    {
+#define RAW_Q_FORMAT_GYR_COMMA_BITS 5  // Number of bits used for comma part of raw data.
+#define RAW_Q_FORMAT_ACC_COMMA_BITS 10 // Number of bits used for comma part of raw data.
+#define RAW_Q_FORMAT_CMP_COMMA_BITS 4  // Number of bits used for comma part of raw data.
+
+        received_data_t received_raw;
+        uint32_t received_raw_len = sizeof(received_raw);
+
+        // Initialize struct to all zeros
+        memset(&received_raw, 0, received_raw_len);
+
+        received_raw.conn_handle = p_evt->conn_handle;
+        received_raw.raw_data_present = 1;
+        received_raw.raw_data.gryo.x = ((float)p_evt->params.value.raw_data.gyro.x / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+        received_raw.raw_data.gryo.y = ((float)p_evt->params.value.raw_data.gyro.y / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+        received_raw.raw_data.gryo.z = ((float)p_evt->params.value.raw_data.gyro.z / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+
+        received_raw.raw_data.accel.x = ((float)p_evt->params.value.raw_data.accel.x / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+        received_raw.raw_data.accel.y = ((float)p_evt->params.value.raw_data.accel.y / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+        received_raw.raw_data.accel.z = ((float)p_evt->params.value.raw_data.accel.z / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+
+        received_raw.raw_data.mag.x = ((float)p_evt->params.value.raw_data.compass.x / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+        received_raw.raw_data.mag.y = ((float)p_evt->params.value.raw_data.compass.y / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+        received_raw.raw_data.mag.z = ((float)p_evt->params.value.raw_data.compass.z / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+
+        // Put the received data in FIFO buffer
+        err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_raw, &received_raw_len);
+        // NRF_LOG_INFO("app_fifo_write: %d", err_code);
+        // NRF_LOG_FLUSH();
+
+        if (err_code == NRF_ERROR_NO_MEM)
         {
-            NRF_LOG_INFO("thingy_tes_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
+            NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
         }
-        break;
+        if (err_code == NRF_SUCCESS)
+        {
+            // Signal to event handler to execute sprintf + start UART transmission
+            // If there are already events in the queue
+            if (imu.evt_scheduled > 0)
+            {
+                imu.evt_scheduled++;
+            }
+            // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+            else
+            {
+                imu.evt_scheduled++;
+                err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                APP_ERROR_CHECK(err_code);
+            }
+        }
+
+        // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(received_raw.raw_data.gryo.x*1000), (int)(received_raw.raw_data.gryo.y*1000), (int)(received_raw.raw_data.gryo.z*1000));
+        // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
+        // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
+
+        // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(gyro[0]*1000), (int)(gyro[1]*1000), (int)(gyro[2]*1000));
+        // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
+        // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
+    }
+    break;
+
+    case BLE_TMS_EVT_ADC:
+    {
+        // NRF_LOG_INFO("ADC data: %d", p_evt->params.value.adc_data.raw[1]);
+        // Print number of packets received from each slave
+        if (p_evt->conn_handle == 0)
+        {
+            imu.received_packet_counter1++;
+            NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
+        }
+        else if (p_evt->conn_handle == 1)
+        {
+            imu.received_packet_counter2++;
+            NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
+        }
+        else if (p_evt->conn_handle == 2)
+        {
+            imu.received_packet_counter3++;
+            NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
+        }
+        else if (p_evt->conn_handle == 3)
+        {
+            imu.received_packet_counter4++;
+            NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
+        }
+
+        received_data_t received_adc;
+        uint32_t received_adc_len = sizeof(received_adc);
+
+        // Initialize struct to all zeros
+        memset(&received_adc, 0, received_adc_len);
+
+        received_adc.conn_handle = p_evt->conn_handle;
+        received_adc.adc_data_present = 1;
+
+        // TODO copy all data to print buffers
+        received_adc.adc_data.raw[0] = p_evt->params.value.adc_data.raw[0];
+
+        // Put the received data in FIFO buffer
+        err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_adc, &received_adc_len);
+        // NRF_LOG_INFO("app_fifo_write: %d", err_code);
+        // NRF_LOG_FLUSH();
+
+        if (err_code == NRF_ERROR_NO_MEM)
+        {
+            NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+        }
+        if (err_code == NRF_SUCCESS)
+        {
+            // Signal to event handler to execute sprintf + start UART transmission
+            // If there are already events in the queue
+            if (imu.evt_scheduled > 0)
+            {
+                imu.evt_scheduled++;
+            }
+            // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+            else
+            {
+                imu.evt_scheduled++;
+                err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                APP_ERROR_CHECK(err_code);
+            }
+        }
+    }
+    break;
+
+    default:
+    {
+        NRF_LOG_INFO("thingy_tes_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
+    }
+    break;
     }
 
     nrf_gpio_pin_clear(11);
@@ -2451,10 +2414,10 @@ nrf_gpio_pin_set(11);
 
 static void thingy_tes_c_init(void)
 {
-    ret_code_t       err_code;
+    ret_code_t err_code;
 
     ble_thingy_tes_c_init_t thingy_tes_c_init_obj;
-    thingy_tes_c_init_obj.evt_handler =  thingy_tes_c_evt_handler;
+    thingy_tes_c_init_obj.evt_handler = thingy_tes_c_evt_handler;
 
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
@@ -2462,7 +2425,6 @@ static void thingy_tes_c_init(void)
         APP_ERROR_CHECK(err_code);
     }
 }
-
 
 int main(void)
 {
@@ -2483,7 +2445,6 @@ int main(void)
     uint16_t received_data_buffer_size = 4096;
     uint8_t received_data_buffer[received_data_buffer_size];
 
-    
     // Initialize FIFO structure for use in UART DMA
     err_code = app_fifo_init(&buffer.uart_dma_difo, uart_dma_buffer, (uint16_t)sizeof(uart_dma_buffer));
     APP_ERROR_CHECK(err_code);
@@ -2509,7 +2470,6 @@ int main(void)
 
     gatt_init();
     nus_c_init();
-
 
     thingy_tes_c_init();
 
@@ -2549,15 +2509,9 @@ int main(void)
     nrf_gpio_cfg_output(10);
 
     nrf_gpio_cfg_output(11);
-nrf_gpio_cfg_output(12);
-
-
-
-
+    nrf_gpio_cfg_output(12);
 
     NRF_LOG_DEBUG("DEBUG ACTIVE");
-
-
 
     // Enter main loop.
     for (;;)
@@ -2571,7 +2525,6 @@ nrf_gpio_cfg_output(12);
         NRF_LOG_FLUSH();
         nrf_gpio_pin_clear(20);
 
-        
         idle_state_handle();
 
         // Toggle pin to check CPU activity
