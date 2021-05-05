@@ -90,6 +90,9 @@
 // Receive data from Thingy motion service
 #include "ble_tes_c.h"
 
+// List of connected slaves
+#include "sdk_mapped_flags.h"
+
 #define PRINT() NRF_LOG_INFO()
 
 #define FREQ_TO_MS(x) ((1.000 / x))*1000
@@ -232,6 +235,8 @@ typedef enum
 #define CMD_STOP        0x74 //t
 
 #define CMD_ADC         0x64 //d
+
+#define CMD_LIST        0x6c //l
 
 
 uint32_t config_send(IMU * imu)
@@ -395,6 +400,34 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                         if(imu.sync_enabled) uart_print("---   Synchonization enabled\n");
                         uart_print("------------------------------------------\n");
                         break;
+
+                case CMD_LIST:
+                        NRF_LOG_INFO("CMD_LIST received");
+
+                        uart_print("------------------------------------------\n");
+                        uart_print("Connected devices list:\n");
+
+                        // Get connection handles
+                        ble_conn_state_conn_handle_list_t conn_central_handles = ble_conn_state_central_handles();
+                        //You can iterate through the list of connection handles:
+
+                        NRF_LOG_INFO("conn_central_handles.len %d", conn_central_handles.len);
+                        for (uint32_t i = 0; i < conn_central_handles.len; i++)
+                        {
+                            uint16_t conn_handle = conn_central_handles.conn_handles[i];
+
+                            // Print Connected Devices
+                            uint8_t str[100];
+                            sprintf(str, "Device    %d conn handle  %d\n", (i+1), conn_handle);
+                            uart_print(str);
+                            // NRF_LOG_INFO("Connection handle: %d\n", (i+1), conn_handle);
+                            nrf_delay_ms(1);
+                        }
+
+                        // uart_print("This feature is in progress...\n");
+                        uart_print("------------------------------------------\n");
+
+                    break;
 
                 case CMD_SYNC:
                         NRF_LOG_INFO("CMD_SYNC received");
@@ -1293,6 +1326,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
     switch (p_ble_evt->header.evt_id)
     {
     case BLE_GAP_EVT_CONNECTED:
+        {
         /* CHANGES */
         //err_code = ble_nus_c_handles_assign(&m_ble_nus_c, p_ble_evt->evt.gap_evt.conn_handle, NULL);
         err_code = ble_nus_c_handles_assign(&m_ble_nus_c[p_ble_evt->evt.gap_evt.conn_handle], p_ble_evt->evt.gap_evt.conn_handle, NULL);
@@ -1329,13 +1363,30 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
         APP_ERROR_CHECK(err_code);
 
+        // Print to uart if device disconnects
+        char str1[100];
+        sprintf(str1, "Connected: %d\n", p_gap_evt->conn_handle);
+        // uart_print("------------------------------------------\n");
+        uart_print(str1);
+        // uart_print("------------------------------------------\n");
+
+        }
         break;
 
     case BLE_GAP_EVT_DISCONNECTED:
+        {
+        // Print to uart if device disconnects
+        char str2[100];
+        sprintf(str2, "Disconnected: %d\n", p_gap_evt->conn_handle);
+        // uart_print("------------------------------------------\n");
+        uart_print(str2);
+        // uart_print("------------------------------------------\n");
+
 
         NRF_LOG_INFO("Disconnected. conn_handle: 0x%x, reason: 0x%x",
                      p_gap_evt->conn_handle,
                      p_gap_evt->params.disconnected.reason);
+        }
         break;
 
     case BLE_GAP_EVT_TIMEOUT:

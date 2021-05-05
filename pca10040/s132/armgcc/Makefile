@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
   $(PROJ_DIR)/BLE_Services/ble_tes_c.c \
   $(SDK_ROOT)/components/libraries/atomic_flags/nrf_atflags.c \
