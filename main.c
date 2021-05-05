@@ -694,6 +694,14 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 
         char string[26];
 
+        uint16_t device_nr[1];
+        uint32_t device_nr_len = sizeof(device_nr);
+
+        if (app_fifo_read(&buffer.received_data_fifo, device_nr, &device_nr_len) != NRF_SUCCESS)
+        {
+            NRF_LOG_INFO("app_fifo_read failed reading device_nr");
+        }
+
         float quat[4];
         uint32_t quat_len = sizeof(quat);
 
@@ -701,8 +709,11 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
         {
             // NRF_LOG_INFO("Read QUAT6");
             // NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
-            sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", quat[0], quat[1], quat[2], quat[3]);
-            // NRF_LOG_INFO("%s", string);
+
+            // sprintf(string, "%d w%.3fwa%.3fab%.3fbc%.3fc\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
+            
+            sprintf(string, "%d %.3f    %.3f    %.3f    %.3f\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
+
 
             read_success = true;
             imu.evt_scheduled--;
@@ -2186,7 +2197,14 @@ nrf_gpio_pin_set(11);
                 NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
             }
 
+            uint16_t conn_handle_temp = p_evt->conn_handle;
+            uint32_t conn_handle_temp_len = sizeof(conn_handle_temp);
 
+            err_code = app_fifo_write(&buffer.received_data_fifo, &conn_handle_temp, &conn_handle_temp_len);
+            if(err_code != NRF_SUCCESS)
+            {
+                NRF_LOG_INFO("app_fifo_write returned err_code %d", err_code);
+            }
 
             // Put the received data in FIFO buffer
             err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff_len);

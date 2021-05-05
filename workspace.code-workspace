@@ -27,7 +27,8 @@
 			"stdbool.h": "c",
 			"string.h": "c",
 			"stdint.h": "c",
-			"reent.h": "c"
+			"reent.h": "c",
+			"type_traits": "c"
 		}
 	}
 }
