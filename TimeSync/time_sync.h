@@ -63,7 +63,7 @@ extern "C" {
 #endif
 
 #ifndef TIME_SYNC_DESYNC_TIMEOUT
-#define TIME_SYNC_DESYNC_TIMEOUT 10000000 /* Timeout for desynchronization [us] */
+#define TIME_SYNC_DESYNC_TIMEOUT 1000000 //10000000 /* Timeout for desynchronization [us] */
 #endif
 
 #ifndef TIME_SYNC_TX_OFFSET_REALIGN_TIMEOUT

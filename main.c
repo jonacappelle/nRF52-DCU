@@ -418,7 +418,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                             // Print Connected Devices
                             uint8_t str[100];
-                            sprintf(str, "Device    %d conn handle  %d\n", (i+1), conn_handle);
+                            sprintf(str, "Sensor    %d  --> conn handle  %d\n", (i+1), conn_handle);
                             uart_print(str);
                             // NRF_LOG_INFO("Connection handle: %d\n", (i+1), conn_handle);
                             nrf_delay_ms(1);
@@ -462,6 +462,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                                     // Stop synchronization
                                     err_code = ts_tx_stop();
+                                    ts_imu_trigger_disable();
                                     APP_ERROR_CHECK(err_code);
                                     NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
 
@@ -1590,7 +1591,7 @@ void ts_imu_trigger_enable(void)
     m_imu_trigger_enabled = true;
 }
 
-static void ts_imu_trigger_disable(void)
+void ts_imu_trigger_disable(void)
 {
     m_imu_trigger_enabled = false;
 }
