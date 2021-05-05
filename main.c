@@ -111,6 +111,64 @@ typedef struct buffer
 BUFFER buffer;
 
 
+// Struct to keep track of received data
+
+
+typedef struct gyro
+{
+    float x;
+    float y;
+    float z;
+} gyro_t;
+
+typedef struct accel
+{
+    float x;
+    float y;
+    float z;
+} accel_t;
+
+typedef struct mag
+{
+    float x;
+    float y;
+    float z;
+} mag_t;
+
+typedef struct raw_data
+{
+    gyro_t      gryo;
+    accel_t     accel;
+    mag_t       mag;
+} raw_data_t;
+
+typedef struct quat_data
+{
+    float w;
+    float x;
+    float y;
+    float z;
+} quat_data_t;
+
+typedef struct adc_data
+{
+    uint32_t raw[40];
+} adc_data_t;
+
+typedef struct received_data
+{
+    bool            raw_data_present;
+    bool            quat_data_present;
+    bool            adc_data_present;
+    raw_data_t      raw_data;
+    quat_data_t     quat_data;
+    adc_data_t      adc_data;
+    uint16_t        conn_handle;
+} received_data_t;
+
+
+
+
 typedef struct imu
 {
     bool gyro_enabled;
@@ -217,9 +275,11 @@ typedef enum
 #define CMD_FREQ    0x66 //f
 
 #define CMD_FREQ_LEN    3 // Length of the frequency component of uart config
+#define CMD_FREQ_10     10
 #define CMD_FREQ_50     50
 #define CMD_FREQ_100    100
 #define CMD_FREQ_225    225
+#define CMD_FREQ_200    200
 
 #define CMD_PRINT       0x68 //h
 #define CMD_SETTINGS    0x70 //p
@@ -582,8 +642,11 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
                             switch(cmd)
                             {
-                                // NRF_LOG_INFO("in switch statement");
-                                // NRF_LOG_FLUSH();
+                                case CMD_FREQ_10:
+                                        NRF_LOG_INFO("CMD_FREQ_10 received");
+                                        imu.frequency = 10;
+                                        // NRF_LOG_FLUSH();
+                                    break;
 
                                 case CMD_FREQ_50:
                                         NRF_LOG_INFO("CMD_FREQ_50 received");
@@ -594,6 +657,12 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                                 case CMD_FREQ_100:
                                         NRF_LOG_INFO("CMD_FREQ_100 received");
                                         imu.frequency = 100;
+                                        // NRF_LOG_FLUSH();
+                                    break;
+
+                                case CMD_FREQ_200:
+                                        NRF_LOG_INFO("CMD_FREQ_200 received");
+                                        imu.frequency = 200;
                                         // NRF_LOG_FLUSH();
                                     break;
 
@@ -692,40 +761,42 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 
         // NRF_LOG_INFO("App scheduler execute: %d", imu.evt_scheduled);
 
-        char string[26];
+        char string[1024];
 
-        uint16_t device_nr[1];
-        uint32_t device_nr_len = sizeof(device_nr);
-
-        if (app_fifo_read(&buffer.received_data_fifo, device_nr, &device_nr_len) != NRF_SUCCESS)
-        {
-            NRF_LOG_INFO("app_fifo_read failed reading device_nr");
-        }
+        received_data_t temp;
+        uint32_t temp_len = sizeof(temp);
 
         float quat[4];
         uint32_t quat_len = sizeof(quat);
 
-        if (app_fifo_read(&buffer.received_data_fifo, quat, &quat_len) == NRF_SUCCESS)
+        if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *) &temp, &temp_len) == NRF_SUCCESS)
         {
-            // NRF_LOG_INFO("Read QUAT6");
-            // NRF_LOG_INFO("%d %d %d %d", 1000*quat[0], 1000*quat[1], 1000*quat[2], 1000*quat[3]);
-
             // sprintf(string, "%d w%.3fwa%.3fab%.3fbc%.3fc\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
-            
-            sprintf(string, "%d %.3f    %.3f    %.3f    %.3f\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
 
+            // If packet contains QUATERNIONS
+            if( temp.quat_data_present )
+            {
+                sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+            }else 
+            // if packet contains RAW DATA
+            if ( temp.raw_data_present )
+            {
+                sprintf(string, "%d G %.3f %.3f %.3f        A %.3f %.3f %.3f        M %.3f %.3f %.3f\n", temp.conn_handle, temp.raw_data.gryo.x, temp.raw_data.gryo.y, temp.raw_data.gryo.z, temp.raw_data.accel.x, temp.raw_data.accel.y, temp.raw_data.accel.z, temp.raw_data.mag.x, temp.raw_data.mag.y, temp.raw_data.mag.z);
+            }else 
+            // If packet contains ADC DATA
+            if ( temp.adc_data_present )
+            {
+                sprintf(string, "%d ADC %.3f\n", temp.conn_handle, temp.adc_data.raw[0]);
+                NRF_LOG_INFO("To be implemented.");
+            }
 
             read_success = true;
             imu.evt_scheduled--;
         }
 
-                // Get data from FIFO buffer if data is correctly recognized
+        // Get data from FIFO buffer if data is correctly recognized
         if (read_success)
         {
-
-            // NRF_LOG_INFO("read_success");
-            // NRF_LOG_FLUSH();
-
             uint32_t string_len = 0;
             do
             {
@@ -2163,16 +2234,20 @@ nrf_gpio_pin_set(11);
 
         case BLE_TMS_EVT_QUAT:
         {
-            float quat_buff[4];
-            uint32_t quat_buff_len = sizeof(quat_buff);
+            received_data_t received_quat;
+            uint32_t received_quat_len = sizeof(received_quat);
+
+            // Initialize struct to all zeros
+            memset (&received_quat, 0, received_quat_len);
 
             #define FIXED_POINT_FRACTIONAL_BITS_QUAT        30
 
-            quat_buff[0] = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            quat_buff[1] = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            quat_buff[2] = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            quat_buff[3] = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-            
+            received_quat.conn_handle = p_evt->conn_handle;
+            received_quat.quat_data_present = 1;
+            received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             
             // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
 
@@ -2197,19 +2272,8 @@ nrf_gpio_pin_set(11);
                 NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
             }
 
-            uint16_t conn_handle_temp = p_evt->conn_handle;
-            uint32_t conn_handle_temp_len = sizeof(conn_handle_temp);
-
-            err_code = app_fifo_write(&buffer.received_data_fifo, &conn_handle_temp, &conn_handle_temp_len);
-            if(err_code != NRF_SUCCESS)
-            {
-                NRF_LOG_INFO("app_fifo_write returned err_code %d", err_code);
-            }
-
             // Put the received data in FIFO buffer
-            err_code = app_fifo_write(&buffer.received_data_fifo, quat_buff, &quat_buff_len);
-            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
-            // NRF_LOG_FLUSH();
+            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_quat, &received_quat_len);
 
             if (err_code == NRF_ERROR_NO_MEM)
             {
@@ -2255,26 +2319,60 @@ nrf_gpio_pin_set(11);
             #define RAW_Q_FORMAT_ACC_COMMA_BITS 10     // Number of bits used for comma part of raw data.
             #define RAW_Q_FORMAT_CMP_COMMA_BITS 4    // Number of bits used for comma part of raw data.
 
-            float gyro[3];
-            float accel[3];
-            float mag[3];
+            received_data_t received_raw;
+            uint32_t received_raw_len = sizeof(received_raw);
 
-            gyro[0] = ((float)p_evt->params.value.raw_data.gyro.x / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
-            gyro[1] = ((float)p_evt->params.value.raw_data.gyro.y / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
-            gyro[2] = ((float)p_evt->params.value.raw_data.gyro.z / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));   
+            // Initialize struct to all zeros
+            memset (&received_raw, 0, received_raw_len);
+
+            received_raw.conn_handle = p_evt->conn_handle;
+            received_raw.raw_data_present = 1;
+            received_raw.raw_data.gryo.x = ((float)p_evt->params.value.raw_data.gyro.x / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+            received_raw.raw_data.gryo.y = ((float)p_evt->params.value.raw_data.gyro.y / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));
+            received_raw.raw_data.gryo.z = ((float)p_evt->params.value.raw_data.gyro.z / (float)(1 << RAW_Q_FORMAT_GYR_COMMA_BITS));   
             
-            accel[0] = ((float)p_evt->params.value.raw_data.accel.x / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
-            accel[1] = ((float)p_evt->params.value.raw_data.accel.y / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
-            accel[2] = ((float)p_evt->params.value.raw_data.accel.z / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));   
+            received_raw.raw_data.accel.x = ((float)p_evt->params.value.raw_data.accel.x / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+            received_raw.raw_data.accel.y = ((float)p_evt->params.value.raw_data.accel.y / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));
+            received_raw.raw_data.accel.z = ((float)p_evt->params.value.raw_data.accel.z / (float)(1 << RAW_Q_FORMAT_ACC_COMMA_BITS));   
 
-            mag[0] = ((float)p_evt->params.value.raw_data.compass.x / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
-            mag[1] = ((float)p_evt->params.value.raw_data.compass.y / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
-            mag[2] = ((float)p_evt->params.value.raw_data.compass.z / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));   
+            received_raw.raw_data.mag.x = ((float)p_evt->params.value.raw_data.compass.x / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+            received_raw.raw_data.mag.y = ((float)p_evt->params.value.raw_data.compass.y / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));
+            received_raw.raw_data.mag.z = ((float)p_evt->params.value.raw_data.compass.z / (float)(1 << RAW_Q_FORMAT_CMP_COMMA_BITS));   
 
 
-            NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(gyro[0]*1000), (int)(gyro[1]*1000), (int)(gyro[2]*1000));
-            NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
-            NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
+            // Put the received data in FIFO buffer
+            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_raw, &received_raw_len);
+            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
+            // NRF_LOG_FLUSH();
+
+            if (err_code == NRF_ERROR_NO_MEM)
+            {
+                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+            }
+            if (err_code == NRF_SUCCESS)
+            {
+                // Signal to event handler to execute sprintf + start UART transmission
+                // If there are already events in the queue
+                if (imu.evt_scheduled > 0)
+                {
+                    imu.evt_scheduled++;
+                }
+                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+                else
+                {
+                    imu.evt_scheduled++;
+                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                    APP_ERROR_CHECK(err_code);
+                }
+            }
+
+            // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(received_raw.raw_data.gryo.x*1000), (int)(received_raw.raw_data.gryo.y*1000), (int)(received_raw.raw_data.gryo.z*1000));
+            // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
+            // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));     
+
+            // NRF_LOG_INFO("raw:  gyro: %d %d  %d", (int)(gyro[0]*1000), (int)(gyro[1]*1000), (int)(gyro[2]*1000));
+            // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
+            // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));            
 
         }
         break;
@@ -2299,6 +2397,44 @@ nrf_gpio_pin_set(11);
             {
                 imu.received_packet_counter4++;
                 NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
+            }
+
+            received_data_t received_adc;
+            uint32_t received_adc_len = sizeof(received_adc);
+
+            // Initialize struct to all zeros
+            memset (&received_adc, 0, received_adc_len);
+
+            received_adc.conn_handle = p_evt->conn_handle;
+            received_adc.adc_data_present = 1;
+
+            // TODO copy all data to print buffers
+            received_adc.adc_data.raw[0] = p_evt->params.value.adc_data.raw[0];
+
+            // Put the received data in FIFO buffer
+            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) &received_adc, &received_adc_len);
+            // NRF_LOG_INFO("app_fifo_write: %d", err_code);
+            // NRF_LOG_FLUSH();
+
+            if (err_code == NRF_ERROR_NO_MEM)
+            {
+                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+            }
+            if (err_code == NRF_SUCCESS)
+            {
+                // Signal to event handler to execute sprintf + start UART transmission
+                // If there are already events in the queue
+                if (imu.evt_scheduled > 0)
+                {
+                    imu.evt_scheduled++;
+                }
+                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+                else
+                {
+                    imu.evt_scheduled++;
+                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                    APP_ERROR_CHECK(err_code);
+                }
             }
         }
         break;

@@ -28,7 +28,8 @@
 			"string.h": "c",
 			"stdint.h": "c",
 			"reent.h": "c",
-			"type_traits": "c"
+			"type_traits": "c",
+			"features.h": "c"
 		}
 	}
 }
