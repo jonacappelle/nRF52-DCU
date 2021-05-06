@@ -234,6 +234,7 @@ typedef struct
     uint16_t                  motion_freq_hz;
     bool                      wom_enabled;
     bool                      sync_enabled;
+    uint64_t                  sync_start_time;
     bool                      stop;
     bool                      adc_enabled;
 } ble_tes_config_t;

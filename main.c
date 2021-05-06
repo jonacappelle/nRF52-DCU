@@ -175,6 +175,7 @@ typedef struct imu
     bool wom;
     bool stop;
     bool sync_enabled;
+    uint64_t sync_start_time;
     uint32_t frequency; // period in milliseconds (ms)
     uint16_t packet_length;
     int received_packet_counter1;
@@ -191,6 +192,7 @@ typedef struct imu
 IMU imu = {
     .frequency = 0,
     .stop = 0,
+    .sync_start_time = 0,
     .received_packet_counter1 = 0,
     .received_packet_counter2 = 0,
     .received_packet_counter3 = 0,
@@ -304,6 +306,19 @@ uint32_t config_send(IMU *imu)
     config.sync_enabled = imu->sync_enabled;
     config.stop = imu->stop;
     config.adc_enabled = imu->adc;
+
+    // Get timestamp from master
+    imu->sync_start_time = ts_timestamp_get_ticks_u64();
+
+    // Send start signal to be 2 seconds later
+    imu->sync_start_time = ( TIME_SYNC_TIMESTAMP_TO_USEC(imu->sync_start_time) / 1000 ) + 2000;
+
+    imu->sync_start_time = ( TIME_SYNC_MSEC_TO_TICK(imu->sync_start_time) / 100 ) * 100;
+
+
+    config.sync_start_time = imu->sync_start_time;
+    NRF_LOG_INFO("sync_start_time: %d", imu->sync_start_time);
+    
 
     NRF_LOG_INFO("config.adc_enabled %d", config.adc_enabled);
 
