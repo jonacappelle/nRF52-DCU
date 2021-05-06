@@ -176,6 +176,11 @@ typedef struct
     ble_tms_raw_accel_t   accel;
     ble_tms_raw_gyro_t    gyro;
     ble_tms_raw_compass_t compass;
+} ble_tms_single_raw_t;
+
+typedef struct
+{
+    ble_tms_single_raw_t single_raw[10];
 } ble_tms_raw_t;
 
 typedef  struct
