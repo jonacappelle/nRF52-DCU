@@ -178,12 +178,17 @@ typedef struct
     ble_tms_raw_compass_t compass;
 } ble_tms_raw_t;
 
-typedef struct
+typedef  struct
 {
     int32_t w;
     int32_t x;
     int32_t y;
     int32_t z;
+} ble_tms_single_quat_t;
+
+typedef struct
+{
+    ble_tms_single_quat_t quat[10];
 } ble_tms_quat_t;
 
 typedef struct

@@ -2208,68 +2208,73 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
 
     case BLE_TMS_EVT_QUAT:
     {
-        received_data_t received_quat;
-        uint32_t received_quat_len = sizeof(received_quat);
 
-        // Initialize struct to all zeros
-        memset(&received_quat, 0, received_quat_len);
-
-#define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
-
-        received_quat.conn_handle = p_evt->conn_handle;
-        received_quat.quat_data_present = 1;
-        received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-        received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-        received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-        received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
-
-        // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
-
-        NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
-
-        // Print number of packets received from each slave
-        if (p_evt->conn_handle == 0)
+        for (uint8_t i = 0; i < 10; i++)
         {
-            imu.received_packet_counter1++;
-            NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
-        }
-        else if (p_evt->conn_handle == 1)
-        {
-            imu.received_packet_counter2++;
-            NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
-        }
-        else if (p_evt->conn_handle == 2)
-        {
-            imu.received_packet_counter3++;
-            NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
-        }
-        else if (p_evt->conn_handle == 3)
-        {
-            imu.received_packet_counter4++;
-            NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
-        }
 
-        // Put the received data in FIFO buffer
-        err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_quat, &received_quat_len);
+            received_data_t received_quat;
+            uint32_t received_quat_len = sizeof(received_quat);
 
-        if (err_code == NRF_ERROR_NO_MEM)
-        {
-            NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
-        }
-        if (err_code == NRF_SUCCESS)
-        {
-            // Signal to event handler to execute sprintf + start UART transmission
-            // If there are already events in the queue
-            if (imu.evt_scheduled > 0)
+            // Initialize struct to all zeros
+            memset(&received_quat, 0, received_quat_len);
+
+    #define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
+
+            received_quat.conn_handle = p_evt->conn_handle;
+            received_quat.quat_data_present = 1;
+            received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.quat[i].w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.quat[i].x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.quat[i].y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+            received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.quat[i].z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
+
+            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+
+            NRF_LOG_INFO("Device: %d", p_evt->conn_handle);
+
+            // Print number of packets received from each slave
+            if (p_evt->conn_handle == 0)
             {
-                imu.evt_scheduled++;
+                imu.received_packet_counter1++;
+                NRF_LOG_INFO("received_packet_counter1 %d", imu.received_packet_counter1);
             }
-            // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
-            else
+            else if (p_evt->conn_handle == 1)
             {
-                imu.evt_scheduled++;
-                err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
-                APP_ERROR_CHECK(err_code);
+                imu.received_packet_counter2++;
+                NRF_LOG_INFO("received_packet_counter2 %d", imu.received_packet_counter2);
+            }
+            else if (p_evt->conn_handle == 2)
+            {
+                imu.received_packet_counter3++;
+                NRF_LOG_INFO("received_packet_counter3 %d", imu.received_packet_counter3);
+            }
+            else if (p_evt->conn_handle == 3)
+            {
+                imu.received_packet_counter4++;
+                NRF_LOG_INFO("received_packet_counter4 %d", imu.received_packet_counter4);
+            }
+
+            // Put the received data in FIFO buffer
+            err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_quat, &received_quat_len);
+
+            if (err_code == NRF_ERROR_NO_MEM)
+            {
+                NRF_LOG_INFO("RECEIVED DATA FIFO BUFFER FULL!");
+            }
+            if (err_code == NRF_SUCCESS)
+            {
+                // Signal to event handler to execute sprintf + start UART transmission
+                // If there are already events in the queue
+                if (imu.evt_scheduled > 0)
+                {
+                    imu.evt_scheduled++;
+                }
+                // If there are not yet any events in the queue, schedule event. In gpiote_evt_sceduled all callbacks are called
+                else
+                {
+                    imu.evt_scheduled++;
+                    err_code = app_sched_event_put(0, 0, imu_uart_sceduled);
+                    APP_ERROR_CHECK(err_code);
+                }
             }
         }
     }
