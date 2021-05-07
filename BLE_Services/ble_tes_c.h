@@ -126,7 +126,8 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define THINGY_TES_UUID_HEADING_CHAR     0x0409                      /**< The UUID of the compass heading Characteristic. */
 #define THINGY_TES_UUID_GRAVITY_CHAR     0x040A                      /**< The UUID of the gravity vector Characteristic. */
 
-
+// How many packets (QUAT - RAW) are grouped in a message
+#define BLE_PACKET_BUFFER_COUNT     1
 
 /**@brief TES Client event type. */
 typedef enum
@@ -180,7 +181,7 @@ typedef struct
 
 typedef struct
 {
-    ble_tms_single_raw_t single_raw[10];
+    ble_tms_single_raw_t single_raw[BLE_PACKET_BUFFER_COUNT];
 } ble_tms_raw_t;
 
 typedef  struct
@@ -193,7 +194,7 @@ typedef  struct
 
 typedef struct
 {
-    ble_tms_single_quat_t quat[10];
+    ble_tms_single_quat_t quat[BLE_PACKET_BUFFER_COUNT];
 } ble_tms_quat_t;
 
 typedef struct

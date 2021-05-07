@@ -93,6 +93,9 @@
 // List of connected slaves
 #include "sdk_mapped_flags.h"
 
+
+
+
 #define PRINT() NRF_LOG_INFO()
 
 #define FREQ_TO_MS(x) ((1.000 / x)) * 1000
@@ -511,7 +514,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 NRF_LOG_INFO("CMD_SYNC_ENABLE received");
 
                 // Start synchronization
-                err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO);
+                err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO); //TIME_SYNC_FREQ_AUTO
                 // err_code = ts_tx_start(2);
                 APP_ERROR_CHECK(err_code);
                 // ts_gpio_trigger_enable();
@@ -2209,7 +2212,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     case BLE_TMS_EVT_QUAT:
     {
 
-        for (uint8_t i = 0; i < 10; i++)
+        for (uint8_t i = 0; i < BLE_PACKET_BUFFER_COUNT; i++)
         {
 
             received_data_t received_quat;
@@ -2298,7 +2301,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     case BLE_TMS_EVT_RAW:
     {
 
-        for (uint8_t i = 0; i < 10; i++)
+        for (uint8_t i = 0; i < BLE_PACKET_BUFFER_COUNT; i++)
         {
 
     #define RAW_Q_FORMAT_GYR_COMMA_BITS 5  // Number of bits used for comma part of raw data.
