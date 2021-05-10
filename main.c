@@ -93,21 +93,21 @@
 // List of connected slaves
 #include "sdk_mapped_flags.h"
 
+// Utilities
+#include "usr_util.h"
 
 
-
-#define PRINT() NRF_LOG_INFO()
-
-#define FREQ_TO_MS(x) ((1.000 / x)) * 1000
 
 // Create a FIFO structure
 typedef struct buffer
 {
     app_fifo_t uart_dma_difo;
+    uint8_t uart_dma_buffer[2048];
     app_fifo_t received_data_fifo;
+    uint8_t received_data_buffer[4096];
     uint8_t uart_dma_tx_buff[512];
     app_fifo_t uart_rx_fifo;
-    uint8_t uart_rx_buff[100];
+    uint8_t uart_rx_buff[256];
 } BUFFER;
 
 // Initialisation of struct to keep track of different buffers
@@ -293,9 +293,9 @@ typedef enum
 
 #define CMD_LIST 0x6c //l
 
-uint32_t config_send(IMU *imu)
+ret_code_t config_send(IMU *imu)
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     ble_tes_config_t config;
     config.gyro_enabled = imu->gyro_enabled;
@@ -357,7 +357,7 @@ void config_reset(IMU *imu)
 
 void uart_print(char msg[])
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     do
     {
@@ -752,10 +752,6 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
         }
     }
 
-    nrf_gpio_pin_set(12);
-    nrf_delay_ms(500);
-    nrf_gpio_pin_clear(12);
-
     NRF_LOG_INFO("UART CMD detection ended");
     NRF_LOG_FLUSH();
 }
@@ -764,7 +760,7 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 {
     while (imu.evt_scheduled > 0)
     {
-        uint32_t err_code;
+        ret_code_t err_code;
 
         bool read_success = false;
 
@@ -863,7 +859,7 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 void data_evt_sceduled(void *p_event_data, uint16_t event_size)
 {
     nrf_gpio_pin_set(22);
-    uint32_t err_code;
+    ret_code_t err_code;
 
     while (imu.evt_scheduled > 0)
     {
@@ -1584,7 +1580,7 @@ void gatt_init(void)
 
 void config_imu(uint8_t *config, uint8_t len)
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     // Remote adjustment of settings of IMU
     // Send data back to the peripheral.
@@ -1611,7 +1607,7 @@ static void ts_gpio_trigger_enable(void)
     uint64_t time_now_ticks;
     uint32_t time_now_msec;
     uint32_t time_target;
-    uint32_t err_code;
+    ret_code_t err_code;
 
     if (m_gpio_trigger_enabled)
     {
@@ -1645,7 +1641,7 @@ void ts_imu_trigger_enable(void)
     uint64_t time_now_ticks;
     uint32_t time_now_msec;
     uint32_t time_target;
-    uint32_t err_code;
+    ret_code_t err_code;
 
     if (m_imu_trigger_enabled)
     {
@@ -1701,7 +1697,7 @@ static void ts_evt_callback(const ts_evt_t *evt)
 
             // NRF_LOG_INFO("tick_target %d", tick_target);
 
-            uint32_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+            ret_code_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
 
             if (err_code != NRF_SUCCESS)
             {
@@ -1729,7 +1725,7 @@ static void ts_evt_callback(const ts_evt_t *evt)
 
 static void sync_timer_init(void)
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     // Debug pin:
     // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
@@ -1956,6 +1952,9 @@ static void log_init(void)
     APP_ERROR_CHECK(err_code);
 
     NRF_LOG_DEFAULT_BACKENDS_INIT();
+
+    NRF_LOG_INFO("BLE DCU central started.");
+    NRF_LOG_DEBUG("DEBUG ACTIVE");
 }
 
 /**@brief Function for initializing power management.
@@ -2048,7 +2047,7 @@ static uint8_t rx_buffer[1];
 
 static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context)
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     switch (p_event->type)
     {
@@ -2144,8 +2143,10 @@ void uart_dma_init()
 
     APP_ERROR_CHECK(err_code);
 
+    // Enable UART RX
     nrf_drv_uart_rx_enable(&imu.uart);
 
+    // Get 1 byte from buffer
     nrf_drv_uart_rx(&imu.uart, rx_buffer, 1);
 }
 
@@ -2454,9 +2455,45 @@ static void thingy_tes_c_init(void)
     }
 }
 
+
+
+static void scheduler_init()
+{
+    // Application scheduler (soft interrupt like)
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
+static void services_init()
+{
+    // BLE NUS Service
+    nus_c_init();
+
+    // Motion Service
+    thingy_tes_c_init();
+
+    // TODO: add Battery Service
+
+}
+
+static void buffers_init()
+{
+    ret_code_t err_code;
+
+    // Initialize FIFO structure for use in UART DMA
+    err_code = app_fifo_init(&buffer.uart_dma_difo, buffer.uart_dma_buffer, (uint16_t)sizeof(buffer.uart_dma_buffer));
+    APP_ERROR_CHECK(err_code);
+
+    // // Initialize FIFO structure for collecting received data
+    err_code = app_fifo_init(&buffer.received_data_fifo, buffer.received_data_buffer, (uint16_t)sizeof(buffer.received_data_buffer));
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_fifo_init(&buffer.uart_rx_fifo, buffer.uart_rx_buff, (uint16_t)sizeof(buffer.uart_rx_buff));
+    APP_ERROR_CHECK(err_code);
+}
+
 int main(void)
 {
-    uint32_t err_code;
+    ret_code_t err_code;
 
     // Initialize.
     log_init();
@@ -2465,54 +2502,35 @@ int main(void)
 
     uart_dma_init();
 
-    // Create a buffer for the FIFO
-    uint16_t uart_dma_buffer_size = 2048;
-    uint8_t uart_dma_buffer[uart_dma_buffer_size];
-
-    // // Create a buffer for the FIFO
-    uint16_t received_data_buffer_size = 4096;
-    uint8_t received_data_buffer[received_data_buffer_size];
-
-    // Initialize FIFO structure for use in UART DMA
-    err_code = app_fifo_init(&buffer.uart_dma_difo, uart_dma_buffer, (uint16_t)sizeof(uart_dma_buffer));
-    APP_ERROR_CHECK(err_code);
-
-    // // Initialize FIFO structure for collecting received data
-    err_code = app_fifo_init(&buffer.received_data_fifo, received_data_buffer, (uint16_t)sizeof(received_data_buffer));
-    APP_ERROR_CHECK(err_code);
-
-    uint16_t uart_rx_buff_size = 256;
-    uint8_t uart_rx_buff[uart_rx_buff_size];
-
-    err_code = app_fifo_init(&buffer.uart_rx_fifo, uart_rx_buff, (uint16_t)sizeof(uart_rx_buff));
-    APP_ERROR_CHECK(err_code);
+    // Initialize buffers
+    buffers_init();
 
     // Application scheduler (soft interrupt like)
-    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+    scheduler_init();
 
     buttons_leds_init();
+
+
     db_discovery_init();
     power_management_init();
     ble_stack_init();
+    
+    // Not needed - by setting correct settings in sdk_config.h this will be enabled
     // conn_evt_len_ext_set(); // added for faster speed
 
     gatt_init();
-    nus_c_init();
 
-    thingy_tes_c_init();
+    // Initialize BLE services
+    services_init();
 
+
+    // Reset BLE connection state
     /* CHANGES ADDED */
     ble_conn_state_init();
     /* END ADDED CHANGES */
 
+    // Init scanning for devices with NUS service + start scanning
     scan_init();
-
-    // BLUE LED as output
-    //nrf_gpio_cfg_output(7);
-
-    // Start execution.
-    // printf("BLE DCU central started.\r\n");
-    NRF_LOG_INFO("BLE DCU central started.");
     scan_start();
 
     // TimeSync
@@ -2520,42 +2538,22 @@ int main(void)
     // This is a temporary fix for a known bug where connection is constantly closed with error code 0x3E
     sync_timer_init();
 
-    /* CHANGES */
-    // TIMER DIY INIT
-    // timer_diy_init();
-    /* END CHANGES */
-
-    // Check time needed to process data
-    nrf_gpio_cfg_output(18);
-    // Check active time of CPU
-    nrf_gpio_cfg_output(19);
-    // Check time of NRF_LOG_FLUSH
-    nrf_gpio_cfg_output(20);
-    // Check UART transmission
-    nrf_gpio_cfg_output(22);
-    // Sprintf timing
-    nrf_gpio_cfg_output(10);
-
-    nrf_gpio_cfg_output(11);
-    nrf_gpio_cfg_output(12);
-
-    NRF_LOG_DEBUG("DEBUG ACTIVE");
+    // Initialize pins for debugging
+    usr_gpio_init();
 
     // Enter main loop.
     for (;;)
     {
         // App scheduler: handle event in buffer
-        nrf_gpio_pin_set(19);
         app_sched_execute();
-        nrf_gpio_pin_clear(19);
 
-        nrf_gpio_pin_set(20);
+        // RTT Logging
         NRF_LOG_FLUSH();
-        nrf_gpio_pin_clear(20);
 
+        // Run power management
         idle_state_handle();
 
         // Toggle pin to check CPU activity
-        nrf_gpio_pin_toggle(17);
+        // check_cpu_activity();
     }
 }

@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/UTIL/usr_util.c \
   $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
   $(PROJ_DIR)/BLE_Services/ble_tes_c.c \
@@ -214,6 +215,7 @@ INC_FOLDERS += \
   $(PROJ_DIR)/pca10040/s132/arm5_no_packs \
   $(SDK_ROOT)/components/libraries/atomic_flags \
   $(PROJ_DIR)/BLE_Services \
+  $(PROJ_DIR)/UTIL \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -276,9 +278,9 @@ LDFLAGS += -Wl,--gc-sections
 LDFLAGS += --specs=nano.specs
 LDFLAGS += -u_printf_float # able to print floating point numbers now 
 
-nrf52832_xxaa: CFLAGS += -D__HEAP_SIZE=4096#8192
+nrf52832_xxaa: CFLAGS += -D__HEAP_SIZE=1024#8192
 nrf52832_xxaa: CFLAGS += -D__STACK_SIZE=8192
-nrf52832_xxaa: ASMFLAGS += -D__HEAP_SIZE=4096#8192
+nrf52832_xxaa: ASMFLAGS += -D__HEAP_SIZE=1024#8192
 nrf52832_xxaa: ASMFLAGS += -D__STACK_SIZE=8192
 
 # Add standard libraries at the very end of the linker input, after all objects

@@ -29,7 +29,8 @@
 			"stdint.h": "c",
 			"reent.h": "c",
 			"type_traits": "c",
-			"features.h": "c"
+			"features.h": "c",
+			"sdk_errors.h": "c"
 		}
 	}
 }
