@@ -96,6 +96,131 @@
 // Utilities
 #include "usr_util.h"
 
+// Libuarte - a more advanced UART driver
+#include <stdbool.h>
+#include <stdint.h>
+#include <stdio.h>
+#include "nrf_libuarte_async.h"
+#include "nrf_drv_clock.h"
+#include <bsp.h>
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+#include "nrf_queue.h"
+
+//////////////
+// Libuarte //
+//////////////
+
+//(_name, _uarte_idx, _timer0_idx, _rtc1_idx, _timer1_idx, _rx_buf_size, _rx_buf_cnt)
+NRF_LIBUARTE_ASYNC_DEFINE(libuarte, 0, 1, NRF_LIBUARTE_PERIPHERAL_NOT_USED, NRF_LIBUARTE_PERIPHERAL_NOT_USED, 255, 3);
+
+static uint8_t text[] = "UART example started.\r\n";
+static uint8_t text_size = sizeof(text);
+static volatile bool m_loopback_phase;
+
+typedef struct {
+    uint8_t * p_data;
+    uint32_t length;
+} buffer_t;
+
+NRF_QUEUE_DEF(buffer_t, m_buf_queue, 10, NRF_QUEUE_MODE_NO_OVERFLOW);
+
+
+void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
+{
+    nrf_libuarte_async_t * p_libuarte = (nrf_libuarte_async_t *)context;
+    ret_code_t ret;
+
+    switch (p_evt->type)
+    {
+        case NRF_LIBUARTE_ASYNC_EVT_ERROR:
+
+            NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_ERROR");
+
+            bsp_board_led_invert(0);
+            break;
+        case NRF_LIBUARTE_ASYNC_EVT_RX_DATA:
+
+            NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
+            NRF_LOG_FLUSH();
+
+            ret = nrf_libuarte_async_tx(p_libuarte,p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+            if (ret == NRF_ERROR_BUSY)
+            {
+                buffer_t buf = {
+                    .p_data = p_evt->data.rxtx.p_data,
+                    .length = p_evt->data.rxtx.length,
+                };
+
+                ret = nrf_queue_push(&m_buf_queue, &buf);
+                APP_ERROR_CHECK(ret);
+            }
+            else
+            {
+                APP_ERROR_CHECK(ret);
+            }
+            bsp_board_led_invert(1);
+            m_loopback_phase = true;
+            break;
+        case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
+
+            NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
+            NRF_LOG_FLUSH();
+
+            if (m_loopback_phase)
+            {
+                nrf_libuarte_async_rx_free(p_libuarte, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+                if (!nrf_queue_is_empty(&m_buf_queue))
+                {
+                    buffer_t buf;
+                    ret = nrf_queue_pop(&m_buf_queue, &buf);
+                    APP_ERROR_CHECK(ret);
+                    UNUSED_RETURN_VALUE(nrf_libuarte_async_tx(p_libuarte, buf.p_data, buf.length));
+                }
+            }
+            bsp_board_led_invert(2);
+            break;
+        default:
+            break;
+    }
+}
+
+void libuarte_init()
+{
+    ret_code_t err_code;
+
+    // Setup necessary clocks
+    ret_code_t ret = nrf_drv_clock_init();
+    APP_ERROR_CHECK(ret);
+
+    nrf_drv_clock_lfclk_request(NULL);
+
+    // Init params libuarte
+    nrf_libuarte_async_config_t nrf_libuarte_async_config = {
+            .tx_pin     = TX_PIN_NUMBER,
+            .rx_pin     = RX_PIN_NUMBER,
+            .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
+            .parity     = NRF_UARTE_PARITY_EXCLUDED,
+            .hwfc       = NRF_UARTE_HWFC_DISABLED, // No hardware flow control
+            .timeout_us = 100,
+            .int_prio   = APP_IRQ_PRIORITY_LOW_MID // Higher interrupt priority than APP TIMER // APP_IRQ_PRIORITY_LOW
+    };
+
+    err_code = nrf_libuarte_async_init(&libuarte, &nrf_libuarte_async_config, uart_event_handler, (void *)&libuarte);
+    APP_ERROR_CHECK(err_code);
+
+    nrf_libuarte_async_enable(&libuarte);
+
+    err_code = nrf_libuarte_async_tx(&libuarte, text, text_size);
+    APP_ERROR_CHECK(err_code);
+}
+
+// End Libuarte
+
+
+
+
+
 
 
 // Create a FIFO structure
@@ -2519,7 +2644,10 @@ int main(void)
     timer_init();
     //    uart_init();
 
-    uart_dma_init();
+    // A better UART driver than nrf_uart_drv - asynchronous with DMA and QUEUE
+    libuarte_init();
+
+    // uart_dma_init();
 
     // Initialize buffers
     buffers_init();

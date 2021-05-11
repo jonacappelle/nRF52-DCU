@@ -30,7 +30,10 @@
 			"reent.h": "c",
 			"type_traits": "c",
 			"features.h": "c",
-			"sdk_errors.h": "c"
+			"sdk_errors.h": "c",
+			"nrf_libuarte_async.h": "c",
+			"nrf_uarte.h": "c",
+			"nrf_libuarte_drv.h": "c"
 		}
 	}
 }

@@ -46,6 +46,10 @@
 #ifdef USE_APP_CONFIG
 #include "app_config.h"
 #endif
+
+
+#define DEBUG
+
 // <h> Application 
 
 //==========================================================
@@ -2739,7 +2743,7 @@
 // <e> NRFX_PPI_ENABLED - nrfx_ppi - PPI peripheral allocator
 //==========================================================
 #ifndef NRFX_PPI_ENABLED
-#define NRFX_PPI_ENABLED 0
+#define NRFX_PPI_ENABLED 1
 #endif
 // <e> NRFX_PPI_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
@@ -3321,13 +3325,13 @@
 // <e> NRFX_RTC_ENABLED - nrfx_rtc - RTC peripheral driver
 //==========================================================
 #ifndef NRFX_RTC_ENABLED
-#define NRFX_RTC_ENABLED 0
+#define NRFX_RTC_ENABLED 1
 #endif
 // <q> NRFX_RTC0_ENABLED  - Enable RTC0 instance
  
 
 #ifndef NRFX_RTC0_ENABLED
-#define NRFX_RTC0_ENABLED 0
+#define NRFX_RTC0_ENABLED 1
 #endif
 
 // <q> NRFX_RTC1_ENABLED  - Enable RTC1 instance
@@ -3992,20 +3996,20 @@
 // <e> NRFX_TIMER_ENABLED - nrfx_timer - TIMER periperal driver
 //==========================================================
 #ifndef NRFX_TIMER_ENABLED
-#define NRFX_TIMER_ENABLED 0
+#define NRFX_TIMER_ENABLED 1
 #endif
 // <q> NRFX_TIMER0_ENABLED  - Enable TIMER0 instance
  
 
 #ifndef NRFX_TIMER0_ENABLED
-#define NRFX_TIMER0_ENABLED 0
+#define NRFX_TIMER0_ENABLED 1
 #endif
 
 // <q> NRFX_TIMER1_ENABLED  - Enable TIMER1 instance
  
 
 #ifndef NRFX_TIMER1_ENABLED
-#define NRFX_TIMER1_ENABLED 0
+#define NRFX_TIMER1_ENABLED 1
 #endif
 
 // <q> NRFX_TIMER2_ENABLED  - Enable TIMER2 instance
@@ -5435,7 +5439,7 @@
  
 
 #ifndef RTC0_ENABLED
-#define RTC0_ENABLED 0
+#define RTC0_ENABLED 1
 #endif
 
 // <q> RTC1_ENABLED  - Enable RTC1 instance
@@ -5703,7 +5707,7 @@
 // <e> TIMER_ENABLED - nrf_drv_timer - TIMER periperal driver - legacy layer
 //==========================================================
 #ifndef TIMER_ENABLED
-#define TIMER_ENABLED 0
+#define TIMER_ENABLED 1
 #endif
 // <o> TIMER_DEFAULT_CONFIG_FREQUENCY  - Timer frequency if in Timer mode
  
@@ -5763,14 +5767,14 @@
  
 
 #ifndef TIMER0_ENABLED
-#define TIMER0_ENABLED 0
+#define TIMER0_ENABLED 1
 #endif
 
 // <q> TIMER1_ENABLED  - Enable TIMER1 instance
  
 
 #ifndef TIMER1_ENABLED
-#define TIMER1_ENABLED 0
+#define TIMER1_ENABLED 1
 #endif
 
 // <q> TIMER2_ENABLED  - Enable TIMER2 instance
@@ -7448,6 +7452,17 @@
 
 // </e>
 
+
+
+// <q> NRF_LIBUARTE_ASYNC_WITH_APP_TIMER  - nrf_libuarte_async - libUARTE_async library
+ 
+
+#ifndef NRF_LIBUARTE_ASYNC_WITH_APP_TIMER
+#define NRF_LIBUARTE_ASYNC_WITH_APP_TIMER 1
+#endif
+
+
+
 // <e> NRF_QUEUE_ENABLED - nrf_queue - Queue module
 //==========================================================
 #ifndef NRF_QUEUE_ENABLED
@@ -7722,6 +7737,37 @@
 #ifndef NRF_FPRINTF_DOUBLE_ENABLED
 #define NRF_FPRINTF_DOUBLE_ENABLED 0
 #endif
+
+
+
+// </h> 
+//==========================================================
+
+// <h> nrf_libuarte_drv - libUARTE library
+
+//==========================================================
+// <q> NRF_LIBUARTE_DRV_HWFC_ENABLED  - Enable HWFC support in the driver
+ 
+
+#ifndef NRF_LIBUARTE_DRV_HWFC_ENABLED
+#define NRF_LIBUARTE_DRV_HWFC_ENABLED 0
+#endif
+
+// <q> NRF_LIBUARTE_DRV_UARTE0  - UARTE0 instance
+ 
+
+#ifndef NRF_LIBUARTE_DRV_UARTE0
+#define NRF_LIBUARTE_DRV_UARTE0 1
+#endif
+
+// <q> NRF_LIBUARTE_DRV_UARTE1  - UARTE1 instance
+ 
+
+#ifndef NRF_LIBUARTE_DRV_UARTE1
+#define NRF_LIBUARTE_DRV_UARTE1 0
+#endif
+
+
 
 // </h> 
 //==========================================================

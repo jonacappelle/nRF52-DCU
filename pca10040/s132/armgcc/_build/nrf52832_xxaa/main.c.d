@@ -152,7 +152,21 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../../../pca10040/s132/arm5_no_packs/imu_params.h \
  ../../../BLE_Services/ble_tes_c.h \
  ../../../../../../components/libraries/util/sdk_mapped_flags.h \
- ../../../UTIL/usr_util.h
+ ../../../UTIL/usr_util.h \
+ ../../../../../../components/libraries/libuarte/nrf_libuarte_async.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h \
+ ../../../../../../modules/nrfx/hal/nrf_ppi.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_timer.h \
+ ../../../../../../modules/nrfx/hal/nrf_timer.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_rtc.h \
+ ../../../../../../modules/nrfx/hal/nrf_rtc.h \
+ ../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h \
+ ../../../../../../modules/nrfx/hal/nrf_uarte.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_clock.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h \
+ ../../../../../../modules/nrfx/hal/nrf_clock.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h \
+ ../../../../../../components/libraries/bsp/bsp.h
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdio.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_ansi.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\newlib.h:
@@ -307,3 +321,17 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../BLE_Services/ble_tes_c.h:
 ../../../../../../components/libraries/util/sdk_mapped_flags.h:
 ../../../UTIL/usr_util.h:
+../../../../../../components/libraries/libuarte/nrf_libuarte_async.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h:
+../../../../../../modules/nrfx/hal/nrf_ppi.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_timer.h:
+../../../../../../modules/nrfx/hal/nrf_timer.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_rtc.h:
+../../../../../../modules/nrfx/hal/nrf_rtc.h:
+../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h:
+../../../../../../modules/nrfx/hal/nrf_uarte.h:
+../../../../../../integration/nrfx/legacy/nrf_drv_clock.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_clock.h:
+../../../../../../modules/nrfx/hal/nrf_clock.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h:
+../../../../../../components/libraries/bsp/bsp.h:
