@@ -101,7 +101,7 @@
 // Create a FIFO structure
 typedef struct buffer
 {
-    app_fifo_t uart_dma_difo;
+    app_fifo_t uart_dma_fifo;
     uint8_t uart_dma_buffer[2048];
     app_fifo_t received_data_fifo;
     uint8_t received_data_buffer[4096];
@@ -292,6 +292,14 @@ typedef enum
 #define CMD_ADC 0x64 //d
 
 #define CMD_LIST 0x6c //l
+
+
+static uint32_t usr_get_fifo_len(app_fifo_t * p_fifo)
+{
+    uint32_t tmp = p_fifo->read_pos;
+    return p_fifo->write_pos - tmp;
+}
+
 
 ret_code_t config_send(IMU *imu)
 {
@@ -776,6 +784,9 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 
         if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)&temp, &temp_len) == NRF_SUCCESS)
         {
+
+            NRF_LOG_INFO("Fifo GET: %d", usr_get_fifo_len(&buffer.received_data_fifo))
+
             // sprintf(string, "%d w%.3fwa%.3fab%.3fbc%.3fc\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
 
             // If packet contains QUATERNIONS
@@ -812,7 +823,7 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
             string_len++;
 
             // Put the data in FIFO buffer
-            err_code = app_fifo_write(&buffer.uart_dma_difo, (uint8_t *)string, &string_len);
+            err_code = app_fifo_write(&buffer.uart_dma_fifo, (uint8_t *)string, &string_len);
             if (err_code == NRF_ERROR_NO_MEM)
             {
                 NRF_LOG_INFO("UART FIFO BUFFER FULL!");
@@ -832,14 +843,17 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
                     // just added a byte to FIFO, but if some bigger delay occurred
                     // (some heavy interrupt handler routine has been executed) since
                     // that time, FIFO might be empty already.
-                    if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
+                    uint8_t tx_buff[256];
+                    if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &string_len) == NRF_SUCCESS)
                     {
                         //												NRF_LOG_INFO("FIFO read");
                         // if(uart_free)
                         // {
                         do
                         {
-                            err_code = nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)string_len);
+                            if(sizeof(string_len) >= 255) NRF_LOG_INFO("Generated string too long! (%d bytes)", sizeof(string_len));
+
+                            err_code = nrf_drv_uart_tx(&imu.uart, tx_buff, (uint8_t)string_len);
                             if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
                             {
                                 NRF_LOG_ERROR("nrf_drv_uart_tx failed");
@@ -972,7 +986,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
             string_len++;
 
             // Put the data in FIFO buffer
-            err_code = app_fifo_write(&buffer.uart_dma_difo, (uint8_t *)string_send, &string_len);
+            err_code = app_fifo_write(&buffer.uart_dma_fifo, (uint8_t *)string_send, &string_len);
             if (err_code == NRF_ERROR_NO_MEM)
             {
                 NRF_LOG_INFO("UART FIFO BUFFER FULL!");
@@ -992,7 +1006,7 @@ void data_evt_sceduled(void *p_event_data, uint16_t event_size)
                     // just added a byte to FIFO, but if some bigger delay occurred
                     // (some heavy interrupt handler routine has been executed) since
                     // that time, FIFO might be empty already.
-                    if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
+                    if (app_fifo_read(&buffer.uart_dma_fifo, buffer.uart_dma_tx_buff, &string_len) == NRF_SUCCESS)
                     {
                         //												NRF_LOG_INFO("FIFO read");
                         do
@@ -2054,10 +2068,11 @@ static void usr_uarte_evt_handler(nrf_drv_uart_event_t *p_event, void *p_context
     case NRF_DRV_UART_EVT_TX_DONE: ///< Requested TX transfer completed.
     {
         uint32_t index = 255;
+        uint8_t tx_buff[256];
         // Get next bytes from FIFO.
-        if (app_fifo_read(&buffer.uart_dma_difo, buffer.uart_dma_tx_buff, &index) == NRF_SUCCESS)
+        if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &index) == NRF_SUCCESS)
         {
-            nrf_drv_uart_tx(&imu.uart, buffer.uart_dma_tx_buff, (uint8_t)index);
+            nrf_drv_uart_tx(&imu.uart, tx_buff, (uint8_t)index);
             //								NRF_LOG_INFO("index evt %d", index);
             //								NRF_LOG_INFO("Send next byte from evt handler");
         }
@@ -2182,6 +2197,8 @@ void set_imu_packet_length()
     NRF_LOG_INFO("Packet Len set to: %d", imu.packet_length);
 }
 
+
+
 void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
 {
 
@@ -2259,6 +2276,8 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
 
             // Put the received data in FIFO buffer
             err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *)&received_quat, &received_quat_len);
+
+            NRF_LOG_INFO("Fifo PUT: %d", usr_get_fifo_len(&buffer.received_data_fifo))
 
             if (err_code == NRF_ERROR_NO_MEM)
             {
@@ -2480,7 +2499,7 @@ static void buffers_init()
     ret_code_t err_code;
 
     // Initialize FIFO structure for use in UART DMA
-    err_code = app_fifo_init(&buffer.uart_dma_difo, buffer.uart_dma_buffer, (uint16_t)sizeof(buffer.uart_dma_buffer));
+    err_code = app_fifo_init(&buffer.uart_dma_fifo, buffer.uart_dma_buffer, (uint16_t)sizeof(buffer.uart_dma_buffer));
     APP_ERROR_CHECK(err_code);
 
     // // Initialize FIFO structure for collecting received data

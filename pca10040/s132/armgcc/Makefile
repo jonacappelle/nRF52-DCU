@@ -227,6 +227,7 @@ OPT = -O0 -g
 #OPT += -flto
 
 # C flags common to all targets
+CFLAGS += -DEBUG # Allow NRF_LOG_DEBUG() to be printed
 CFLAGS += $(OPT)
 CFLAGS += -DAPP_TIMER_V2
 CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
@@ -246,7 +247,7 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
-CFLAGS += -DEBUG # Allow NRF_LOG_DEBUG() to be printed
+
 
 # C++ flags common to all targets
 CXXFLAGS += $(OPT)
@@ -266,6 +267,7 @@ ASMFLAGS += -DNRF52_PAN_74
 ASMFLAGS += -DNRF_SD_BLE_API_VERSION=7
 ASMFLAGS += -DS132
 ASMFLAGS += -DSOFTDEVICE_PRESENT
+ASMFLAGS += -DEBUG # Allow NRF_LOG_DEBUG() to be printed
 
 # Linker flags
 LDFLAGS += $(OPT)

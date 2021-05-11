@@ -127,7 +127,7 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define THINGY_TES_UUID_GRAVITY_CHAR     0x040A                      /**< The UUID of the gravity vector Characteristic. */
 
 // How many packets (QUAT - RAW) are grouped in a message
-#define BLE_PACKET_BUFFER_COUNT     1
+#define BLE_PACKET_BUFFER_COUNT     5
 
 /**@brief TES Client event type. */
 typedef enum
