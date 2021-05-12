@@ -111,7 +111,7 @@
 
 
 //(_name, _uarte_idx, _timer0_idx, _rtc1_idx, _timer1_idx, _rx_buf_size, _rx_buf_cnt)
-NRF_LIBUARTE_ASYNC_DEFINE(libuarte, 0, 1, NRF_LIBUARTE_PERIPHERAL_NOT_USED, NRF_LIBUARTE_PERIPHERAL_NOT_USED, 255, 3);
+NRF_LIBUARTE_ASYNC_DEFINE(libuarte, 0, 1, 2, NRF_LIBUARTE_PERIPHERAL_NOT_USED, 255, 3);
 
 static uint8_t text[] = "----------------";
 static uint8_t text_size = sizeof(text);
@@ -135,9 +135,11 @@ typedef struct buffer
     app_fifo_t received_data_fifo;
     uint8_t received_data_buffer[4096];
     uint8_t uart_dma_tx_buff[512];
+    uint8_t uart_dma_tx_buff_len;
     app_fifo_t uart_rx_fifo;
     uint8_t uart_rx_buff[256];
 } BUFFER;
+
 
 // Initialisation of struct to keep track of different buffers
 BUFFER buffer;
@@ -400,30 +402,25 @@ void uart_print(char msg[])
     NRF_LOG_INFO("len %d", strlen(msg))
     NRF_LOG_FLUSH();
 
-    char temp[255];
-
-    strcpy(temp, msg);
-
-    // memcpy(temp, msg, strlen(msg));
-
-    // Wait until previous transfer is completed
     while(tx_done == 0)
     {
-        NRF_LOG_INFO("Waiting for tx_done");
+        // NRF_LOG_INFO("wait...");
+        // NRF_LOG_FLUSH();
     }
+    uint8_t len = strlen(msg);
 
-    do
-    {
-        err_code = nrf_libuarte_async_tx(&libuarte, (uint8_t *)temp, (size_t)strlen(temp)); 
-    } while (err_code == NRF_ERROR_BUSY);
+    buffer.uart_dma_tx_buff_len = strlen(msg);
 
-    // Indicate transfer started but not finished yet
-    NRF_LOG_INFO("tx_done = 0");
+    memcpy(buffer.uart_dma_tx_buff, msg, len);
+    
+    do{
+        err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_dma_tx_buff, buffer.uart_dma_tx_buff_len);
+    } while(err_code == NRF_ERROR_BUSY);
+    
+    // Notify transaction has started
     tx_done = 0;
 
     APP_ERROR_CHECK(err_code);
-
-    // nrf_delay_ms(2);
 }
 
 
@@ -1876,6 +1873,7 @@ void bsp_event_handler(bsp_event_t event)
         config_send(&imu);
 
         NRF_LOG_INFO("BSP KEY 0: SENSORS STOP!");
+
     }
     break;
         // TimeSync end
@@ -1885,12 +1883,15 @@ void bsp_event_handler(bsp_event_t event)
         // uint8_t temp_config1[] = {ENABLE_GYRO, ENABLE_ACCEL, ENABLE_QUAT6};
         // config_imu(temp_config1, sizeof(temp_config1));
         // break;
+
+        break;
     }
     case BSP_EVENT_KEY_2:
     {
         // uint8_t temp_config3[] = {ENABLE_GYRO, ENABLE_ACCEL};
         // config_imu(temp_config3, sizeof(temp_config3));
         // break;
+        break;
     }
     case BSP_EVENT_KEY_3:
     {
@@ -2569,6 +2570,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 {
     nrf_libuarte_async_t * p_libuarte = (nrf_libuarte_async_t *)context;
     ret_code_t err_code;
+    uint16_t index = 0;
 
     switch (p_evt->type)
     {
@@ -2577,9 +2579,38 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_ERROR");
 
             break;
+
+        case NRF_LIBUARTE_ASYNC_EVT_OVERRUN_ERROR:
+
+            NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_OVERRUN_ERROR");
+
+            break;
+
         case NRF_LIBUARTE_ASYNC_EVT_RX_DATA:
 
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
+
+            // while (index < p_evt->data.rxtx.length)
+            // {
+            //     // 	If Condition is true ? then value X : otherwise value Y
+            //     uint16_t length = (uint16_t)(p_evt->data.rxtx.length - index > BLE_NUS_MAX_DATA_LEN) ? BLE_NUS_MAX_DATA_LEN : p_evt->data.rxtx.length - index;
+            // }
+
+
+            // NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
+            // NRF_LOG_HEXDUMP_DEBUG(p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+
+            // uint8_t uart_string[255] = "";
+            // memcpy(uart_string, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+
+            // // uart_string[p_evt->data.rxtx.length] = '\r';
+            // // uart_string[p_evt->data.rxtx.length + 1] = '\n';
+
+            // err_code = nrf_libuarte_async_tx(&libuarte, uart_string, p_evt->data.rxtx.length);
+            // APP_ERROR_CHECK(err_code);
+
+
+
 
             err_code = app_fifo_write(&buffer.uart_rx_fifo, p_evt->data.rxtx.p_data, (uint32_t *) &p_evt->data.rxtx.length);
             if (err_code != NRF_SUCCESS)
@@ -2597,6 +2628,8 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
                 APP_ERROR_CHECK(err_code);
             // }
 
+            nrf_libuarte_async_rx_free(p_libuarte, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+
             break;
         case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
 
@@ -2606,16 +2639,21 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
 
-            // uint32_t index = 255;
-            // uint8_t tx_buff[256];
-            // // Get next bytes from FIFO.
-            // if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &index) == NRF_SUCCESS)
-            // {
-            //     err_code = nrf_libuarte_async_tx(&libuarte, tx_buff, index);
-            //     APP_ERROR_CHECK(err_code);
-            // }else{
-            //     NRF_LOG_INFO("No data left in uart_dma_fifo buffer");
-            // }
+
+
+            // nrf_libuarte_async_rx_free(p_libuarte, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
+
+            uint32_t index = 255;
+            uint8_t tx_buff[256];
+            // Get next bytes from FIFO.
+            if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &index) == NRF_SUCCESS)
+            {
+                err_code = nrf_libuarte_async_tx(&libuarte, tx_buff, index);
+                APP_ERROR_CHECK(err_code);
+                NRF_LOG_INFO("Send next bytes from fifo");
+            }else{
+                NRF_LOG_INFO("No data left in uart_dma_fifo buffer");
+            }
 
             break;
         default:
@@ -2627,17 +2665,17 @@ void libuarte_init()
 {
     ret_code_t err_code;
 
-    // Setup necessary clocks
-    ret_code_t ret = nrf_drv_clock_init();
-    APP_ERROR_CHECK(ret);
+    // // Setup necessary clocks
+    // ret_code_t ret = nrf_drv_clock_init();
+    // APP_ERROR_CHECK(ret);
 
-    nrf_drv_clock_lfclk_request(NULL);
+    // nrf_drv_clock_lfclk_request(NULL);
 
     // Init params libuarte
     nrf_libuarte_async_config_t nrf_libuarte_async_config = {
             .tx_pin     = TX_PIN_NUMBER,
             .rx_pin     = RX_PIN_NUMBER,
-            .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
+            .baudrate   = NRF_UARTE_BAUDRATE_115200, //NRF_UARTE_BAUDRATE_115200,
             .parity     = NRF_UARTE_PARITY_EXCLUDED,
             .hwfc       = NRF_UARTE_HWFC_DISABLED, // No hardware flow control
             .timeout_us = 100,
@@ -2649,10 +2687,11 @@ void libuarte_init()
 
     nrf_libuarte_async_enable(&libuarte);
 
-    // err_code = nrf_libuarte_async_tx(&libuarte, text, text_size);
-    // APP_ERROR_CHECK(err_code);
+    static uint8_t text[] = "ble_app_libUARTE example started.\r\n";
+    static uint8_t text_size = sizeof(text);
 
-    uart_print("TEST\n");
+    err_code = nrf_libuarte_async_tx(&libuarte, text, text_size);
+    APP_ERROR_CHECK(err_code);
 }
 
 // End Libuarte
