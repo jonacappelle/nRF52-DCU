@@ -877,37 +877,36 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
 
             if (err_code == NRF_SUCCESS)
             {
-                //								NRF_LOG_INFO("Data in FIFO");
+                // NRF_LOG_INFO("Data in FIFO");
                 // The new byte has been added to FIFO. It will be picked up from there
                 // (in 'uart_event_handler') when all preceding bytes are transmitted.
                 // But if UART is not transmitting anything at the moment, we must start
                 // a new transmission here.
-                if (!nrf_drv_uart_tx_in_progress(&imu.uart))
+                if (tx_done) // If UART TX transfer is not going on
                 {
-                    //										NRF_LOG_INFO("TX not in progress");
+                    // NRF_LOG_INFO("TX not in progress");
                     // This operation should be almost always successful, since we've
                     // just added a byte to FIFO, but if some bigger delay occurred
                     // (some heavy interrupt handler routine has been executed) since
                     // that time, FIFO might be empty already.
-                    uint8_t tx_buff[256];
+                    static uint8_t tx_buff[256];
+                    uint8_t len = string_len;
                     if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &string_len) == NRF_SUCCESS)
                     {
-                        //												NRF_LOG_INFO("FIFO read");
-                        // if(uart_free)
-                        // {
+                        buffer.uart_dma_tx_buff_len = string_len;
+                        memcpy(buffer.uart_dma_tx_buff, tx_buff, string_len);
+
                         do
                         {
                             if(sizeof(string_len) >= 255) NRF_LOG_INFO("Generated string too long! (%d bytes)", sizeof(string_len));
 
-                            err_code = nrf_drv_uart_tx(&imu.uart, tx_buff, (uint8_t)string_len);
+                            err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_dma_tx_buff, buffer.uart_dma_tx_buff_len);
                             if ((err_code != NRF_SUCCESS) && (err_code != NRF_ERROR_BUSY))
                             {
-                                NRF_LOG_ERROR("nrf_drv_uart_tx failed");
+                                NRF_LOG_ERROR("nrf_libuarte_async_tx failed");
                                 APP_ERROR_CHECK(err_code);
                             }
                         } while (err_code == NRF_ERROR_BUSY);
-                        //												NRF_LOG_INFO("UART TX OK");
-                        // }
                     }
                 }
             }
@@ -2590,28 +2589,6 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
 
-            // while (index < p_evt->data.rxtx.length)
-            // {
-            //     // 	If Condition is true ? then value X : otherwise value Y
-            //     uint16_t length = (uint16_t)(p_evt->data.rxtx.length - index > BLE_NUS_MAX_DATA_LEN) ? BLE_NUS_MAX_DATA_LEN : p_evt->data.rxtx.length - index;
-            // }
-
-
-            // NRF_LOG_DEBUG("Received data from BLE NUS. Writing data on UART.");
-            // NRF_LOG_HEXDUMP_DEBUG(p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
-
-            // uint8_t uart_string[255] = "";
-            // memcpy(uart_string, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
-
-            // // uart_string[p_evt->data.rxtx.length] = '\r';
-            // // uart_string[p_evt->data.rxtx.length + 1] = '\n';
-
-            // err_code = nrf_libuarte_async_tx(&libuarte, uart_string, p_evt->data.rxtx.length);
-            // APP_ERROR_CHECK(err_code);
-
-
-
-
             err_code = app_fifo_write(&buffer.uart_rx_fifo, p_evt->data.rxtx.p_data, (uint32_t *) &p_evt->data.rxtx.length);
             if (err_code != NRF_SUCCESS)
             {
@@ -2635,24 +2612,25 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
             // Signal to uart_print() that UART TX is completed and nex event can be scheduled
             NRF_LOG_INFO("tx_done = 1");
-            tx_done = 1;
+            
 
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
-
-
-
-            // nrf_libuarte_async_rx_free(p_libuarte, p_evt->data.rxtx.p_data, p_evt->data.rxtx.length);
 
             uint32_t index = 255;
             uint8_t tx_buff[256];
             // Get next bytes from FIFO.
             if (app_fifo_read(&buffer.uart_dma_fifo, tx_buff, &index) == NRF_SUCCESS)
             {
-                err_code = nrf_libuarte_async_tx(&libuarte, tx_buff, index);
+
+                buffer.uart_dma_tx_buff_len = index;
+                memcpy(buffer.uart_dma_tx_buff, tx_buff, tx_buff);
+
+                err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_dma_tx_buff, buffer.uart_dma_tx_buff_len);
                 APP_ERROR_CHECK(err_code);
                 NRF_LOG_INFO("Send next bytes from fifo");
             }else{
                 NRF_LOG_INFO("No data left in uart_dma_fifo buffer");
+                tx_done = 1;
             }
 
             break;
@@ -2675,7 +2653,7 @@ void libuarte_init()
     nrf_libuarte_async_config_t nrf_libuarte_async_config = {
             .tx_pin     = TX_PIN_NUMBER,
             .rx_pin     = RX_PIN_NUMBER,
-            .baudrate   = NRF_UARTE_BAUDRATE_115200, //NRF_UARTE_BAUDRATE_115200,
+            .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
             .parity     = NRF_UARTE_PARITY_EXCLUDED,
             .hwfc       = NRF_UARTE_HWFC_DISABLED, // No hardware flow control
             .timeout_us = 100,
