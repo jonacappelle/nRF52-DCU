@@ -33,7 +33,9 @@
 			"sdk_errors.h": "c",
 			"nrf_libuarte_async.h": "c",
 			"nrf_uarte.h": "c",
-			"nrf_libuarte_drv.h": "c"
+			"nrf_libuarte_drv.h": "c",
+			"usr_uart.h": "c",
+			"nrf_drv_clock.h": "c"
 		}
 	}
 }

@@ -42,3 +42,14 @@ void check_cpu_activity()
 
 
 
+uint32_t calculate_string_len(char * string)
+{
+    uint32_t len = 0;
+    do
+    {
+        len++;
+    } while (string[len] != '\n');
+    len++;
+
+    return len;
+}

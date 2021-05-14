@@ -152,7 +152,7 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../../../pca10040/s132/arm5_no_packs/imu_params.h \
  ../../../BLE_Services/ble_tes_c.h \
  ../../../../../../components/libraries/util/sdk_mapped_flags.h \
- ../../../UTIL/usr_util.h \
+ ../../../UTIL/usr_util.h ../../../UTIL/usr_uart.h \
  ../../../../../../components/libraries/libuarte/nrf_libuarte_async.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h \
  ../../../../../../modules/nrfx/hal/nrf_ppi.h \
@@ -321,6 +321,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../BLE_Services/ble_tes_c.h:
 ../../../../../../components/libraries/util/sdk_mapped_flags.h:
 ../../../UTIL/usr_util.h:
+../../../UTIL/usr_uart.h:
 ../../../../../../components/libraries/libuarte/nrf_libuarte_async.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h:
 ../../../../../../modules/nrfx/hal/nrf_ppi.h:
