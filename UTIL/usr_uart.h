@@ -13,9 +13,11 @@
 #include "nrf_log_default_backends.h"
 #include "nrf_queue.h"
 
+// Application scheduler
+#include "app_scheduler.h"
 
 
-void libuarte_init();
+void libuarte_init(app_sched_event_handler_t scheduled_function);
 void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt);
 
 void uart_print(char msg[]);

@@ -54,14 +54,17 @@ typedef struct uart_buffer
 {
     // Instance of FIFO buffer for transmitted bytes
     app_fifo_t uart_tx_buff_instance;
+    uint8_t tx_buff[1024];
     // Static temp buffer for transmitting bytes (not used by app_fifo) - static memory because libuarte tx requires this
-    uint8_t uart_tx_buff[1024];
+    uint8_t uart_tx_buff[512];
+    uint8_t uart_tx_done_buff[1024];
     // Length of static temp buffer for transmitting bytes
     uint32_t uart_tx_buff_len;
+    uint32_t uart_tx_done_buff_len;
     // Instance of FIFO buffer for received bytes
     app_fifo_t uart_rx_buff_instance;
     // RX buffer
-    uint8_t uart_rx_buff[256];
+    uint8_t rx_buff[256];
 } uart_buffer_t;
 
 // Initialization of uart buffer
@@ -73,11 +76,11 @@ static void uart_buffer_init()
     ret_code_t err_code;
 
     // Initialize FIFO for TX bytes
-    err_code = app_fifo_init(&buffer.uart_tx_buff_instance, buffer.uart_tx_buff, (uint16_t)sizeof(buffer.uart_tx_buff));
+    err_code = app_fifo_init(&buffer.uart_tx_buff_instance, buffer.tx_buff, (uint16_t)sizeof(buffer.tx_buff));
     APP_ERROR_CHECK(err_code);
 
     // Initialize FIFO for RX bytes
-    err_code = app_fifo_init(&buffer.uart_rx_buff_instance, buffer.uart_rx_buff, (uint16_t)sizeof(buffer.uart_rx_buff));
+    err_code = app_fifo_init(&buffer.uart_rx_buff_instance, buffer.rx_buff, (uint16_t)sizeof(buffer.rx_buff));
     APP_ERROR_CHECK(err_code);
 }
 
@@ -106,12 +109,12 @@ uint8_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
     memcpy(temp, command_in, len);
 
     NRF_LOG_INFO("%d %d %d", command_in[0], command_in[1], command_in[2]);
-    NRF_LOG_FLUSH();
+    // NRF_LOG_FLUSH();
 
     uint8_t x = atoi(temp);
 
     NRF_LOG_INFO("%d", x);
-    NRF_LOG_FLUSH();
+    // NRF_LOG_FLUSH();
 
     return x;
 }
@@ -139,14 +142,21 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
         case NRF_LIBUARTE_ASYNC_EVT_RX_DATA:
 
-            // NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
+            NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
+
+            if(p_evt->data.rxtx.length > 2)
+            {
+                NRF_LOG_ERROR("Error");
+            }
 
             err_code = app_fifo_write(&buffer.uart_rx_buff_instance, p_evt->data.rxtx.p_data, (uint32_t *) &p_evt->data.rxtx.length);
+            APP_ERROR_CHECK(err_code);
             if (err_code != NRF_SUCCESS)
             {
                 NRF_LOG_INFO("app_fifo_put in NRF_DRV_UART_EVT_RX_DONE failed %d", err_code);
                 NRF_LOG_FLUSH();
             }
+            
 
             NRF_LOG_INFO("data: %d - %s", p_evt->data.rxtx.p_data[0], p_evt->data.rxtx.p_data[0]);
 
@@ -161,29 +171,35 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             break;
         case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
         {
-            // NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
+            NRF_LOG_INFO("TX_DONE - start");
+
+            // NRF_LOG_INFO("%s", buffer.uart_tx_done_buff);
 
             uint32_t index = 1024;
 
+            // NRF_LOG_INFO("buffer.uart_tx_buff changed in NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
+
             // Get next bytes from FIFO.
-            err_code = app_fifo_read(&buffer.uart_tx_buff_instance, buffer.uart_tx_buff, &index);
+            err_code = app_fifo_read(&buffer.uart_tx_buff_instance, buffer.uart_tx_done_buff, &index);
             if (err_code == NRF_SUCCESS)
             {
-                NRF_LOG_INFO("extra bytes: %d", index);
-                buffer.uart_tx_buff_len = index;
+                buffer.uart_tx_done_buff_len = index;
+                // NRF_LOG_INFO("extra bytes1: %d", buffer.uart_tx_done_buff_len);
 
-                err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_tx_buff, buffer.uart_tx_buff_len);
+                err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_tx_done_buff, buffer.uart_tx_done_buff_len);
                 APP_ERROR_CHECK(err_code);
-                NRF_LOG_INFO("Send next bytes from fifo");
+                // NRF_LOG_INFO("Send next bytes from fifo");
             }else if (err_code = NRF_ERROR_NOT_FOUND) // FIFO is empty
             {
-                NRF_LOG_INFO("No data left in uart_tx_buff_instance buffer");
+                // NRF_LOG_INFO("No data left in uart_tx_done_buff_instance buffer");
 
                 // Notify TX done
                 uart.in_progress = 0;
             }else{
                 APP_ERROR_CHECK(err_code);
             }
+
+            NRF_LOG_INFO("TX_DONE - stop");
         }
             break;
         default:
@@ -214,9 +230,9 @@ void libuarte_init(app_sched_event_handler_t scheduled_function)
             .rx_pin     = RX_PIN_NUMBER,
             .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
             .parity     = NRF_UARTE_PARITY_EXCLUDED,
-            .hwfc       = NRF_UARTE_HWFC_DISABLED, // No hardware flow control
-            .timeout_us = 100,
-            .int_prio   = APP_IRQ_PRIORITY_LOW_MID // Higher interrupt priority than APP TIMER // APP_IRQ_PRIORITY_LOW
+            .hwfc       = NRF_UARTE_HWFC_ENABLED, // Yes, please !
+            .timeout_us = 1000, //100,
+            .int_prio   = APP_IRQ_PRIORITY_LOW // Higher interrupt priority than APP TIMER // APP_IRQ_PRIORITY_LOW
     };
 
     err_code = nrf_libuarte_async_init(&libuarte, &nrf_libuarte_async_config, uart_event_handler, (void *)&libuarte);
@@ -243,6 +259,8 @@ void uart_tx(uint8_t * p_data, size_t length)
     // Keep track of transaction started
     uart.in_progress = 1;
 
+    NRF_LOG_INFO("transmit");
+
     // Send bytes over UART (using DMA)
     err_code = nrf_libuarte_async_tx(&libuarte, p_data, length);
     APP_ERROR_CHECK(err_code);
@@ -250,13 +268,10 @@ void uart_tx(uint8_t * p_data, size_t length)
 
 void uart_queued_tx(uint8_t * data, uint32_t * len)
 {
+    // NRF_LOG_INFO("uart_queued_tx - start");
+
     ret_code_t err_code;
     uint32_t string_len;
-
-    uint32_t temp_len = 0;
-
-    memcpy(&temp_len, len, sizeof(temp_len)); // TEMPPP
-    NRF_LOG_INFO("temp_len: %d", temp_len);
 
     memcpy(&string_len, len, sizeof(string_len));
 
@@ -264,14 +279,12 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
     err_code = app_fifo_write(&buffer.uart_tx_buff_instance, data, len);
     APP_ERROR_CHECK(err_code);
 
-    if(temp_len != len[0]) NRF_LOG_INFO("DATA LOST IN BUFFER");
-
-
     if (err_code == NRF_ERROR_NO_MEM)
     {
         NRF_LOG_INFO("UART FIFO BUFFER FULL!");
     }
 
+    
     if (err_code == NRF_SUCCESS)
     {
         // The new byte has been added to FIFO. It will be picked up from there
@@ -280,16 +293,19 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
         // a new transmission here.
         if (!uart.in_progress) // If UART TX transfer is not going on
         {
+            // NRF_LOG_INFO("uart_queued_tx - uart not in progress");
             // This operation should be almost always successful, since we've
             // just added a byte to FIFO, but if some bigger delay occurred
             // (some heavy interrupt handler routine has been executed) since
             // that time, FIFO might be empty already.
 
+            // NRF_LOG_INFO("buffer.uart_tx_buff changed in uart_queued_tx");
+
             err_code = app_fifo_read(&buffer.uart_tx_buff_instance, buffer.uart_tx_buff, &string_len);
             if (err_code == NRF_SUCCESS)
             {
                 buffer.uart_tx_buff_len = string_len;
-                NRF_LOG_INFO("uart tx len %d", buffer.uart_tx_buff_len);
+                // NRF_LOG_INFO("uart tx len %d", buffer.uart_tx_buff_len);
 
                 // Transmit over uart
                 uart_tx(buffer.uart_tx_buff, buffer.uart_tx_buff_len);
@@ -299,6 +315,7 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
             }
         }
     }
+    // NRF_LOG_INFO("uart_queued_tx - stop");
 
 }
 
@@ -319,8 +336,6 @@ ret_code_t uart_rx_buff_get(uint8_t * p_byte)
 
     // Read 1 byte from RX FIFO buffer
     err_code = app_fifo_get(&buffer.uart_rx_buff_instance, p_byte);
-
-    NRF_LOG_INFO("uart_rx_buff_get: %d - %s", p_byte[0], p_byte[0]);
 
     // Return in case of an error
     return err_code;

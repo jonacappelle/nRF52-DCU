@@ -278,6 +278,10 @@ typedef enum
 #define CMD_LIST 0x6c //l
 
 
+
+void ts_imu_trigger_enable(void);
+void ts_imu_trigger_disable(void);
+
 static uint32_t usr_get_fifo_len(app_fifo_t * p_fifo)
 {
     uint32_t tmp = p_fifo->read_pos;
@@ -356,7 +360,7 @@ static void ble_send_config(ble_tes_config_t * stop_config)
     // Send config to peripheral
     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        err_code = ble_tes_config_set(&m_thingy_tes_c[i], &stop_config);
+        err_code = ble_tes_config_set(&m_thingy_tes_c[i], stop_config);
         if (err_code != NRF_SUCCESS)
         {
             NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
@@ -368,7 +372,7 @@ static void ble_send_config(ble_tes_config_t * stop_config)
 
 void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 {
-    NRF_LOG_INFO("uart_rx_scheduled");
+    // NRF_LOG_INFO("uart_rx_scheduled - start");
 
     uint8_t state = CMD_TYPE;
 
@@ -379,18 +383,18 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
     // If there is data left in FIFO and the read byte is not a carriage return
     while ((uart_rx_buff_get(p_byte) != NRF_ERROR_NOT_FOUND))
     {
-        NRF_LOG_INFO("FIFO get");
+        // NRF_LOG_INFO("FIFO get");
 
         // Check if end of message is reached
         if (p_byte[0] == CMD_CR)
         {
-            NRF_LOG_INFO("Break!");
+            // NRF_LOG_INFO("Break!");
             // NRF_LOG_FLUSH();
             break;
         }
         // Here we can process the request received over UART
 
-        NRF_LOG_INFO("p_byte: %d - %s", p_byte[0], p_byte[0]);
+        // NRF_LOG_INFO("p_byte: %d - %s", p_byte[0], p_byte[0]);
         // NRF_LOG_FLUSH();
 
         switch (p_byte[0])
@@ -471,7 +475,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 sprintf(str, "Sensor    %d  --> conn handle  %d\n", (i + 1), conn_handle);
                 uart_print(str);
                 // NRF_LOG_INFO("Connection handle: %d\n", (i+1), conn_handle);
-                nrf_delay_ms(1);
+                // nrf_delay_ms(1);
             }
 
             // uart_print("This feature is in progress...\n");
@@ -663,14 +667,14 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 default:
                     NRF_LOG_INFO("Invalid character CMD_FREQ");
                     uart_print("Invalid frequency selected!\n");
-                    // NRF_LOG_FLUSH();
+                    NRF_LOG_FLUSH();
                     break;
                 }
             }
             else
             {
                 NRF_LOG_INFO("err_code: %d", err_code);
-                NRF_LOG_FLUSH();
+                // NRF_LOG_FLUSH();
             }
         }
         break;
@@ -722,7 +726,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
         }
     }
 
-    NRF_LOG_INFO("UART CMD detection ended");
+    // NRF_LOG_INFO("uart_rx_scheduled - stop");
 }
 
 void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
