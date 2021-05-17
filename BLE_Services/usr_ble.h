@@ -100,7 +100,7 @@ typedef struct imu
     bool adc;
 } IMU;
 
-
+void timer_init(void);
 
 void received_data_buffers_init();
 

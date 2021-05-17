@@ -43,7 +43,8 @@
 			"usr_ble.h": "c",
 			"ble_nus.h": "c",
 			"ble_advertising.h": "c",
-			"ble_nus_c.h": "c"
+			"ble_nus_c.h": "c",
+			"nrf_sdh_ble.h": "c"
 		}
 	}
 }

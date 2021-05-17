@@ -105,7 +105,52 @@ _build/nrf52832_xxaa/usr_util.c.o: ../../../UTIL/usr_util.c \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  ../../../../../../components/boards/pca10040.h \
  ../../../../../../components/libraries/delay/nrf_delay.h \
- ../../../../../../components/libraries/scheduler/app_scheduler.h
+ ../../../../../../components/libraries/scheduler/app_scheduler.h \
+ ../../../UTIL/usr_uart.h \
+ ../../../../../../components/libraries/libuarte/nrf_libuarte_async.h \
+ ../../../../../../components/libraries/queue/nrf_queue.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h \
+ ../../../../../../modules/nrfx/hal/nrf_ppi.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_timer.h \
+ ../../../../../../modules/nrfx/hal/nrf_timer.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_rtc.h \
+ ../../../../../../modules/nrfx/hal/nrf_rtc.h \
+ ../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h \
+ ../../../../../../modules/nrfx/hal/nrf_uarte.h \
+ ../../../../../../modules/nrfx/hal/nrf_uarte.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_clock.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h \
+ ../../../../../../modules/nrfx/hal/nrf_clock.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h \
+ ../../../../../../components/libraries/bsp/bsp.h \
+ ../../../../../../components/libraries/button/app_button.h \
+ ../../../BLE_Services/usr_ble.h ../../../BLE_Services/ble_tes_c.h \
+ ../../../../../../components/softdevice/s132/headers/ble.h \
+ ../../../../../../components/softdevice/s132/headers/ble_err.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gap.h \
+ ../../../../../../components/softdevice/s132/headers/ble_hci.h \
+ ../../../../../../components/softdevice/s132/headers/ble_ranges.h \
+ ../../../../../../components/softdevice/s132/headers/ble_types.h \
+ ../../../../../../components/softdevice/s132/headers/ble_l2cap.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gatt.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gatts.h \
+ ../../../../../../components/ble/ble_db_discovery/ble_db_discovery.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gattc.h \
+ ../../../../../../components/ble/common/ble_gatt_db.h \
+ ../../../../../../components/ble/nrf_ble_gq/nrf_ble_gq.h \
+ ../../../../../../components/softdevice/common/nrf_sdh_ble.h \
+ ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h \
+ ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h \
+ ../../../../../../modules/nrfx/hal/nrf_uart.h \
+ ../../../TimeSync/time_sync.h ../../../TimeSync/usr_time_sync.h \
+ ../../../TimeSync/time_sync.h \
+ ../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h \
+ ../../../../../../components/libraries/bsp/bsp_btn_ble.h \
+ ../../../../../../components/libraries/bsp/bsp.h
 ../../../UTIL/usr_util.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdio.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_ansi.h:
@@ -213,3 +258,50 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/boards/pca10040.h:
 ../../../../../../components/libraries/delay/nrf_delay.h:
 ../../../../../../components/libraries/scheduler/app_scheduler.h:
+../../../UTIL/usr_uart.h:
+../../../../../../components/libraries/libuarte/nrf_libuarte_async.h:
+../../../../../../components/libraries/queue/nrf_queue.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_ppi.h:
+../../../../../../modules/nrfx/hal/nrf_ppi.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_timer.h:
+../../../../../../modules/nrfx/hal/nrf_timer.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_rtc.h:
+../../../../../../modules/nrfx/hal/nrf_rtc.h:
+../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h:
+../../../../../../modules/nrfx/hal/nrf_uarte.h:
+../../../../../../modules/nrfx/hal/nrf_uarte.h:
+../../../../../../integration/nrfx/legacy/nrf_drv_clock.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_clock.h:
+../../../../../../modules/nrfx/hal/nrf_clock.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h:
+../../../../../../components/libraries/bsp/bsp.h:
+../../../../../../components/libraries/button/app_button.h:
+../../../BLE_Services/usr_ble.h:
+../../../BLE_Services/ble_tes_c.h:
+../../../../../../components/softdevice/s132/headers/ble.h:
+../../../../../../components/softdevice/s132/headers/ble_err.h:
+../../../../../../components/softdevice/s132/headers/ble_gap.h:
+../../../../../../components/softdevice/s132/headers/ble_hci.h:
+../../../../../../components/softdevice/s132/headers/ble_ranges.h:
+../../../../../../components/softdevice/s132/headers/ble_types.h:
+../../../../../../components/softdevice/s132/headers/ble_l2cap.h:
+../../../../../../components/softdevice/s132/headers/ble_gatt.h:
+../../../../../../components/softdevice/s132/headers/ble_gattc.h:
+../../../../../../components/softdevice/s132/headers/ble_gatts.h:
+../../../../../../components/ble/ble_db_discovery/ble_db_discovery.h:
+../../../../../../components/softdevice/s132/headers/ble_gattc.h:
+../../../../../../components/ble/common/ble_gatt_db.h:
+../../../../../../components/ble/nrf_ble_gq/nrf_ble_gq.h:
+../../../../../../components/softdevice/common/nrf_sdh_ble.h:
+../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h:
+../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
+../../../../../../integration/nrfx/legacy/nrf_drv_uart.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_uart.h:
+../../../../../../modules/nrfx/hal/nrf_uart.h:
+../../../TimeSync/time_sync.h:
+../../../TimeSync/usr_time_sync.h:
+../../../TimeSync/time_sync.h:
+../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h:
+../../../../../../components/libraries/bsp/bsp_btn_ble.h:
+../../../../../../components/libraries/bsp/bsp.h:

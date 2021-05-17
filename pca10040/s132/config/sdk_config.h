@@ -10126,7 +10126,7 @@
 // <e> NRF_LIBUARTE_CONFIG_LOG_ENABLED - Enables logging in the module.
 //==========================================================
 #ifndef NRF_LIBUARTE_CONFIG_LOG_ENABLED
-#define NRF_LIBUARTE_CONFIG_LOG_ENABLED 1
+#define NRF_LIBUARTE_CONFIG_LOG_ENABLED 0
 #endif
 // <o> NRF_LIBUARTE_CONFIG_LOG_LEVEL  - Default Severity level
  

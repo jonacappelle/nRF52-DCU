@@ -107,7 +107,12 @@ static uint16_t m_ble_nus_max_data_len = BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGT
 
 
 
-
+/**@brief Function for initializing the timer. */
+void timer_init(void)
+{
+    ret_code_t err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+}
 
 
 void ble_send_config(ble_tes_config_t * stop_config)

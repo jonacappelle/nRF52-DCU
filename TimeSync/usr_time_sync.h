@@ -8,11 +8,12 @@
 
 #include "time_sync.h"
 
+void sync_timer_init();
 
 void ts_imu_trigger_enable(void);
+void ts_imu_trigger_disable(void);
 bool ts_get_imu_trigger_enabled(void);
-void sync_timer_init(ts_evt_handler_t ts_evt_callback);
-
+void ts_print_sync_time();
 
 
 #endif

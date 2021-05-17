@@ -59,7 +59,61 @@ bool ts_get_imu_trigger_enabled(void)
 }
 
 
-void sync_timer_init(ts_evt_handler_t ts_evt_callback)
+static void ts_evt_callback(const ts_evt_t *evt)
+{
+
+    APP_ERROR_CHECK_BOOL(evt != NULL);
+
+    switch (evt->type)
+    {
+    case TS_EVT_SYNCHRONIZED:
+        NRF_LOG_INFO("TS_EVT_SYNCHRONIZED");
+        // ts_gpio_trigger_enable();
+        ts_imu_trigger_enable();
+        break;
+    case TS_EVT_DESYNCHRONIZED:
+        NRF_LOG_INFO("TS_EVT_DESYNCHRONIZED");
+        // ts_gpio_trigger_disable();
+        ts_imu_trigger_disable();
+        break;
+    case TS_EVT_TRIGGERED:
+        // NRF_LOG_INFO("TS_EVT_TRIGGERED");
+        if (ts_get_imu_trigger_enabled())
+        {
+            uint32_t tick_target;
+
+            tick_target = evt->params.triggered.tick_target + 4;
+
+            // NRF_LOG_INFO("tick_target %d", tick_target);
+
+            ret_code_t err_code = ts_set_trigger(tick_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+
+            if (err_code != NRF_SUCCESS)
+            {
+                NRF_LOG_INFO("ts_evt_callback ERROR: %d", err_code);
+                NRF_LOG_FLUSH();
+            }
+            APP_ERROR_CHECK(err_code);
+        }
+        else
+        {
+            // Ensure pin is low when triggering is stopped
+            nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
+        }
+        uint64_t time_now_ticks;
+        uint32_t time_now_msec;
+        time_now_ticks = ts_timestamp_get_ticks_u64();
+        time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+        // NRF_LOG_INFO("Time: %d", time_now_msec);
+        break;
+    default:
+        APP_ERROR_CHECK_BOOL(false);
+        break;
+    }
+}
+
+
+void sync_timer_init()
 {
     ret_code_t err_code;
 
@@ -102,5 +156,15 @@ void sync_timer_init(ts_evt_handler_t ts_evt_callback)
 }
 
 
+void ts_print_sync_time()
+{
+    uint64_t time_now_ticks;
+    uint32_t time_now_msec;
+    uint32_t time_ticks;
 
+    time_now_ticks = ts_timestamp_get_ticks_u64();
+    time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+    time_ticks = TIME_SYNC_MSEC_TO_TICK(time_now_msec);
+    NRF_LOG_INFO("Time: ticks %d - ms %d", time_ticks, time_now_msec);
+}
 

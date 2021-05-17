@@ -12,12 +12,19 @@
 #include "app_timer.h"
 #include "app_fifo.h"
 
+void uart_rx_scheduled(void *p_event_data, uint16_t event_size);
+
+void idle_state_handle(void);
+void power_management_init(void);
+void log_init(void);
 
 void usr_gpio_init();
 
 void check_cpu_activity();
 
 uint32_t calculate_string_len(char * string);
+
+void buttons_leds_init(void);
 
 
 // APP Scheduler
