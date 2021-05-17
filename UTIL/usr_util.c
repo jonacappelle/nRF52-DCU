@@ -12,6 +12,10 @@
 #include "boards.h"
 #include "nrf_delay.h"
 
+#include "app_fifo.h"
+
+#include "app_scheduler.h"
+
 
 
 void usr_gpio_init()
@@ -52,4 +56,19 @@ uint32_t calculate_string_len(char * string)
     len++;
 
     return len;
+}
+
+
+// App scheduler
+void scheduler_init()
+{
+    // Application scheduler (soft interrupt like)
+    APP_SCHED_INIT(SCHED_MAX_EVENT_DATA_SIZE, SCHED_QUEUE_SIZE);
+}
+
+// App FIFO
+uint32_t usr_get_fifo_len(app_fifo_t * p_fifo)
+{
+    uint32_t tmp = p_fifo->read_pos;
+    return p_fifo->write_pos - tmp;
 }

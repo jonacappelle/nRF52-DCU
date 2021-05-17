@@ -1,0 +1,106 @@
+#include "usr_time_sync.h"
+
+// #include "nrf_gpiote.h"
+#include "nrf_drv_gpiote.h"
+
+// Time Synchronization
+#include "time_sync.h"
+#include "nrf_gpiote.h"
+#include "nrf_ppi.h"
+#include "nrf_timer.h"
+
+#include "nordic_common.h"
+
+#include "nrf_log.h"
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
+
+
+static bool m_imu_trigger_enabled = 0;
+
+
+void ts_imu_trigger_enable(void)
+{
+    uint64_t time_now_ticks;
+    uint32_t time_now_msec;
+    uint32_t time_target;
+    ret_code_t err_code;
+
+    if (m_imu_trigger_enabled)
+    {
+        return;
+    }
+
+    // Round up to nearest second to next 2000 ms to start toggling.
+    // If the receiver has received a valid sync packet within this time, the GPIO toggling polarity will be the same.
+
+    time_now_ticks = ts_timestamp_get_ticks_u64();
+    time_now_msec = TIME_SYNC_TIMESTAMP_TO_USEC(time_now_ticks) / 1000;
+
+    time_target = TIME_SYNC_MSEC_TO_TICK(time_now_msec) + (1000 * 2);
+    time_target = (time_target / 1000) * 1000;
+
+    err_code = ts_set_trigger(time_target, nrf_gpiote_task_addr_get(NRF_GPIOTE_TASKS_OUT_3));
+    APP_ERROR_CHECK(err_code);
+
+    nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
+
+    m_imu_trigger_enabled = 1;
+}
+
+void ts_imu_trigger_disable(void)
+{
+    m_imu_trigger_enabled = 0;
+}
+
+bool ts_get_imu_trigger_enabled(void)
+{
+    return m_imu_trigger_enabled;
+}
+
+
+void sync_timer_init(ts_evt_handler_t ts_evt_callback)
+{
+    ret_code_t err_code;
+
+    // Debug pin:
+    // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
+    // nRF52840-DK (PCA10056) Toggle P1.14 from sync timer to allow pin measurement
+#if defined(BOARD_PCA10040)
+    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+    nrf_gpiote_task_enable(3);
+#elif defined(BOARD_PCA10056)
+    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(1, 14), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+    nrf_gpiote_task_enable(3);
+#else
+#warning Debug pin not set
+#endif
+
+    ts_init_t init_ts =
+        {
+            .high_freq_timer[0] = NRF_TIMER3,
+            .high_freq_timer[1] = NRF_TIMER4,
+            .egu = NRF_EGU3,
+            .egu_irq_type = SWI3_EGU3_IRQn,
+            .evt_handler = ts_evt_callback,
+        };
+
+    err_code = ts_init(&init_ts);
+    APP_ERROR_CHECK(err_code);
+
+    ts_rf_config_t rf_config =
+        {
+            .rf_chn = 80,
+            .rf_addr = {0xDE, 0xAD, 0xBE, 0xEF, 0x19}};
+
+    err_code = ts_enable(&rf_config);
+    APP_ERROR_CHECK(err_code);
+
+    NRF_LOG_INFO("Started listening for beacons.\r\n");
+    NRF_LOG_INFO("Press Button 1 to start transmitting sync beacons\r\n");
+    NRF_LOG_INFO("GPIO toggling will begin when transmission has started.\r\n");
+}
+
+
+
+

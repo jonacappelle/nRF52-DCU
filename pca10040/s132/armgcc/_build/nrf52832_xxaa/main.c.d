@@ -1,4 +1,4 @@
-_build/nrf52832_xxaa/main.c.o: ../../../main.c \
+_build/nrf52832_xxaa/main.c.o: ../../../main.c ../../../main.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdio.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_ansi.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\newlib.h \
@@ -142,6 +142,7 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../../../../../../modules/nrfx/hal/nrf_gpiote.h \
  ../../../../../../modules/nrfx/hal/nrf_ppi.h \
  ../../../../../../modules/nrfx/hal/nrf_timer.h \
+ ../../../TimeSync/usr_time_sync.h ../../../TimeSync/time_sync.h \
  ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h \
  ../../../../../../modules/nrfx/hal/nrf_uarte.h \
@@ -166,7 +167,9 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c \
  ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h \
  ../../../../../../modules/nrfx/hal/nrf_clock.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h \
- ../../../../../../components/libraries/bsp/bsp.h
+ ../../../../../../components/libraries/bsp/bsp.h \
+ ../../../BLE_Services/usr_ble.h ../../../BLE_Services/ble_tes_c.h
+../../../main.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdio.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_ansi.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\newlib.h:
@@ -310,6 +313,8 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_gpiote.h:
 ../../../../../../modules/nrfx/hal/nrf_ppi.h:
 ../../../../../../modules/nrfx/hal/nrf_timer.h:
+../../../TimeSync/usr_time_sync.h:
+../../../TimeSync/time_sync.h:
 ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h:
 ../../../../../../modules/nrfx/hal/nrf_uarte.h:
@@ -336,3 +341,5 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_clock.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h:
 ../../../../../../components/libraries/bsp/bsp.h:
+../../../BLE_Services/usr_ble.h:
+../../../BLE_Services/ble_tes_c.h:

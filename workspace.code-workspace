@@ -35,7 +35,15 @@
 			"nrf_uarte.h": "c",
 			"nrf_libuarte_drv.h": "c",
 			"usr_uart.h": "c",
-			"nrf_drv_clock.h": "c"
+			"nrf_drv_clock.h": "c",
+			"main.h": "c",
+			"nrf_sdh_soc.h": "c",
+			"ble_hci.h": "c",
+			"ble.h": "c",
+			"usr_ble.h": "c",
+			"ble_nus.h": "c",
+			"ble_advertising.h": "c",
+			"ble_nus_c.h": "c"
 		}
 	}
 }

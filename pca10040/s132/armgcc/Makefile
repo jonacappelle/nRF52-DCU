@@ -10,6 +10,8 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/BLE_Services/usr_ble.c \
+  $(PROJ_DIR)/TimeSync/usr_time_sync.c \
   $(PROJ_DIR)/UTIL/usr_uart.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_rtc.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_timer.c \
