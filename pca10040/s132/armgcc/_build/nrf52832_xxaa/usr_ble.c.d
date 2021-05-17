@@ -88,14 +88,8 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/softdevice/common/nrf_sdh_ble.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
- ../../../../../../components/libraries/util/app_error.h \
- ../../../../../../components/libraries/uart/app_uart.h \
- ../../../../../../components/libraries/timer/app_timer.h \
- ../../../../../../components/libraries/sortlist/nrf_sortlist.h \
- ../../../../../../components/libraries/bsp/bsp_btn_ble.h \
- ../../../../../../components/libraries/bsp/bsp.h \
- ../../../../../../components/boards/boards.h \
- ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ ../../../../../../components/libraries/fifo/app_fifo.h \
+ ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h \
  ../../../../../../modules/nrfx/nrfx.h \
  ../../../../../../integration/nrfx/nrfx_config.h \
  ../../../../../../modules/nrfx/drivers/nrfx_common.h \
@@ -111,6 +105,19 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h \
  ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h \
+ ../../../../../../modules/nrfx/hal/nrf_uarte.h \
+ ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h \
+ ../../../../../../modules/nrfx/hal/nrf_uart.h \
+ ../../../../../../components/libraries/scheduler/app_scheduler.h \
+ ../../../../../../components/libraries/util/app_error.h \
+ ../../../../../../components/libraries/uart/app_uart.h \
+ ../../../../../../components/libraries/timer/app_timer.h \
+ ../../../../../../components/libraries/sortlist/nrf_sortlist.h \
+ ../../../../../../components/libraries/bsp/bsp_btn_ble.h \
+ ../../../../../../components/libraries/bsp/bsp.h \
+ ../../../../../../components/boards/boards.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  ../../../../../../components/boards/pca10040.h \
  ../../../../../../components/libraries/button/app_button.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
@@ -136,7 +143,6 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../modules/nrfx/hal/nrf_rtc.h \
  ../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h \
  ../../../../../../modules/nrfx/hal/nrf_uarte.h \
- ../../../../../../modules/nrfx/hal/nrf_uarte.h \
  ../../../../../../integration/nrfx/legacy/nrf_drv_clock.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h \
  ../../../../../../modules/nrfx/hal/nrf_clock.h \
@@ -146,10 +152,9 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h \
  ../../../../../../components/libraries/log/nrf_log_backend_interface.h \
  ../../../../../../components/libraries/log/nrf_log_default_backends.h \
- ../../../../../../components/libraries/scheduler/app_scheduler.h \
+ ../../../TimeSync/time_sync.h \
  ../../../../../../components/libraries/util/sdk_mapped_flags.h \
  ../../../UTIL/usr_util.h \
- ../../../../../../components/libraries/fifo/app_fifo.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
@@ -244,14 +249,8 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/common/nrf_sdh_ble.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
-../../../../../../components/libraries/util/app_error.h:
-../../../../../../components/libraries/uart/app_uart.h:
-../../../../../../components/libraries/timer/app_timer.h:
-../../../../../../components/libraries/sortlist/nrf_sortlist.h:
-../../../../../../components/libraries/bsp/bsp_btn_ble.h:
-../../../../../../components/libraries/bsp/bsp.h:
-../../../../../../components/boards/boards.h:
-../../../../../../modules/nrfx/hal/nrf_gpio.h:
+../../../../../../components/libraries/fifo/app_fifo.h:
+../../../../../../integration/nrfx/legacy/nrf_drv_uart.h:
 ../../../../../../modules/nrfx/nrfx.h:
 ../../../../../../integration/nrfx/nrfx_config.h:
 ../../../../../../modules/nrfx/drivers/nrfx_common.h:
@@ -267,6 +266,19 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h:
 ../../../../../../components/softdevice/s132/headers/nrf_soc.h:
 ../../../../../../modules/nrfx/drivers/nrfx_errors.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h:
+../../../../../../modules/nrfx/hal/nrf_uarte.h:
+../../../../../../modules/nrfx/drivers/include/nrfx_uart.h:
+../../../../../../modules/nrfx/hal/nrf_uart.h:
+../../../../../../components/libraries/scheduler/app_scheduler.h:
+../../../../../../components/libraries/util/app_error.h:
+../../../../../../components/libraries/uart/app_uart.h:
+../../../../../../components/libraries/timer/app_timer.h:
+../../../../../../components/libraries/sortlist/nrf_sortlist.h:
+../../../../../../components/libraries/bsp/bsp_btn_ble.h:
+../../../../../../components/libraries/bsp/bsp.h:
+../../../../../../components/boards/boards.h:
+../../../../../../modules/nrfx/hal/nrf_gpio.h:
 ../../../../../../components/boards/pca10040.h:
 ../../../../../../components/libraries/button/app_button.h:
 ../../../../../../components/softdevice/s132/headers/ble_gap.h:
@@ -292,7 +304,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_rtc.h:
 ../../../../../../components/libraries/libuarte/nrf_libuarte_drv.h:
 ../../../../../../modules/nrfx/hal/nrf_uarte.h:
-../../../../../../modules/nrfx/hal/nrf_uarte.h:
 ../../../../../../integration/nrfx/legacy/nrf_drv_clock.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h:
 ../../../../../../modules/nrfx/hal/nrf_clock.h:
@@ -302,10 +313,9 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/log/src/nrf_log_ctrl_internal.h:
 ../../../../../../components/libraries/log/nrf_log_backend_interface.h:
 ../../../../../../components/libraries/log/nrf_log_default_backends.h:
-../../../../../../components/libraries/scheduler/app_scheduler.h:
+../../../TimeSync/time_sync.h:
 ../../../../../../components/libraries/util/sdk_mapped_flags.h:
 ../../../UTIL/usr_util.h:
-../../../../../../components/libraries/fifo/app_fifo.h:
 ../../../../../../components/libraries/log/nrf_log.h:
 ../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
