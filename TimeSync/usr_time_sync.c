@@ -58,6 +58,13 @@ bool ts_get_imu_trigger_enabled(void)
     return m_imu_trigger_enabled;
 }
 
+// static uint32_t triggered_period = 0;
+
+// void ts_set_triggered_period()
+// {
+//     triggered_period = (imu.frequency / TIME_SYNC_TIMER_PERIOD_MS);
+// }
+
 
 static void ts_evt_callback(const ts_evt_t *evt)
 {
@@ -82,7 +89,7 @@ static void ts_evt_callback(const ts_evt_t *evt)
         {
             uint32_t tick_target;
 
-            tick_target = evt->params.triggered.tick_target + 4;
+            tick_target = evt->params.triggered.tick_target + 10;
 
             // NRF_LOG_INFO("tick_target %d", tick_target);
 
