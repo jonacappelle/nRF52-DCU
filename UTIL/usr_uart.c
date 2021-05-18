@@ -315,8 +315,6 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
             }
         }
     }
-    // NRF_LOG_INFO("uart_queued_tx - stop");
-
 }
 
 ret_code_t uart_rx_buff_read(uint8_t * p_byte_array, uint32_t * p_size)

@@ -430,44 +430,47 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
                 uint8_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
                 NRF_LOG_INFO("Frequency received: %d", cmd);
 
-                switch (cmd)
-                {
-                case CMD_FREQ_10:
-                    NRF_LOG_INFO("CMD_FREQ_10 received");
-                    set_config_frequency(10);
-                    // NRF_LOG_FLUSH();
-                    break;
+                set_config_frequency(cmd);
+                NRF_LOG_INFO("CMD_FREQ set");
 
-                case CMD_FREQ_50:
-                    NRF_LOG_INFO("CMD_FREQ_50 received");
-                    set_config_frequency(50);
-                    // NRF_LOG_FLUSH();
-                    break;
+                // switch (cmd)
+                // {
+                // case CMD_FREQ_10:
+                //     NRF_LOG_INFO("CMD_FREQ_10 received");
+                //     set_config_frequency(10);
+                //     // NRF_LOG_FLUSH();
+                //     break;
 
-                case CMD_FREQ_100:
-                    NRF_LOG_INFO("CMD_FREQ_100 received");
-                    set_config_frequency(100);
-                    // NRF_LOG_FLUSH();
-                    break;
+                // case CMD_FREQ_50:
+                //     NRF_LOG_INFO("CMD_FREQ_50 received");
+                //     set_config_frequency(50);
+                //     // NRF_LOG_FLUSH();
+                //     break;
 
-                case CMD_FREQ_200:
-                    NRF_LOG_INFO("CMD_FREQ_200 received");
-                    set_config_frequency(200);
-                    // NRF_LOG_FLUSH();
-                    break;
+                // case CMD_FREQ_100:
+                //     NRF_LOG_INFO("CMD_FREQ_100 received");
+                //     set_config_frequency(100);
+                //     // NRF_LOG_FLUSH();
+                //     break;
 
-                case CMD_FREQ_225:
-                    NRF_LOG_INFO("CMD_FREQ_225 received");
-                    set_config_frequency(225);
-                    // NRF_LOG_FLUSH();
-                    break;
+                // case CMD_FREQ_200:
+                //     NRF_LOG_INFO("CMD_FREQ_200 received");
+                //     set_config_frequency(200);
+                //     // NRF_LOG_FLUSH();
+                //     break;
 
-                default:
-                    NRF_LOG_INFO("Invalid character CMD_FREQ");
-                    uart_print("Invalid frequency selected!\n");
-                    NRF_LOG_FLUSH();
-                    break;
-                }
+                // case CMD_FREQ_225:
+                //     NRF_LOG_INFO("CMD_FREQ_225 received");
+                //     set_config_frequency(225);
+                //     // NRF_LOG_FLUSH();
+                //     break;
+
+                // default:
+                //     NRF_LOG_INFO("Invalid character CMD_FREQ");
+                //     uart_print("Invalid frequency selected!\n");
+                //     NRF_LOG_FLUSH();
+                //     break;
+                // }
             }
             else
             {
