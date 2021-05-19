@@ -25,8 +25,6 @@
 #define CMD_QUAT6 0x36 //6
 #define CMD_QUAT9 0x39 //9
 
-#define CMD_EULER 0x65 //e
-
 #define CMD_CR 0x0A //carriage return
 
 #define CMD_FREQ 0x66 //f
@@ -42,6 +40,7 @@
 #define CMD_SETTINGS 0x70 //p
 #define CMD_RESET 0x72    //r
 #define CMD_SEND 0x73     //s
+#define CMD_DISCONNECT 0x64 //d
 
 #define CMD_WOM 0x77 //w
 
@@ -49,7 +48,7 @@
 #define CMD_SYNC_ENABLE 0x31  //1
 #define CMD_SYNC_DISABLE 0x30 //0
 
-#define CMD_ADC 0x64 //d
+#define CMD_ADC 0x65 //e
 
 #define CMD_LIST 0x6c //l
 

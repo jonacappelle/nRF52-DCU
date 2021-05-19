@@ -98,6 +98,7 @@ typedef struct imu
     uint32_t evt_scheduled;
     uint32_t uart_rx_evt_scheduled;
     bool adc;
+    bool disconnect;
 } IMU;
 
 void timer_init(void);
@@ -140,5 +141,7 @@ void set_config_wom_enable(bool enable);
 void set_config_frequency(uint32_t freq);
 void set_config_reset();
 void config_send();
+
+void imu_disconnect(uint32_t conn_handle_num);
 
 #endif

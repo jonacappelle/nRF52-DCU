@@ -396,11 +396,11 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             }
             break;
 
-        case CMD_EULER:
-            NRF_LOG_INFO("CMD_EULER received");
-            // NRF_LOG_FLUSH();
-            set_config_euler_enable(1);
-            break;
+        // case CMD_EULER:
+        //     NRF_LOG_INFO("CMD_EULER received");
+        //     // NRF_LOG_FLUSH();
+        //     set_config_euler_enable(1);
+        //     break;
 
         case CMD_RESET:
             NRF_LOG_INFO("CMD_RESET received");
@@ -499,6 +499,31 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             uart_print("------------------------------------------\n");
             uart_print("Configuration send to peripherals.\n");
             uart_print("------------------------------------------\n");
+            break;
+
+        case CMD_DISCONNECT:
+            NRF_LOG_INFO("CMD_DISCONNECT received");
+
+            uart_print("------------------------------------------\n");
+            uart_print("Sensors disconnected.\n");
+            uart_print("------------------------------------------\n");
+
+            set_config_disconnect();
+
+            uint32_t cmd_disconnect_len = 1;
+
+            uint8_t p_byte_d[3];
+            err_code = uart_rx_buff_read(p_byte_d, &cmd_disconnect_len);
+
+            // Get frequency components
+            if (err_code == NRF_SUCCESS)
+            {
+                uint8_t conn_handle = uart_rx_to_cmd(p_byte_d, cmd_disconnect_len);
+
+                imu_disconnect(conn_handle);
+                NRF_LOG_INFO("conn_handle %d disconnected", conn_handle);
+            }
+
             break;
 
         default:
