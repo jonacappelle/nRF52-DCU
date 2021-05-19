@@ -73,7 +73,6 @@ IMU imu = {
     .evt_scheduled = 0,
     .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
-    .disconnect = 0,
 };
 
 // Initialisation of struct to keep track of different buffers
@@ -1061,11 +1060,6 @@ void set_config_frequency(uint32_t freq)
     imu.frequency = freq;
 }
 
-void set_config_disconnect(void)
-{
-    imu.disconnect = 1;  
-}
-
 void set_config_reset()
 {
     imu.gyro_enabled = 0;
@@ -1078,7 +1072,6 @@ void set_config_reset()
     imu.sync_enabled = 0;
     imu.stop = 0;
     imu.adc = 0;
-    imu.disconnect = 0;
 }
 
 void config_send()
@@ -1097,7 +1090,6 @@ void config_send()
     config.sync_enabled = imu.sync_enabled;
     config.stop = imu.stop;
     config.adc_enabled = imu.adc;
-    config.disconnect = imu.disconnect;
 
     // Get timestamp from master
     imu.sync_start_time = ts_timestamp_get_ticks_u64();
@@ -1121,21 +1113,18 @@ void config_send()
 
 void imu_disconnect(uint32_t conn_handle_num)
 {
-    if( imu.disconnect )
-    {
-        ret_code_t err_code;
+    ret_code_t err_code;
 
-        // Disconnect IMU's
-        err_code = sd_ble_gap_disconnect(conn_handle_num, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
-        if(err_code == BLE_ERROR_INVALID_CONN_HANDLE)
-        {
-            NRF_LOG_INFO("BLE_ERROR_INVALID_CONN_HANDLE");
-        }
-        
-        if (err_code != NRF_ERROR_INVALID_STATE)
-        {
-            APP_ERROR_CHECK(err_code);
-        }
-        NRF_LOG_INFO("IMU Disconnected");
+    // Disconnect IMU's
+    err_code = sd_ble_gap_disconnect(conn_handle_num, BLE_HCI_REMOTE_USER_TERMINATED_CONNECTION);
+    if(err_code == BLE_ERROR_INVALID_CONN_HANDLE)
+    {
+        NRF_LOG_INFO("BLE_ERROR_INVALID_CONN_HANDLE");
     }
+    
+    if (err_code != NRF_ERROR_INVALID_STATE)
+    {
+        APP_ERROR_CHECK(err_code);
+    }
+    NRF_LOG_INFO("IMU Disconnected");
 }

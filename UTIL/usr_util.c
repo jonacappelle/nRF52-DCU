@@ -508,8 +508,6 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             uart_print("Sensors disconnected.\n");
             uart_print("------------------------------------------\n");
 
-            set_config_disconnect();
-
             uint32_t cmd_disconnect_len = 1;
 
             uint8_t p_byte_d[3];

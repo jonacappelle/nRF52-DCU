@@ -98,7 +98,6 @@ typedef struct imu
     uint32_t evt_scheduled;
     uint32_t uart_rx_evt_scheduled;
     bool adc;
-    bool disconnect;
 } IMU;
 
 void timer_init(void);

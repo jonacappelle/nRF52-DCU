@@ -248,7 +248,6 @@ typedef struct
     uint64_t                  sync_start_time;
     bool                      stop;
     bool                      adc_enabled;
-    bool                      disconnect;
 } ble_tes_config_t;
 
 /**@brief Structure containing the event value received from the peer. */
