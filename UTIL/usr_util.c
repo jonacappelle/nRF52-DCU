@@ -504,10 +504,6 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
         case CMD_DISCONNECT:
             NRF_LOG_INFO("CMD_DISCONNECT received");
 
-            uart_print("------------------------------------------\n");
-            uart_print("Sensors disconnected.\n");
-            uart_print("------------------------------------------\n");
-
             uint32_t cmd_disconnect_len = 1;
 
             uint8_t p_byte_d[3];
@@ -518,7 +514,18 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             {
                 uint8_t conn_handle = uart_rx_to_cmd(p_byte_d, cmd_disconnect_len);
 
-                imu_disconnect(conn_handle);
+                err_code = imu_disconnect(conn_handle);
+                if( err_code == BLE_ERROR_INVALID_CONN_HANDLE )
+                {
+                    uart_print("------------------------------------------\n");
+                    uart_print("Invalid connection handle.\n");
+                    uart_print("------------------------------------------\n");
+                }else{
+                    uart_print("------------------------------------------\n");
+                    uart_print("Sensors disconnected.\n");
+                    uart_print("------------------------------------------\n");
+                }
+
                 NRF_LOG_INFO("conn_handle %d disconnected", conn_handle);
             }
 

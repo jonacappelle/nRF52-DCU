@@ -1111,7 +1111,7 @@ void config_send()
 }
 
 
-void imu_disconnect(uint32_t conn_handle_num)
+ret_code_t imu_disconnect(uint32_t conn_handle_num)
 {
     ret_code_t err_code;
 
@@ -1122,9 +1122,11 @@ void imu_disconnect(uint32_t conn_handle_num)
         NRF_LOG_INFO("BLE_ERROR_INVALID_CONN_HANDLE");
     }
     
-    if (err_code != NRF_ERROR_INVALID_STATE)
+    if ( (err_code != NRF_ERROR_INVALID_STATE) && (err_code != BLE_ERROR_INVALID_CONN_HANDLE) )
     {
         APP_ERROR_CHECK(err_code);
     }
     NRF_LOG_INFO("IMU Disconnected");
+
+    return err_code;
 }
