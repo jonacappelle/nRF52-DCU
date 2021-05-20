@@ -75,6 +75,7 @@ IMU imu = {
     .evt_scheduled = 0,
     .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
+    .wom = 0,
 };
 
 // Initialisation of struct to keep track of different buffers
@@ -1010,6 +1011,8 @@ void usr_ble_print_settings()
         uart_print("---   ADC enabled\n");
     if (imu.sync_enabled)
         uart_print("---   Synchonization enabled\n");
+    if (imu.wom)
+        uart_print("---   WoM enabled\n");
     uart_print("------------------------------------------\n");
 }
 
@@ -1093,6 +1096,7 @@ void set_config_reset()
     imu.sync_enabled = 0;
     imu.stop = 0;
     imu.adc = 0;
+    imu.wom = 0;
 }
 
 void config_send()
@@ -1126,6 +1130,10 @@ void config_send()
     
 
     NRF_LOG_INFO("config.adc_enabled %d", config.adc_enabled);
+
+    NRF_LOG_INFO("config wwwwooommmmm %d", config.wom_enabled);
+    NRF_LOG_INFO("imu wwwwooommmmm %d", imu.wom);
+
 
     // Send config to peripheral
     usr_ble_config_send(config);

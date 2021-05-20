@@ -482,11 +482,35 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
         case CMD_WOM:
             NRF_LOG_INFO("CMD_WOM received");
-            uart_print("------------------------------------------\n");
-            uart_print("Wake On Motion Enabled.\n");
-            uart_print("------------------------------------------\n");
+            
+            uint32_t cmd_wom_len = 1;
 
-            set_config_wom_enable(1);
+            uint8_t p_byte_w[1];
+            err_code = uart_rx_buff_read(p_byte_w, &cmd_wom_len);
+
+            // Get frequency components
+            if (err_code == NRF_SUCCESS)
+            {
+                uint8_t wom_state = uart_rx_to_cmd(p_byte_w, cmd_wom_len);
+
+                // Set variabled to send accordingly
+                set_config_wom_enable(wom_state);
+
+                if( wom_state == 1 )
+                {
+                    uart_print("------------------------------------------\n");
+                    uart_print("Wake On Motion Enabled.\n");
+                    uart_print("------------------------------------------\n");
+                }else if( wom_state == 0 ){
+                    uart_print("------------------------------------------\n");
+                    uart_print("Wake On Motion Disabled.\n");
+                    uart_print("------------------------------------------\n");
+                }else{
+                    uart_print("------------------------------------------\n");
+                    uart_print("Invalid WOM command.\n");
+                    uart_print("------------------------------------------\n");
+                }
+            }
             break;
 
         case CMD_SEND:
