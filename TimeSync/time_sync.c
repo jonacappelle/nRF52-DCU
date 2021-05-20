@@ -625,10 +625,10 @@ static void sync_timer_start(void)
 
 uint32_t ts_set_trigger(uint32_t target_tick, uint32_t ppi_endpoint)
 {
-    if (!m_timeslot_session_open)
-    {
-        return NRF_ERROR_INVALID_STATE;
-    }
+    // if (!m_timeslot_session_open)
+    // {
+    //     return NRF_ERROR_INVALID_STATE;
+    // }
 
     if (ppi_sync_trigger_configure(ppi_endpoint) != NRF_SUCCESS)
     {

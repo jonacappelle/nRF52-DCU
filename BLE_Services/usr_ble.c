@@ -61,6 +61,8 @@
 #include "nrf_log_default_backends.h"
 
 
+
+
 // Initialisation of IMU struct
 IMU imu = {
     .frequency = 0,
@@ -78,6 +80,7 @@ IMU imu = {
 // Initialisation of struct to keep track of different buffers
 BUFFER buffer;
 
+static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU2", "IMU2", "IMU2", "IMU2"};
 
 #define APP_BLE_CONN_CFG_TAG 1  /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO 3 /**< BLE observer priority of the application. There is no need to modify this value. */
@@ -184,6 +187,12 @@ static void scan_evt_handler(scan_evt_t const *p_scan_evt)
 
     switch (p_scan_evt->scan_evt_id)
     {
+    case NRF_BLE_SCAN_EVT_FILTER_MATCH:
+        NRF_LOG_INFO("Filter MATCH");
+
+        // uart_print("Filter match\n");
+        break;
+
     case NRF_BLE_SCAN_EVT_CONNECTING_ERROR:
     {
         err_code = p_scan_evt->params.connecting_err.err_code;
@@ -233,10 +242,14 @@ void scan_init(void)
     err_code = nrf_ble_scan_init(&m_scan, &init_scan, scan_evt_handler);
     APP_ERROR_CHECK(err_code);
 
-    err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_UUID_FILTER, &m_nus_uuid);
-    APP_ERROR_CHECK(err_code);
+    // Set filter based on name
+    for (int i=0; i< NRF_BLE_SCAN_NAME_CNT; i++){
+        err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_NAME_FILTER, m_target_periph_name[i]);
+        APP_ERROR_CHECK(err_code);
+    }
 
-    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_UUID_FILTER, false);
+    // Only enable name filter
+    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_NAME_FILTER, true);
     APP_ERROR_CHECK(err_code);
 }
 
@@ -316,6 +329,14 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
 
     switch (p_ble_evt->header.evt_id)
     {
+    case BLE_GAP_EVT_ADV_REPORT:
+        {
+        // Initialize advertisement report for parsing.
+        // NRF_LOG_INFO("Peer_addr %d", p_ble_evt->evt.gap_evt.params.scan_req_report.peer_addr.addr);
+        // NRF_LOG_INFO("Handle %d",p_ble_evt->evt.gap_evt.params.scan_req_report.adv_handle);
+
+        } break;
+
     case BLE_GAP_EVT_CONNECTED:
     {
         /* CHANGES */
