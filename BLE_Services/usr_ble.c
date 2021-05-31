@@ -26,6 +26,9 @@
 
 #include "time_sync.h"
 
+// Battery service
+#include "ble_bas_c.h"
+
 
 // #include <stdint.h>
 // #include <string.h>
@@ -63,6 +66,10 @@
 
 
 
+BATTERY batt = {
+    .level = BATT_INVALID_VALUE, // 0xFF as invalid value
+};
+
 // Initialisation of IMU struct
 IMU imu = {
     .frequency = 0,
@@ -98,6 +105,10 @@ static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU2", "IMU2"
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< BLE Nordic UART Service (NUS) client instances. */
 /* END CHANGES */
 BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
+
+// Battery serice receiver
+BLE_BAS_C_DEF(m_bas_c);                                             /**< Structure used to identify the Battery Service client module. */
+
 
 NRF_BLE_GATT_DEF(m_gatt);        /**< GATT module instance. */
 BLE_DB_DISCOVERY_DEF(m_db_disc); /**< Database discovery module instance. */
@@ -271,6 +282,73 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
 
     // Add discovery for TMS service
     ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c[p_evt->conn_handle], p_evt);
+
+    // Add discovery for Battery service
+    ble_bas_on_db_disc_evt(&m_bas_c, p_evt);
+}
+
+
+
+/**@brief Battery level Collector Handler.
+ */
+static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_evt)
+{
+    ret_code_t err_code;
+
+    switch (p_bas_c_evt->evt_type)
+    {
+        case BLE_BAS_C_EVT_DISCOVERY_COMPLETE:
+        {
+            err_code = ble_bas_c_handles_assign(p_bas_c,
+                                                p_bas_c_evt->conn_handle,
+                                                &p_bas_c_evt->params.bas_db);
+            APP_ERROR_CHECK(err_code);
+
+            // Battery service discovered. Enable notification of Battery Level.
+            NRF_LOG_DEBUG("Battery Service discovered. Reading battery level.");
+
+            err_code = ble_bas_c_bl_read(p_bas_c);
+            APP_ERROR_CHECK(err_code);
+
+            NRF_LOG_DEBUG("Enabling Battery Level Notification.");
+            err_code = ble_bas_c_bl_notif_enable(p_bas_c);
+            APP_ERROR_CHECK(err_code);
+
+        } break;
+
+        case BLE_BAS_C_EVT_BATT_NOTIFICATION:
+            NRF_LOG_INFO("Battery Level received %d %%.", p_bas_c_evt->params.battery_level);
+
+            // Store battery level in buffer
+            batt.level = p_bas_c_evt->params.battery_level;
+            break;
+
+        case BLE_BAS_C_EVT_BATT_READ_RESP:
+            NRF_LOG_INFO("Battery Level Read as %d %%.", p_bas_c_evt->params.battery_level);
+
+            // Store battery level in buffer
+            batt.level = p_bas_c_evt->params.battery_level;
+            break;
+
+        default:
+            break;
+    }
+}
+
+
+/**
+ * @brief Battery level collector initialization.
+ */
+static void bas_c_init(void)
+{
+    ble_bas_c_init_t bas_c_init_obj;
+
+    bas_c_init_obj.evt_handler   = bas_c_evt_handler;
+    bas_c_init_obj.error_handler = nus_error_handler;
+    bas_c_init_obj.p_gatt_queue  = &m_ble_gatt_queue;
+
+    ret_code_t err_code = ble_bas_c_init(&m_bas_c, &bas_c_init_obj);
+    APP_ERROR_CHECK(err_code);
 }
 
 
@@ -825,7 +903,8 @@ void services_init()
     // Motion Service
     thingy_tes_c_init();
 
-    // TODO: add Battery Service
+    // Battery Service
+    bas_c_init();
 
 }
 

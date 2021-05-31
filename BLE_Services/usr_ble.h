@@ -15,6 +15,13 @@
 
 #include "app_scheduler.h"
 
+#define BATT_INVALID_VALUE  0xFF
+
+typedef struct batt
+{
+    uint8_t level;
+} BATTERY;
+
 // Create a FIFO structure
 typedef struct buffer
 {

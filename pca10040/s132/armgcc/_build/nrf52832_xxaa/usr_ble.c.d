@@ -153,6 +153,7 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/libraries/log/nrf_log_backend_interface.h \
  ../../../../../../components/libraries/log/nrf_log_default_backends.h \
  ../../../TimeSync/time_sync.h \
+ ../../../../../../components/ble/ble_services/ble_bas_c/ble_bas_c.h \
  ../../../../../../components/libraries/util/sdk_mapped_flags.h \
  ../../../UTIL/usr_util.h \
  ../../../../../../components/libraries/log/nrf_log.h \
@@ -314,6 +315,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/log/nrf_log_backend_interface.h:
 ../../../../../../components/libraries/log/nrf_log_default_backends.h:
 ../../../TimeSync/time_sync.h:
+../../../../../../components/ble/ble_services/ble_bas_c/ble_bas_c.h:
 ../../../../../../components/libraries/util/sdk_mapped_flags.h:
 ../../../UTIL/usr_util.h:
 ../../../../../../components/libraries/log/nrf_log.h:
