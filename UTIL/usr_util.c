@@ -427,7 +427,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             {
                 // NRF_LOG_INFO("success");
                 // NRF_LOG_FLUSH();
-                uint8_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
+                uint32_t cmd = uart_rx_to_cmd(p_byte1, CMD_FREQ_LEN);
                 NRF_LOG_INFO("Frequency received: %d", cmd);
 
                 set_config_frequency(cmd);

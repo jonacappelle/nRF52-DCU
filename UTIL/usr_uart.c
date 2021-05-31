@@ -103,7 +103,7 @@ void uart_print(char msg[])
 }
 
 
-uint8_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
+uint32_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
 {
     uint8_t temp[len];
     memcpy(temp, command_in, len);
@@ -111,7 +111,7 @@ uint8_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
     NRF_LOG_INFO("%d %d %d", command_in[0], command_in[1], command_in[2]);
     // NRF_LOG_FLUSH();
 
-    uint8_t x = atoi(temp);
+    uint32_t x = atoi(temp);
 
     NRF_LOG_INFO("%d", x);
     // NRF_LOG_FLUSH();

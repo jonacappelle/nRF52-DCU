@@ -57,7 +57,7 @@ void libuarte_init(app_sched_event_handler_t scheduled_function);
 void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt);
 
 void uart_print(char msg[]);
-uint8_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len);
+uint32_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len);
 
 bool uart_in_progress();
 

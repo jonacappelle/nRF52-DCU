@@ -683,7 +683,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
             received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.quat[i].y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             received_quat.quat_data.z = ((float)p_evt->params.value.quat_data.quat[i].z / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
 
-            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(quat_buff[0]*1000), (int)(quat_buff[1]*1000), (int)(quat_buff[2]*1000), (int)(quat_buff[3]*1000));
+            // NRF_LOG_INFO("quat: %d %d  %d  %d", (int)(received_quat.quat_data.w*1000), (int)(received_quat.quat_data.x*1000), (int)(received_quat.quat_data.y*1000), (int)(received_quat.quat_data.z*1000));
 
             // Put data into FIFO buffer and let event handler know to process the packet
             queue_process_packet(&received_quat, &received_quat_len);
@@ -951,7 +951,8 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
             // If packet contains QUATERNIONS
             if (temp.quat_data_present)
             {
-                sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+                // sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+                sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
             }
             else
                 // if packet contains RAW DATA
