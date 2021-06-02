@@ -171,7 +171,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             break;
         case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
         {
-            NRF_LOG_INFO("TX_DONE - start");
+            // NRF_LOG_INFO("TX_DONE - start");
 
             // NRF_LOG_INFO("%s", buffer.uart_tx_done_buff);
 
@@ -199,7 +199,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
                 APP_ERROR_CHECK(err_code);
             }
 
-            NRF_LOG_INFO("TX_DONE - stop");
+            // NRF_LOG_INFO("TX_DONE - stop");
         }
             break;
         default:
@@ -259,7 +259,7 @@ void uart_tx(uint8_t * p_data, size_t length)
     // Keep track of transaction started
     uart.in_progress = 1;
 
-    NRF_LOG_INFO("transmit");
+    // NRF_LOG_INFO("transmit");
 
     // Send bytes over UART (using DMA)
     err_code = nrf_libuarte_async_tx(&libuarte, p_data, length);

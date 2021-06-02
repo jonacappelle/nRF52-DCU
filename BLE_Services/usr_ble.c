@@ -678,7 +678,7 @@ static void queue_process_packet(received_data_t * data, uint32_t * len)
     // Put the received data in FIFO buffer
     err_code = app_fifo_write(&buffer.received_data_fifo, (uint8_t *) data, len);
 
-    NRF_LOG_INFO("Fifo PUT: %d", usr_get_fifo_len(&buffer.received_data_fifo))
+    // NRF_LOG_INFO("Fifo PUT: %d", usr_get_fifo_len(&buffer.received_data_fifo))
 
     if (err_code == NRF_ERROR_NO_MEM)
     {
@@ -724,7 +724,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     nrf_gpio_pin_set(11);
 
     // Print packet count for each connected device
-    print_packet_count(p_evt);
+    // print_packet_count(p_evt);
 
     switch (p_evt->evt_type)
     {
@@ -1023,15 +1023,15 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
         if (app_fifo_read(&buffer.received_data_fifo, (uint8_t *)&temp, &temp_len) == NRF_SUCCESS)
         {
 
-            NRF_LOG_INFO("Fifo GET: %d", usr_get_fifo_len(&buffer.received_data_fifo))
+            // NRF_LOG_INFO("Fifo GET: %d", usr_get_fifo_len(&buffer.received_data_fifo))
 
             // sprintf(string, "%d w%.3fwa%.3fab%.3fbc%.3fc\n", device_nr[0], quat[0], quat[1], quat[2], quat[3]);
 
             // If packet contains QUATERNIONS
             if (temp.quat_data_present)
             {
-                // sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
-                sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+                sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+                // sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
             }
             else
                 // if packet contains RAW DATA
