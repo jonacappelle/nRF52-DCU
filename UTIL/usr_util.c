@@ -25,7 +25,7 @@
 
 #include "bsp_btn_ble.h"
 
-extern BATTERY batt;
+extern BATTERY_ARRAY batt_array;
 
 /**
  * @brief Function for handling shutdown events.
@@ -407,19 +407,24 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
         case CMD_BATT:
             NRF_LOG_INFO("CMD_BATT received");
 
-            if(batt.level != BATT_INVALID_VALUE)
-            {
-                uint8_t temp[10];
-                sprintf(temp, "Battery level:   %0.2f   ( +- %d procent )\n", batt.voltage, batt.level);
+            // for(uint8_t i=0; i<)
 
-                uart_print("------------------------------------------\n");
-                uart_print(temp);
-                uart_print("------------------------------------------\n");  
-            }else{
-                uart_print("------------------------------------------\n");
-                uart_print("Battery level:   unknown\n");
-                uart_print("------------------------------------------\n");  
-            }
+            // // if(batt.level != BATT_INVALID_VALUE)
+            // // {
+            //     uint8_t temp[10];
+            //     sprintf(temp, "Battery level:   %0.2f   ( +- %d procent )\n", batt.voltage, batt.level);
+
+                
+            //     uart_print(temp);
+                
+            usr_batt_print_conn_handle();
+
+
+            // }else{
+            //     uart_print("------------------------------------------\n");
+            //     uart_print("Battery level:   unknown\n");
+            //     uart_print("------------------------------------------\n");  
+            // }
             break;
 
         case CMD_RESET:

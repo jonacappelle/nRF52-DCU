@@ -66,10 +66,8 @@
 
 
 
-BATTERY batt = {
-    .level = BATT_INVALID_VALUE, // 0xFF as invalid value
-    .voltage = 0.0,
-};
+
+BATTERY_ARRAY batt_array;
 
 // Initialisation of IMU struct
 IMU imu = {
@@ -108,7 +106,7 @@ BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< BLE Nordi
 BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
 
 // Battery serice receiver
-BLE_BAS_C_DEF(m_bas_c);                                             /**< Structure used to identify the Battery Service client module. */
+BLE_BAS_C_ARRAY_DEF(m_bas_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);     /**< Structure used to identify the Battery Service client module. */
 
 
 NRF_BLE_GATT_DEF(m_gatt);        /**< GATT module instance. */
@@ -285,7 +283,7 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
     ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c[p_evt->conn_handle], p_evt);
 
     // Add discovery for Battery service
-    ble_bas_on_db_disc_evt(&m_bas_c, p_evt);
+    ble_bas_on_db_disc_evt(&m_bas_c[p_evt->conn_handle], p_evt);
 }
 
 
@@ -322,12 +320,12 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
             NRF_LOG_INFO("Battery Level received %d %%.", p_bas_c_evt->params.battery_level);
 
             // Calculate and store battery voltage level in buffer
-            batt.voltage = usr_map_adc_to_uint8(p_bas_c_evt->params.battery_level);
-            NRF_LOG_INFO("Voltage -> " NRF_LOG_FLOAT_MARKER "", NRF_LOG_FLOAT(batt.voltage));
+            batt_array.batt[p_bas_c_evt->conn_handle].voltage = usr_map_adc_to_uint8(p_bas_c_evt->params.battery_level);
+            NRF_LOG_INFO("Voltage (conn handle %d) -> " NRF_LOG_FLOAT_MARKER "", p_bas_c_evt->conn_handle, NRF_LOG_FLOAT(batt_array.batt[p_bas_c_evt->conn_handle].voltage));
 
             // Calculate and store battery percentage level in buffer
-            batt.level =  usr_adc_voltage_to_percent(batt.voltage);
-            NRF_LOG_INFO("Percentage -> %d", batt.level);
+            batt_array.batt[p_bas_c_evt->conn_handle].level =  usr_adc_voltage_to_percent(batt_array.batt[p_bas_c_evt->conn_handle].voltage);
+            NRF_LOG_INFO("Percentage (conn handle %d) -> %d", p_bas_c_evt->conn_handle, batt_array.batt[p_bas_c_evt->conn_handle].level);
 
             break;
 
@@ -342,14 +340,20 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
  */
 static void bas_c_init(void)
 {
+    ret_code_t err_code;
+
     ble_bas_c_init_t bas_c_init_obj;
 
     bas_c_init_obj.evt_handler   = bas_c_evt_handler;
     bas_c_init_obj.error_handler = nus_error_handler;
     bas_c_init_obj.p_gatt_queue  = &m_ble_gatt_queue;
 
-    ret_code_t err_code = ble_bas_c_init(&m_bas_c, &bas_c_init_obj);
-    APP_ERROR_CHECK(err_code);
+
+    for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        err_code = ble_bas_c_init(&m_bas_c[i], &bas_c_init_obj);
+        APP_ERROR_CHECK(err_code);
+    }
 }
 
 
@@ -428,6 +432,10 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
 
         // TMS CHANGES - add handles
         err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
+        APP_ERROR_CHECK(err_code);
+
+        // BAS CHANGES - add handles
+        err_code = ble_bas_c_handles_assign(&m_bas_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
         APP_ERROR_CHECK(err_code);
 
         /* ADDED CHANGES*/
@@ -914,7 +922,7 @@ void usr_ble_handles_assign(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_
 {
     ret_code_t err_code;
 
-    err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_evt->conn_handle],
+    err_code = ble_tes_c_handles_assign(m_thingy_tes_c,
                                         p_evt->conn_handle,
                                         &p_evt->params.peer_db);
     NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
@@ -1113,6 +1121,25 @@ void usr_ble_print_connection_handles()
         uart_print(str);
     }
 }
+
+void usr_batt_print_conn_handle()
+{
+        uart_print("------------------------------------------\n");
+
+        ble_conn_state_conn_handle_list_t conn_central_handles = ble_conn_state_central_handles();
+
+        for (uint32_t i = 0; i < conn_central_handles.len; i++)
+        {
+            uint16_t conn_handle = conn_central_handles.conn_handles[i];
+
+            // Print Connected Devices
+            uint8_t str[100];
+            sprintf(str, "Battery level: (conn handle %d)   %0.2f   ( +- %d procent )\n", conn_handle, batt_array.batt[conn_handle].voltage, batt_array.batt[conn_handle].level);
+            uart_print(str);
+        }
+        uart_print("------------------------------------------\n");  
+}
+
 
 
 void set_config_sync_enable(bool enable)

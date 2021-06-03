@@ -23,6 +23,11 @@ typedef struct batt
     float voltage;
 } BATTERY;
 
+typedef struct batt_array
+{
+    BATTERY batt[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+} BATTERY_ARRAY;
+
 // Create a FIFO structure
 typedef struct buffer
 {
@@ -107,6 +112,8 @@ typedef struct imu
     uint32_t uart_rx_evt_scheduled;
     bool adc;
 } IMU;
+
+void usr_batt_print_conn_handle();
 
 void timer_init(void);
 
