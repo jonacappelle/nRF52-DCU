@@ -68,6 +68,7 @@
 
 BATTERY batt = {
     .level = BATT_INVALID_VALUE, // 0xFF as invalid value
+    .voltage = 0.0,
 };
 
 // Initialisation of IMU struct
@@ -317,17 +318,17 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
         } break;
 
         case BLE_BAS_C_EVT_BATT_NOTIFICATION:
+        case BLE_BAS_C_EVT_BATT_READ_RESP:
             NRF_LOG_INFO("Battery Level received %d %%.", p_bas_c_evt->params.battery_level);
 
-            // Store battery level in buffer
-            batt.level = p_bas_c_evt->params.battery_level;
-            break;
+            // Calculate and store battery voltage level in buffer
+            batt.voltage = usr_map_adc_to_uint8(p_bas_c_evt->params.battery_level);
+            NRF_LOG_INFO("Voltage -> " NRF_LOG_FLOAT_MARKER "", NRF_LOG_FLOAT(batt.voltage));
 
-        case BLE_BAS_C_EVT_BATT_READ_RESP:
-            NRF_LOG_INFO("Battery Level Read as %d %%.", p_bas_c_evt->params.battery_level);
+            // Calculate and store battery percentage level in buffer
+            batt.level =  usr_adc_voltage_to_percent(batt.voltage);
+            NRF_LOG_INFO("Percentage -> %d", batt.level);
 
-            // Store battery level in buffer
-            batt.level = p_bas_c_evt->params.battery_level;
             break;
 
         default:

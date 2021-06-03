@@ -36,4 +36,7 @@ void scheduler_init();
 
 uint32_t usr_get_fifo_len(app_fifo_t * p_fifo);
 
+float usr_map_adc_to_uint8(uint8_t lvl);
+uint8_t usr_adc_voltage_to_percent(float voltage);
+
 #endif

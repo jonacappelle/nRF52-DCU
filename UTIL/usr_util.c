@@ -410,7 +410,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             if(batt.level != BATT_INVALID_VALUE)
             {
                 uint8_t temp[10];
-                sprintf(temp, "Battery level:   %d procent\n", batt.level);
+                sprintf(temp, "Battery level:   %0.2f   ( +- %d procent )\n", batt.voltage, batt.level);
 
                 uart_print("------------------------------------------\n");
                 uart_print(temp);
@@ -586,3 +586,32 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
     }
 }
 
+
+float usr_map_adc_to_uint8(uint8_t lvl)
+{
+    float voltage;
+    
+    // 1.4V range -> need to spread over uint8_t with max value 0xFF (255)
+    float range = 4.2 - 2.8;
+
+    voltage = (lvl / 255.0) * range;
+
+    // Add 2.8V from total voltage
+    // Measurement range of 2.8V - 4.2V
+    voltage += 2.8;
+
+    return voltage;
+}
+
+
+uint8_t usr_adc_voltage_to_percent(float voltage)
+{
+    if( voltage >= 4.1 ) return 100;
+    else if ( voltage >= 4.0 ) return 90;
+    else if ( voltage >= 3.9 ) return 70; 
+    else if ( voltage >= 3.8 ) return 50;
+    else if ( voltage >= 3.7 ) return 30;
+    else if ( voltage >= 3.5 ) return 20;
+    else if ( voltage >= 3.3 ) return 10;
+    else return 0;
+}

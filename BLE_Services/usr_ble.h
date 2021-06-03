@@ -20,6 +20,7 @@
 typedef struct batt
 {
     uint8_t level;
+    float voltage;
 } BATTERY;
 
 // Create a FIFO structure
