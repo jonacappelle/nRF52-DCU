@@ -24,12 +24,18 @@
 #include "main.h"
 
 
+
+
 int main(void)
 {
     ret_code_t err_code;
 
     // Initialize.
     log_init();
+
+    // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
+    dfu_async_init();
+
     timer_init();
     //    uart_init();
 
@@ -49,14 +55,26 @@ int main(void)
     db_discovery_init();
     power_management_init();
     ble_stack_init();
+
+    #if USR_ADVERTISING == 1
+    gap_params_init();
+    #endif
     
     // Not needed - by setting correct settings in sdk_config.h this will be enabled
     // conn_evt_len_ext_set(); // added for faster speed
 
     gatt_init();
 
+    #if USR_ADVERTISING == 1
+    advertising_init();
+    #endif
+
     // Initialize BLE services
     services_init();
+
+    #if USR_ADVERTISING == 1
+    conn_params_init();
+    #endif
 
     // Reset BLE connection state
     /* CHANGES ADDED */
@@ -74,6 +92,10 @@ int main(void)
 
     // Initialize pins for debugging
     usr_gpio_init();
+    
+    #if USR_ADVERTISING == 1
+    advertising_start(false);
+    #endif
 
     // Enter main loop.
     for (;;)

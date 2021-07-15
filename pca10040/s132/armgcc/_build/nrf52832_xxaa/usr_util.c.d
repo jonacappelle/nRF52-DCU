@@ -146,6 +146,9 @@ _build/nrf52832_xxaa/usr_util.c.o: ../../../UTIL/usr_util.c \
  ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h \
  ../../../../../../modules/nrfx/hal/nrf_uart.h \
+ ../../../../../../components/ble/ble_advertising/ble_advertising.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gap.h \
+ ../../../../../../components/ble/common/ble_advdata.h \
  ../../../TimeSync/time_sync.h ../../../TimeSync/usr_time_sync.h \
  ../../../TimeSync/time_sync.h \
  ../../../../../../components/libraries/pwr_mgmt/nrf_pwr_mgmt.h \
@@ -299,6 +302,9 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h:
 ../../../../../../modules/nrfx/hal/nrf_uart.h:
+../../../../../../components/ble/ble_advertising/ble_advertising.h:
+../../../../../../components/softdevice/s132/headers/ble_gap.h:
+../../../../../../components/ble/common/ble_advdata.h:
 ../../../TimeSync/time_sync.h:
 ../../../TimeSync/usr_time_sync.h:
 ../../../TimeSync/time_sync.h:

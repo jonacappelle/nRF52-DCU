@@ -15,6 +15,13 @@
 
 #include "app_scheduler.h"
 
+#include "ble_advertising.h"
+
+// // Enable - disable DFU // //
+#define USR_DFU             1
+#define USR_ADVERTISING     0
+// // // // // // // // // // //
+
 #define BATT_INVALID_VALUE  0xFF
 
 typedef struct batt
@@ -112,6 +119,12 @@ typedef struct imu
     uint32_t uart_rx_evt_scheduled;
     bool adc;
 } IMU;
+
+void dfu_async_init();
+void gap_params_init(void);
+void advertising_init(void);
+void conn_params_init(void);
+void advertising_start(bool erase_bonds);
 
 void usr_batt_print_conn_handle();
 

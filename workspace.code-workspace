@@ -45,7 +45,8 @@
 			"ble_advertising.h": "c",
 			"ble_nus_c.h": "c",
 			"nrf_sdh_ble.h": "c",
-			"usr_time_sync.h": "c"
+			"usr_time_sync.h": "c",
+			"ble_advdata.h": "c"
 		}
 	}
 }

@@ -10,6 +10,24 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
+  $(SDK_ROOT)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
+  $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu/nrf_dfu_svci.c \
+  $(SDK_ROOT)/components/ble/peer_manager/gatt_cache_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/gatts_cache_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/id_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_data_storage.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_database.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_id.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_manager.c \
+  $(SDK_ROOT)/components/ble/peer_manager/peer_manager_handler.c \
+  $(SDK_ROOT)/components/ble/peer_manager/pm_buffer.c \
+  $(SDK_ROOT)/components/ble/peer_manager/security_dispatcher.c \
+  $(SDK_ROOT)/components/ble/peer_manager/security_manager.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu_bonded.c \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu/ble_dfu_unbonded.c \
   $(SDK_ROOT)/components/ble/ble_services/ble_bas_c/ble_bas_c.c \
   $(PROJ_DIR)/BLE_Services/usr_ble.c \
   $(PROJ_DIR)/TimeSync/usr_time_sync.c \
@@ -226,6 +244,11 @@ INC_FOLDERS += \
   $(PROJ_DIR)/UTIL \
   $(SDK_ROOT)/components/libraries/libuarte \
   $(SDK_ROOT)/modules/nrfx/drivers/src \
+  $(SDK_ROOT)/components/libraries/bootloader/dfu \
+  $(SDK_ROOT)/components/libraries/bootloader/ble_dfu \
+  $(SDK_ROOT)/components/ble/ble_services/ble_dfu \
+  $(SDK_ROOT)/components/ble/peer_manager \
+  $(SDK_ROOT)/components/libraries/bootloader \
 
 # Libraries common to all targets
 LIB_FILES += \
@@ -257,6 +280,9 @@ CFLAGS += -mfloat-abi=hard -mfpu=fpv4-sp-d16
 # keep every function in a separate section, this allows linker to discard unused ones
 CFLAGS += -ffunction-sections -fdata-sections -fno-strict-aliasing
 CFLAGS += -fno-builtin -fshort-enums
+CFLAGS += -DNRF_DFU_SVCI_ENABLED
+CFLAGS += -DBL_SETTINGS_ACCESS_ONLY
+CFLAGS += -DNRF_DFU_TRANSPORT_BLE=1
 
 
 # C++ flags common to all targets
@@ -278,6 +304,9 @@ ASMFLAGS += -DNRF_SD_BLE_API_VERSION=7
 ASMFLAGS += -DS132
 ASMFLAGS += -DSOFTDEVICE_PRESENT
 ASMFLAGS += -DEBUG # Allow NRF_LOG_DEBUG() to be printed
+ASMFLAGS += -DNRF_DFU_SVCI_ENABLED
+ASMFLAGS += -DBL_SETTINGS_ACCESS_ONLY
+ASMFLAGS += -DNRF_DFU_TRANSPORT_BLE=1
 
 # Linker flags
 LDFLAGS += $(OPT)
@@ -291,9 +320,9 @@ LDFLAGS += --specs=nano.specs
 LDFLAGS += -u_printf_float # able to print floating point numbers now 
 
 nrf52832_xxaa: CFLAGS += -D__HEAP_SIZE=0#8192
-nrf52832_xxaa: CFLAGS += -D__STACK_SIZE=8192
+nrf52832_xxaa: CFLAGS += -D__STACK_SIZE=4096#8192
 nrf52832_xxaa: ASMFLAGS += -D__HEAP_SIZE=0#8192
-nrf52832_xxaa: ASMFLAGS += -D__STACK_SIZE=8192
+nrf52832_xxaa: ASMFLAGS += -D__STACK_SIZE=4096#8192
 
 # Add standard libraries at the very end of the linker input, after all objects
 # that may need symbols provided by these libraries.

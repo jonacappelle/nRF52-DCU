@@ -47,6 +47,11 @@ static bool shutdown_handler(nrf_pwr_mgmt_evt_t event)
         APP_ERROR_CHECK(err_code);
         break;
 
+    case NRF_PWR_MGMT_EVT_PREPARE_DFU:
+        NRF_LOG_INFO("Power management wants to reset to DFU mode.");
+        // APP_ERROR_HANDLER(NRF_ERROR_API_NOT_IMPLEMENTED);
+        break;
+
     default:
         break;
     }

@@ -111,6 +111,9 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../modules/nrfx/hal/nrf_uart.h \
  ../../../../../../components/libraries/scheduler/app_scheduler.h \
  ../../../../../../components/libraries/util/app_error.h \
+ ../../../../../../components/ble/ble_advertising/ble_advertising.h \
+ ../../../../../../components/softdevice/s132/headers/ble_gap.h \
+ ../../../../../../components/ble/common/ble_advdata.h \
  ../../../../../../components/libraries/uart/app_uart.h \
  ../../../../../../components/libraries/timer/app_timer.h \
  ../../../../../../components/libraries/sortlist/nrf_sortlist.h \
@@ -120,7 +123,6 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  ../../../../../../components/boards/pca10040.h \
  ../../../../../../components/libraries/button/app_button.h \
- ../../../../../../components/softdevice/s132/headers/ble_gap.h \
  ../../../../../../components/softdevice/s132/headers/ble_hci.h \
  ../../../../../../components/softdevice/common/nrf_sdh.h \
  ../../../../../../components/softdevice/common/nrf_sdh_soc.h \
@@ -154,12 +156,33 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/libraries/log/nrf_log_default_backends.h \
  ../../../TimeSync/time_sync.h \
  ../../../../../../components/ble/ble_services/ble_bas_c/ble_bas_c.h \
- ../../../../../../components/libraries/util/sdk_mapped_flags.h \
- ../../../UTIL/usr_util.h \
+ ../../../../../../components/libraries/bootloader/ble_dfu/nrf_dfu_ble_svci_bond_sharing.h \
+ ../../../../../../components/libraries/svc/nrf_svci.h \
+ ../../../../../../components/libraries/svc/nrf_svci_async_function.h \
+ ../../../../../../components/libraries/svc/nrf_svci.h \
+ ../../../../../../components/libraries/svc/nrf_svci_async_handler.h \
+ ../../../../../../components/libraries/svc/nrf_svc_function.h \
+ ../../../../../../components/libraries/bootloader/dfu/nrf_dfu_types.h \
+ ../../../../../../components/libraries/svc/nrf_svci_async_handler.h \
+ ../../../../../../components/ble/common/ble_conn_params.h \
+ ../../../../../../components/ble/common/ble_srv_common.h \
+ ../../../../../../components/ble/peer_manager/peer_manager.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_types.h \
+ ../../../../../../components/ble/peer_manager/peer_database.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_internal.h \
+ ../../../../../../components/ble/peer_manager/peer_manager_handler.h \
+ ../../../../../../components/ble/peer_manager/peer_manager.h \
+ ../../../../../../components/ble/ble_services/ble_dfu/ble_dfu.h \
+ ../../../../../../components/ble/nrf_ble_qwr/nrf_ble_qwr.h \
+ ../../../../../../components/libraries/fds/fds.h \
+ ../../../../../../modules/nrfx/hal/nrf_power.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
- ../../../../../../components/libraries/log/nrf_log_types.h
+ ../../../../../../components/libraries/log/nrf_log_types.h \
+ ../../../../../../components/libraries/bootloader/nrf_bootloader_info.h \
+ ../../../../../../components/libraries/util/sdk_mapped_flags.h \
+ ../../../UTIL/usr_util.h
 ../../../BLE_Services/usr_ble.h:
 ../../../BLE_Services/ble_tes_c.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h:
@@ -273,6 +296,9 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_uart.h:
 ../../../../../../components/libraries/scheduler/app_scheduler.h:
 ../../../../../../components/libraries/util/app_error.h:
+../../../../../../components/ble/ble_advertising/ble_advertising.h:
+../../../../../../components/softdevice/s132/headers/ble_gap.h:
+../../../../../../components/ble/common/ble_advdata.h:
 ../../../../../../components/libraries/uart/app_uart.h:
 ../../../../../../components/libraries/timer/app_timer.h:
 ../../../../../../components/libraries/sortlist/nrf_sortlist.h:
@@ -282,7 +308,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_gpio.h:
 ../../../../../../components/boards/pca10040.h:
 ../../../../../../components/libraries/button/app_button.h:
-../../../../../../components/softdevice/s132/headers/ble_gap.h:
 ../../../../../../components/softdevice/s132/headers/ble_hci.h:
 ../../../../../../components/softdevice/common/nrf_sdh.h:
 ../../../../../../components/softdevice/common/nrf_sdh_soc.h:
@@ -316,9 +341,30 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/log/nrf_log_default_backends.h:
 ../../../TimeSync/time_sync.h:
 ../../../../../../components/ble/ble_services/ble_bas_c/ble_bas_c.h:
-../../../../../../components/libraries/util/sdk_mapped_flags.h:
-../../../UTIL/usr_util.h:
+../../../../../../components/libraries/bootloader/ble_dfu/nrf_dfu_ble_svci_bond_sharing.h:
+../../../../../../components/libraries/svc/nrf_svci.h:
+../../../../../../components/libraries/svc/nrf_svci_async_function.h:
+../../../../../../components/libraries/svc/nrf_svci.h:
+../../../../../../components/libraries/svc/nrf_svci_async_handler.h:
+../../../../../../components/libraries/svc/nrf_svc_function.h:
+../../../../../../components/libraries/bootloader/dfu/nrf_dfu_types.h:
+../../../../../../components/libraries/svc/nrf_svci_async_handler.h:
+../../../../../../components/ble/common/ble_conn_params.h:
+../../../../../../components/ble/common/ble_srv_common.h:
+../../../../../../components/ble/peer_manager/peer_manager.h:
+../../../../../../components/ble/peer_manager/peer_manager_types.h:
+../../../../../../components/ble/peer_manager/peer_database.h:
+../../../../../../components/ble/peer_manager/peer_manager_internal.h:
+../../../../../../components/ble/peer_manager/peer_manager_handler.h:
+../../../../../../components/ble/peer_manager/peer_manager.h:
+../../../../../../components/ble/ble_services/ble_dfu/ble_dfu.h:
+../../../../../../components/ble/nrf_ble_qwr/nrf_ble_qwr.h:
+../../../../../../components/libraries/fds/fds.h:
+../../../../../../modules/nrfx/hal/nrf_power.h:
 ../../../../../../components/libraries/log/nrf_log.h:
 ../../../../../../components/libraries/strerror/nrf_strerror.h:
 ../../../../../../components/libraries/log/src/nrf_log_internal.h:
 ../../../../../../components/libraries/log/nrf_log_types.h:
+../../../../../../components/libraries/bootloader/nrf_bootloader_info.h:
+../../../../../../components/libraries/util/sdk_mapped_flags.h:
+../../../UTIL/usr_util.h:
