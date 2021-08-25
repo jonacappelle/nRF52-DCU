@@ -121,7 +121,7 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/libraries/bsp/bsp.h \
  ../../../../../../components/boards/boards.h \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
- ../../../../../../components/boards/pca10040.h \
+ ../../../../../../components/boards/custom_board.h \
  ../../../../../../components/libraries/button/app_button.h \
  ../../../../../../components/softdevice/s132/headers/ble_hci.h \
  ../../../../../../components/softdevice/common/nrf_sdh.h \
@@ -306,7 +306,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/bsp/bsp.h:
 ../../../../../../components/boards/boards.h:
 ../../../../../../modules/nrfx/hal/nrf_gpio.h:
-../../../../../../components/boards/pca10040.h:
+../../../../../../components/boards/custom_board.h:
 ../../../../../../components/libraries/button/app_button.h:
 ../../../../../../components/softdevice/s132/headers/ble_hci.h:
 ../../../../../../components/softdevice/common/nrf_sdh.h:

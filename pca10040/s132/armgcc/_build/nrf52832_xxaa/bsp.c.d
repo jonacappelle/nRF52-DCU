@@ -74,7 +74,7 @@ _build/nrf52832_xxaa/bsp.c.o: \
  ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h \
  ../../../../../../components/softdevice/s132/headers/nrf_soc.h \
  ../../../../../../modules/nrfx/drivers/nrfx_errors.h \
- ../../../../../../components/boards/pca10040.h \
+ ../../../../../../components/boards/custom_board.h \
  ../../../../../../components/libraries/button/app_button.h \
  ../../../../../../components/libraries/util/app_error.h \
  ../../../../../../components/libraries/bsp/bsp_config.h \
@@ -158,7 +158,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/s132/headers/nrf_sd_def.h:
 ../../../../../../components/softdevice/s132/headers/nrf_soc.h:
 ../../../../../../modules/nrfx/drivers/nrfx_errors.h:
-../../../../../../components/boards/pca10040.h:
+../../../../../../components/boards/custom_board.h:
 ../../../../../../components/libraries/button/app_button.h:
 ../../../../../../components/libraries/util/app_error.h:
 ../../../../../../components/libraries/bsp/bsp_config.h:

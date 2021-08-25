@@ -15,6 +15,8 @@
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
+#include "boards.h"
+
 
 static bool m_imu_trigger_enabled = 0;
 
@@ -66,6 +68,16 @@ bool ts_get_imu_trigger_enabled(void)
 // }
 
 
+
+void timesync_pin_toggle(uint32_t tick)
+{
+    // Toggle on multiples of 100 ticks
+    if( (tick % 1000) == 0)
+    {
+        nrf_gpio_pin_toggle(TIMESYNC_PIN);
+    }
+}
+
 static void ts_evt_callback(const ts_evt_t *evt)
 {
 
@@ -101,6 +113,9 @@ static void ts_evt_callback(const ts_evt_t *evt)
                 NRF_LOG_FLUSH();
             }
             APP_ERROR_CHECK(err_code);
+
+            // Toggle LED to measure TimeSync
+            timesync_pin_toggle(tick_target);
         }
         else
         {
@@ -132,6 +147,9 @@ void sync_timer_init()
     nrf_gpiote_task_enable(3);
 #elif defined(BOARD_PCA10056)
     nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(1, 14), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+    nrf_gpiote_task_enable(3);
+#elif defined(BOARD_CUSTOM)
+    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
     nrf_gpiote_task_enable(3);
 #else
 #warning Debug pin not set

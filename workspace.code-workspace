@@ -46,7 +46,9 @@
 			"ble_nus_c.h": "c",
 			"nrf_sdh_ble.h": "c",
 			"usr_time_sync.h": "c",
-			"ble_advdata.h": "c"
+			"ble_advdata.h": "c",
+			"functional": "c",
+			"ble_bas_c.h": "c"
 		}
 	}
 }

@@ -22,6 +22,9 @@
 #define USR_ADVERTISING     0
 // // // // // // // // // // //
 
+#define CONNECTION   1
+#define DISCONNECTION 0
+
 #define BATT_INVALID_VALUE  0xFF
 
 typedef struct batt
@@ -170,5 +173,7 @@ void set_config_reset();
 void config_send();
 
 ret_code_t imu_disconnect(uint32_t conn_handle_num);
+
+uint32_t usr_ble_get_conn_handle_len();
 
 #endif

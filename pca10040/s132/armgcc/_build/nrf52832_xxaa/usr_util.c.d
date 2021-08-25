@@ -103,7 +103,7 @@ _build/nrf52832_xxaa/usr_util.c.o: ../../../UTIL/usr_util.c \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
  ../../../../../../components/boards/boards.h \
  ../../../../../../modules/nrfx/hal/nrf_gpio.h \
- ../../../../../../components/boards/pca10040.h \
+ ../../../../../../components/boards/custom_board.h \
  ../../../../../../components/libraries/delay/nrf_delay.h \
  ../../../../../../components/libraries/scheduler/app_scheduler.h \
  ../../../UTIL/usr_uart.h \
@@ -258,7 +258,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_gpio.h:
 ../../../../../../components/boards/boards.h:
 ../../../../../../modules/nrfx/hal/nrf_gpio.h:
-../../../../../../components/boards/pca10040.h:
+../../../../../../components/boards/custom_board.h:
 ../../../../../../components/libraries/delay/nrf_delay.h:
 ../../../../../../components/libraries/scheduler/app_scheduler.h:
 ../../../UTIL/usr_uart.h:

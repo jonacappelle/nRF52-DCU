@@ -98,7 +98,10 @@ _build/nrf52832_xxaa/usr_time_sync.c.o: ../../../TimeSync/usr_time_sync.c \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdlib.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h \
  ../../../../../../components/libraries/balloc/nrf_balloc.h \
- ../../../../../../components/libraries/log/nrf_log_default_backends.h
+ ../../../../../../components/libraries/log/nrf_log_default_backends.h \
+ ../../../../../../components/boards/boards.h \
+ ../../../../../../modules/nrfx/hal/nrf_gpio.h \
+ ../../../../../../components/boards/custom_board.h
 ../../../TimeSync/usr_time_sync.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdio.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\_ansi.h:
@@ -201,3 +204,6 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h:
 ../../../../../../components/libraries/balloc/nrf_balloc.h:
 ../../../../../../components/libraries/log/nrf_log_default_backends.h:
+../../../../../../components/boards/boards.h:
+../../../../../../modules/nrfx/hal/nrf_gpio.h:
+../../../../../../components/boards/custom_board.h:

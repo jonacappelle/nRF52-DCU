@@ -30,13 +30,25 @@ int main(void)
 {
     ret_code_t err_code;
 
+    nrf_delay_ms(2000);
+
     // Initialize.
     log_init();
 
+    // 1 -> HW reset
+    // 4 -> Software reset
+    uint32_t reset_reason = NRF_POWER->RESETREAS;
+    NRF_LOG_INFO("Reset: %d", reset_reason);
+    NRF_LOG_FLUSH();
+
+    NRF_POWER->RESETREAS = 0xffffffff;
+
+
     // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
-    dfu_async_init();
+    // dfu_async_init();
 
     timer_init();
+    
     //    uart_init();
 
     // A better UART driver than nrf_uart_drv - asynchronous with DMA and QUEUE
@@ -50,11 +62,13 @@ int main(void)
     // Application scheduler (soft interrupt like)
     scheduler_init();
 
+
     buttons_leds_init();
 
     db_discovery_init();
     power_management_init();
     ble_stack_init();
+    NRF_LOG_FLUSH();
 
     #if USR_ADVERTISING == 1
     gap_params_init();
@@ -83,7 +97,7 @@ int main(void)
 
     // Init scanning for devices with NUS service + start scanning
     scan_init();
-    scan_start();
+    scan_start();                
 
     // TimeSync
     // Start TimeSync AFTER scan_start()
@@ -92,10 +106,16 @@ int main(void)
 
     // Initialize pins for debugging
     usr_gpio_init();
+
+    // leds_startup();
     
+    create_timers(); // Needs to be places after softdevice initialization
+
     #if USR_ADVERTISING == 1
     advertising_start(false);
     #endif
+
+    nrf_gpio_cfg_output(TIMESYNC_PIN);
 
     // Enter main loop.
     for (;;)

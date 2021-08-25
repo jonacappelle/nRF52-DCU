@@ -124,6 +124,7 @@ void buttons_leds_init(void)
 
     // TimeSync begin
     err_code = bsp_init(BSP_INIT_LEDS | BSP_INIT_BUTTONS, bsp_event_handler);
+    // err_code = bsp_init(BSP_INIT_LEDS, bsp_event_handler);
     // TimeSync end
 
     APP_ERROR_CHECK(err_code);
@@ -137,9 +138,9 @@ void usr_gpio_init()
     // Check time needed to process data
     nrf_gpio_cfg_output(18);
     // Check active time of CPU
-    // nrf_gpio_cfg_output(19);
+    nrf_gpio_cfg_output(19);
     // Check time of NRF_LOG_FLUSH
-    nrf_gpio_cfg_output(20);
+    // nrf_gpio_cfg_output(20); // short with reset -> need to be fixed on pcb!
     // Check UART transmission
     nrf_gpio_cfg_output(22);
     // Sprintf timing
@@ -625,3 +626,147 @@ uint8_t usr_adc_voltage_to_percent(float voltage)
     else if ( voltage >= 3.3 ) return 10;
     else return 0;
 }
+
+
+
+typedef enum
+{
+    USR_LED_0 = 11,
+    USR_LED_1 = 12,
+    USR_LED_2 = 13,
+    USR_LED_3 = 14,
+    USR_LED_4 = 15
+} dcu_leds_t;
+
+
+void leds_startup()
+{
+
+    for(uint8_t j=0; j<5; j++)
+    {
+        for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
+        {
+            nrf_gpio_cfg_output(i);
+            nrf_gpio_pin_set(i);
+            nrf_delay_ms(50);
+        }
+        for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
+        {
+            // nrf_gpio_cfg_output(i);
+            nrf_gpio_pin_clear(i);
+            nrf_delay_ms(50);
+        }
+    }
+
+}
+
+APP_TIMER_DEF(indication_led_timer);     /**< Handler for repeated timer used to blink LED 1. */
+
+dcu_leds_t leds = USR_LED_0;
+bool leds_on_off = 1;
+
+/**@brief Timeout handler for the repeated timer.
+ */
+static void indication_led_timer_handler(void * p_context)
+{
+    if(leds_on_off)
+    {
+        nrf_gpio_cfg_output(leds);
+        nrf_gpio_pin_set(leds);
+    }else if(leds_on_off == 0)
+    {
+        nrf_gpio_pin_clear(leds);
+    }
+
+    if(leds == USR_LED_4)
+    {
+        leds = USR_LED_0;
+        leds_on_off = !leds_on_off;
+    }else{
+       leds++; 
+    }
+
+}
+
+
+
+/**@brief Create timers.
+ */
+void create_timers()
+{
+    ret_code_t err_code;
+
+    // Create timers
+    err_code = app_timer_create(&indication_led_timer,
+                                APP_TIMER_MODE_REPEATED,
+                                indication_led_timer_handler);
+    APP_ERROR_CHECK(err_code);
+
+    err_code = app_timer_start(indication_led_timer, APP_TIMER_TICKS(100), NULL);
+}
+
+void dcu_leds_reset()
+{
+
+    for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
+    {
+        nrf_gpio_pin_clear(i);
+    }
+
+}
+
+bool first_connection = 1;
+
+
+void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state)
+{
+    ret_code_t err_code;
+
+    uint32_t connections = usr_ble_get_conn_handle_len();
+
+    if(connections == 0)
+    {
+        dcu_leds_reset();
+
+        err_code = app_timer_start(indication_led_timer, APP_TIMER_TICKS(100), NULL);
+        APP_ERROR_CHECK(err_code);
+
+        first_connection = 1;
+
+    }else{
+        err_code = app_timer_stop(indication_led_timer);
+        APP_ERROR_CHECK(err_code);
+
+        if(first_connection) 
+        {
+            dcu_leds_reset();
+            first_connection = 0;
+        }
+    }
+
+
+    dcu_leds_t conn_led;
+    conn_led = conn_handle + 11;
+    
+    switch (state)
+    {
+        case CONNECTION:
+        {
+            nrf_gpio_pin_set(conn_led);
+        }
+        break;
+
+        case DISCONNECTION:
+        {
+            nrf_gpio_pin_clear(conn_led);
+        }
+        break;
+
+        default:
+        {
+            nrf_gpio_pin_clear(conn_led);
+        }
+    }
+
+}
+

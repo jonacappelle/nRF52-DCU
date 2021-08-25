@@ -896,6 +896,8 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         // uart_print("------------------------------------------\n");
         uart_print(str1);
         // uart_print("------------------------------------------\n");
+
+        DCU_set_connection_leds(p_gap_evt->conn_handle, CONNECTION);
     }
     break;
 
@@ -911,6 +913,8 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         NRF_LOG_INFO("Disconnected. conn_handle: 0x%x, reason: 0x%x",
                      p_gap_evt->conn_handle,
                      p_gap_evt->params.disconnected.reason);
+
+        DCU_set_connection_leds(p_gap_evt->conn_handle, DISCONNECTION);
     }
     break;
 
@@ -1156,7 +1160,7 @@ void print_packet_count(ble_tes_c_evt_t *p_evt)
 void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
 {
 
-    nrf_gpio_pin_set(11);
+    // nrf_gpio_pin_set(11);
 
     // Print packet count for each connected device
     // print_packet_count(p_evt);
@@ -1291,7 +1295,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     break;
     }
 
-    nrf_gpio_pin_clear(11);
+    // nrf_gpio_pin_clear(11);
 }
 
 void thingy_tes_c_init()
@@ -1342,7 +1346,7 @@ void services_init()
     bas_c_init();
 
     // Init DFU service
-    // ble_dfu_init();
+    // ble_dfu_init(); // This is not necessary if the DFU is performed via button
 }
 
 
@@ -1548,6 +1552,13 @@ void usr_ble_print_connection_handles()
         sprintf(str, "Sensor    %d  --> conn handle  %d\n", (i + 1), conn_handle);
         uart_print(str);
     }
+}
+
+uint32_t usr_ble_get_conn_handle_len()
+{
+    ble_conn_state_conn_handle_list_t conn_central_handles = ble_conn_state_central_handles();
+
+    return conn_central_handles.len;
 }
 
 void usr_batt_print_conn_handle()
