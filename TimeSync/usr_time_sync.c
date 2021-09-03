@@ -211,6 +211,7 @@ void ts_print_sync_time()
 }
 
 uint64_t usr_ts_timestamp_get_ticks_u64()
-{
-    return ts_timestamp_get_ticks_u64;
+{ 
+    return ts_timestamp_get_ticks_u64();
 }
+

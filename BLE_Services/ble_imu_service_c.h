@@ -98,9 +98,9 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define HANDLE_LENGTH        2
 
 #if defined(NRF_SDH_BLE_GATT_MAX_MTU_SIZE) && (NRF_SDH_BLE_GATT_MAX_MTU_SIZE != 0)
-    #define BLE_TMS_MAX_DATA_LEN (NRF_SDH_BLE_GATT_MAX_MTU_SIZE - OPCODE_LENGTH - HANDLE_LENGTH)
+    #define BLE_IMU_SERVICE_MAX_DATA_LEN (NRF_SDH_BLE_GATT_MAX_MTU_SIZE - OPCODE_LENGTH - HANDLE_LENGTH)
 #else
-    #define BLE_TMS_MAX_DATA_LEN (BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH)
+    #define BLE_IMU_SERVICE_MAX_DATA_LEN (BLE_GATT_ATT_MTU_DEFAULT - OPCODE_LENGTH - HANDLE_LENGTH)
     #warning NRF_SDH_BLE_GATT_MAX_MTU_SIZE is not defined.
 #endif
 
@@ -133,56 +133,56 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 typedef enum
 {
     BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE = 1,       /**< Event indicating that the Thingy enviroment Service has been discovered at the peer. */
-    BLE_TMS_EVT_CONFIG_RECEIVED,
-    BLE_TMS_EVT_TAP,
-    BLE_TMS_EVT_ADC,
-    BLE_TMS_EVT_QUAT,
-    BLE_TMS_EVT_PEDOMETER,
-    BLE_TMS_EVT_RAW,
-    BLE_TMS_EVT_EULER,
-    BLE_TMS_EVT_ROT_MAT,
-    BLE_TMS_EVT_HEADING,
-    BLE_TMS_EVT_GRAVITY,     /**< Event indicating that a notification of the Thingy enviroment temperature characteristic has been received from the peer. */
+    BLE_IMU_SERVICE_EVT_CONFIG_RECEIVED,
+    BLE_IMU_SERVICE_EVT_TAP,
+    BLE_IMU_SERVICE_EVT_ADC,
+    BLE_IMU_SERVICE_EVT_QUAT,
+    BLE_IMU_SERVICE_EVT_PEDOMETER,
+    BLE_IMU_SERVICE_EVT_RAW,
+    BLE_IMU_SERVICE_EVT_EULER,
+    BLE_IMU_SERVICE_EVT_ROT_MAT,
+    BLE_IMU_SERVICE_EVT_HEADING,
+    BLE_IMU_SERVICE_EVT_GRAVITY,     /**< Event indicating that a notification of the Thingy enviroment temperature characteristic has been received from the peer. */
 } ble_imu_service_c_evt_type_t;
 
 
 typedef struct
 {
     uint32_t raw[40];
-}ble_tms_adc_t;
+}ble_imu_service_adc_t;
 
 typedef struct
 {
     int16_t x;
     int16_t y;
     int16_t z;
-} ble_tms_raw_accel_t;
+} ble_imu_service_raw_accel_t;
 
 typedef struct
 {
     int16_t x;
     int16_t y;
     int16_t z;
-} ble_tms_raw_gyro_t;
+} ble_imu_service_raw_gyro_t;
 
 typedef struct
 {
     int16_t x;
     int16_t y;
     int16_t z;
-} ble_tms_raw_compass_t;
+} ble_imu_service_raw_compass_t;
 
 typedef struct
 {
-    ble_tms_raw_accel_t   accel;
-    ble_tms_raw_gyro_t    gyro;
-    ble_tms_raw_compass_t compass;
-} ble_tms_single_raw_t;
+    ble_imu_service_raw_accel_t   accel;
+    ble_imu_service_raw_gyro_t    gyro;
+    ble_imu_service_raw_compass_t compass;
+} ble_imu_service_single_raw_t;
 
 typedef struct
 {
-    ble_tms_single_raw_t single_raw[BLE_PACKET_BUFFER_COUNT];
-} ble_tms_raw_t;
+    ble_imu_service_single_raw_t single_raw[BLE_PACKET_BUFFER_COUNT];
+} ble_imu_service_raw_t;
 
 typedef  struct
 {
@@ -190,19 +190,19 @@ typedef  struct
     int32_t x;
     int32_t y;
     int32_t z;
-} ble_tms_single_quat_t;
+} ble_imu_service_single_quat_t;
 
 typedef struct
 {
-    ble_tms_single_quat_t quat[BLE_PACKET_BUFFER_COUNT];
-} ble_tms_quat_t;
+    ble_imu_service_single_quat_t quat[BLE_PACKET_BUFFER_COUNT];
+} ble_imu_service_quat_t;
 
 typedef struct
 {
     int32_t roll;
     int32_t pitch;
     int32_t yaw;
-} ble_tms_euler_t;
+} ble_imu_service_euler_t;
 
 
 typedef struct
@@ -253,10 +253,10 @@ typedef struct
 /**@brief Structure containing the event value received from the peer. */
 typedef union
 {
-    ble_tms_quat_t quat_data;
-    ble_tms_euler_t euler_data;
-    ble_tms_raw_t raw_data;
-    ble_tms_adc_t adc_data;
+    ble_imu_service_quat_t quat_data;
+    ble_imu_service_euler_t euler_data;
+    ble_imu_service_raw_t raw_data;
+    ble_imu_service_adc_t adc_data;
 } ble_evt_value_t;
 
 /**@brief Structure containing the handles related to the Thingy Enviroment Service found on the peer. */
@@ -371,7 +371,7 @@ uint32_t ble_imu_service_c_adc_notif_enable(ble_imu_service_c_t * p_ble_imu_serv
 uint32_t ble_imu_service_c_euler_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 uint32_t ble_imu_service_c_raw_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 
-uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_tms, ble_imu_service_config_t * p_data);
+uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu_service_config_t * p_data);
 
 
 /**@brief Function for handling events from the database discovery module.

@@ -52,7 +52,8 @@
 			"usr_dfu.C": "cpp",
 			"nrf_log_default_backends.h": "c",
 			"ble_imu_service_c.h": "c",
-			"sdk_mapped_flags.h": "c"
+			"sdk_mapped_flags.h": "c",
+			"time_sync.h": "c"
 		}
 	}
 }

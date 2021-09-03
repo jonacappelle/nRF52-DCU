@@ -798,3 +798,13 @@ void clocks_start(void)
     while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
 
 }
+
+
+/**@brief Function for initializing the timer. */
+void timer_init(void)
+{
+    ret_code_t err_code = app_timer_init();
+    APP_ERROR_CHECK(err_code);
+}
+
+

@@ -167,25 +167,25 @@ static void on_hvx(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t const * 
     // Check if this is a Quaternion notification.
     if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.quat_handle)
     {
-        ble_imu_service_c_evt.evt_type = BLE_TMS_EVT_QUAT;
-        ble_imu_service_c_evt.params.value.quat_data = *(ble_tms_quat_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+        ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_QUAT;
+        ble_imu_service_c_evt.params.value.quat_data = *(ble_imu_service_quat_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     } 
     // Check if this is a Euler angle notification.
     else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.euler_handle)
     {
-        ble_imu_service_c_evt.evt_type = BLE_TMS_EVT_EULER;
-        ble_imu_service_c_evt.params.value.euler_data = *(ble_tms_euler_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+        ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_EULER;
+        ble_imu_service_c_evt.params.value.euler_data = *(ble_imu_service_euler_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
     // Check if this is a Raw data notification.
     else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.raw_handle)
     {
-        ble_imu_service_c_evt.evt_type = BLE_TMS_EVT_RAW;
-        ble_imu_service_c_evt.params.value.raw_data = *(ble_tms_raw_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+        ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_RAW;
+        ble_imu_service_c_evt.params.value.raw_data = *(ble_imu_service_raw_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
     else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.adc_handle)
     {
-        ble_imu_service_c_evt.evt_type = BLE_TMS_EVT_ADC;
-        ble_imu_service_c_evt.params.value.adc_data = *(ble_tms_adc_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+        ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_ADC;
+        ble_imu_service_c_evt.params.value.adc_data = *(ble_imu_service_adc_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
     // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.gas_handle)
     // {
@@ -524,18 +524,18 @@ uint32_t ble_imu_service_c_raw_notif_enable(ble_imu_service_c_t * p_ble_imu_serv
                           true);
 }
 
-uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_tms, ble_imu_service_config_t * p_data)
+uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu_service_config_t * p_data)
 {
     uint16_t               length = sizeof(ble_imu_service_config_t);
 
-    VERIFY_PARAM_NOT_NULL(p_tms);
+    VERIFY_PARAM_NOT_NULL(p_imu_service);
 
-    if ((p_tms->conn_handle == BLE_CONN_HANDLE_INVALID))// || (!p_tms->is_tap_notif_enabled))
+    if ((p_imu_service->conn_handle == BLE_CONN_HANDLE_INVALID))// || (!p_imu_service->is_tap_notif_enabled))
     {
         return NRF_ERROR_INVALID_STATE;
     }
 
-    if (length > BLE_TMS_MAX_DATA_LEN)
+    if (length > BLE_IMU_SERVICE_MAX_DATA_LEN)
     {
         return NRF_ERROR_INVALID_PARAM;
     }
@@ -545,13 +545,13 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_tms, ble_imu_service
     memset(&write_params, 0, sizeof(write_params));
 
     write_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    write_params.handle = p_tms->peer_imu_service_db.config_handle;
+    write_params.handle = p_imu_service->peer_imu_service_db.config_handle;
     write_params.len = length;
     write_params.p_value = (uint8_t *)p_data;
     write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
 
-    return sd_ble_gattc_write(p_tms->conn_handle, &write_params);
+    return sd_ble_gattc_write(p_imu_service->conn_handle, &write_params);
 }
 
 

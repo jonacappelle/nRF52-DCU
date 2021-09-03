@@ -122,8 +122,6 @@ typedef struct imu
 
 void usr_batt_print_conn_handle();
 
-void timer_init(void);
-
 void received_data_buffers_init();
 
 void schedule(app_sched_event_handler_t handler);

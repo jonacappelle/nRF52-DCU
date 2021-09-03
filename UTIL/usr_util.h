@@ -46,4 +46,6 @@ void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state);
 void check_reset_reason();
 void clocks_start(void);
 
+void timer_init(void);
+
 #endif
