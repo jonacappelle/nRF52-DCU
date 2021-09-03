@@ -17,10 +17,11 @@
 
 #include "boards.h"
 
-
+static uint32_t ts_pin = 0;
+static uint32_t ts_meas_pin = 0;
 static bool m_imu_trigger_enabled = 0;
 
-
+// Function to enable triggering of sync pin
 void ts_imu_trigger_enable(void)
 {
     uint64_t time_now_ticks;
@@ -60,24 +61,18 @@ bool ts_get_imu_trigger_enabled(void)
     return m_imu_trigger_enabled;
 }
 
-// static uint32_t triggered_period = 0;
-
-// void ts_set_triggered_period()
-// {
-//     triggered_period = (imu.frequency / TIME_SYNC_TIMER_PERIOD_MS);
-// }
-
-
 
 void timesync_pin_toggle(uint32_t tick)
 {
     // Toggle on multiples of 100 ticks
     if( (tick % 1000) == 0)
     {
-        nrf_gpio_pin_toggle(TIMESYNC_PIN);
+        nrf_gpio_pin_toggle(ts_pin);
     }
 }
 
+
+// Timesync event handler
 static void ts_evt_callback(const ts_evt_t *evt)
 {
 
@@ -135,25 +130,47 @@ static void ts_evt_callback(const ts_evt_t *evt)
 }
 
 
+void timesync_pin_init(const usr_timesync_config_t * cfg)
+{
+    // Configure local variables based on config
+    ts_pin = cfg->ts_led_pin;
+    ts_meas_pin = cfg->ts_meas_pin;
+
+    // Config output pin for visual feedback
+    nrf_gpio_cfg_output(ts_pin);
+
+        // Config debug pin:
+        // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
+        // nRF52840-DK (PCA10056) Toggle P1.14 from sync timer to allow pin measurement
+    #if defined(BOARD_PCA10040)
+        nrf_gpiote_task_configure(3, ts_meas_pin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        // nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        nrf_gpiote_task_enable(3);
+    #elif defined(BOARD_PCA10056)
+        // nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(1, 14), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        nrf_gpiote_task_configure(3, ts_meas_pin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        nrf_gpiote_task_enable(3);
+    #elif defined(BOARD_CUSTOM)
+        // nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        nrf_gpiote_task_configure(3, ts_meas_pin, NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
+        nrf_gpiote_task_enable(3);
+    #else
+    #warning Debug pin not set
+    #endif
+}
+
+
 void sync_timer_init()
 {
     ret_code_t err_code;
 
-    // Debug pin:
-    // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
-    // nRF52840-DK (PCA10056) Toggle P1.14 from sync timer to allow pin measurement
-#if defined(BOARD_PCA10040)
-    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-    nrf_gpiote_task_enable(3);
-#elif defined(BOARD_PCA10056)
-    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(1, 14), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-    nrf_gpiote_task_enable(3);
-#elif defined(BOARD_CUSTOM)
-    nrf_gpiote_task_configure(3, NRF_GPIO_PIN_MAP(0, 24), NRF_GPIOTE_POLARITY_TOGGLE, NRF_GPIOTE_INITIAL_VALUE_LOW);
-    nrf_gpiote_task_enable(3);
-#else
-#warning Debug pin not set
-#endif
+    usr_timesync_config_t usr_ts_config =
+    {
+        .ts_led_pin = 13,
+        .ts_meas_pin = 24
+    };
+
+    timesync_pin_init(&usr_ts_config);
 
     ts_init_t init_ts =
         {

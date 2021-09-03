@@ -8,6 +8,12 @@
 
 #include "time_sync.h"
 
+
+typedef struct{
+    uint32_t ts_led_pin;
+    uint32_t ts_meas_pin;
+}usr_timesync_config_t;
+
 void sync_timer_init();
 
 void ts_imu_trigger_enable(void);

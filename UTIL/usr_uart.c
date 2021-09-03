@@ -207,16 +207,21 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
     }
 }
 
-void libuarte_init(app_sched_event_handler_t scheduled_function)
+static void libuarte_clocks_init()
 {
-    ret_code_t err_code;
+    // Setup necessary clocks - only necessary when not using softdevice
 
-    // // Setup necessary clocks
     // ret_code_t ret = nrf_drv_clock_init();
     // APP_ERROR_CHECK(ret);
 
     // nrf_drv_clock_lfclk_request(NULL);
+}
 
+void libuarte_init(app_sched_event_handler_t scheduled_function)
+{
+    ret_code_t err_code;
+
+    libuarte_clocks_init();
 
     // Initialize FIFO buffers
     uart_buffer_init();

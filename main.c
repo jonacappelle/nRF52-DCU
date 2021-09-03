@@ -24,28 +24,21 @@
 #include "main.h"
 
 
-
-
 int main(void)
 {
     ret_code_t err_code;
+
+    clocks_start();
 
     nrf_delay_ms(2000);
 
     // Initialize.
     log_init();
 
-    // 1 -> HW reset
-    // 4 -> Software reset
-    uint32_t reset_reason = NRF_POWER->RESETREAS;
-    NRF_LOG_INFO("Reset: %d", reset_reason);
-    NRF_LOG_FLUSH();
-
-    NRF_POWER->RESETREAS = 0xffffffff;
-
+    check_reset_reason();
 
     // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
-    // dfu_async_init();
+    dfu_async_init();
 
     timer_init();
     
@@ -115,18 +108,16 @@ int main(void)
     advertising_start(false);
     #endif
 
-    nrf_gpio_cfg_output(TIMESYNC_PIN);
-
     // Enter main loop.
     for (;;)
     {
-        // App scheduler: handle event in buffer
+        // App scheduler: handle events in buffer
         app_sched_execute();
 
         // RTT Logging
         NRF_LOG_FLUSH();
 
-        // Run power management
+        // Run power management - go to sleep
         idle_state_handle();
 
         // Toggle pin to check CPU activity

@@ -3,6 +3,7 @@
 
 
 #include "ble_tes_c.h"
+#include "usr_dfu.h"
 
 #include <stdio.h>
 #include <stdint.h>
@@ -17,10 +18,6 @@
 
 #include "ble_advertising.h"
 
-// // Enable - disable DFU // //
-#define USR_DFU             1
-#define USR_ADVERTISING     0
-// // // // // // // // // // //
 
 #define CONNECTION   1
 #define DISCONNECTION 0
@@ -122,12 +119,6 @@ typedef struct imu
     uint32_t uart_rx_evt_scheduled;
     bool adc;
 } IMU;
-
-void dfu_async_init();
-void gap_params_init(void);
-void advertising_init(void);
-void conn_params_init(void);
-void advertising_start(bool erase_bonds);
 
 void usr_batt_print_conn_handle();
 

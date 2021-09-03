@@ -770,3 +770,51 @@ void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state)
 
 }
 
+
+#define RESET_REASON_HW_RESET   1
+#define RESET_REASON_SW_RESET   4
+
+void check_reset_reason()
+{
+
+#ifdef DEBUG
+    // 1 -> HW reset
+    // 4 -> Software reset
+    uint32_t reset_reason = NRF_POWER->RESETREAS;
+    NRF_LOG_INFO("Reset: %d", reset_reason);
+
+    NRF_POWER->RESETREAS = 0xffffffff;
+
+    switch (reset_reason)
+    {
+    case RESET_REASON_HW_RESET:
+        NRF_LOG_INFO("Reset reason HW reset.")
+        break;
+    
+    case RESET_REASON_SW_RESET:
+        NRF_LOG_INFO("Reset reason SW reset.")
+        break;
+    
+    default:
+        NRF_LOG_INFO("Other reset reason: %d", reset_reason);
+        break;
+    }
+
+    NRF_LOG_FLUSH();
+#endif
+}
+
+void clocks_start(void)
+{
+
+    // Start LFXO and wait for it to start
+    NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal << CLOCK_LFCLKSRC_SRC_Pos;
+    NRF_CLOCK->TASKS_LFCLKSTART = 1;
+    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
+
+    // Start HFCLK and wait for it to start.
+    NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
+    NRF_CLOCK->TASKS_HFCLKSTART = 1;
+    while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
+
+}

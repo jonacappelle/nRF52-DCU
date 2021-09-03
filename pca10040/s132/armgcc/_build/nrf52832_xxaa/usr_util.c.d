@@ -142,6 +142,7 @@ _build/nrf52832_xxaa/usr_util.c.o: ../../../UTIL/usr_util.c \
  ../../../../../../components/softdevice/common/nrf_sdh_ble.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h \
  ../../../../../../components/libraries/experimental_section_vars/nrf_section.h \
+ ../../../BLE_Services/usr_dfu.h \
  ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h \
@@ -298,6 +299,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/softdevice/common/nrf_sdh_ble.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section_iter.h:
 ../../../../../../components/libraries/experimental_section_vars/nrf_section.h:
+../../../BLE_Services/usr_dfu.h:
 ../../../../../../integration/nrfx/legacy/nrf_drv_uart.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_uarte.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_uart.h:

@@ -48,7 +48,9 @@
 			"usr_time_sync.h": "c",
 			"ble_advdata.h": "c",
 			"functional": "c",
-			"ble_bas_c.h": "c"
+			"ble_bas_c.h": "c",
+			"usr_dfu.C": "cpp",
+			"nrf_log_default_backends.h": "c"
 		}
 	}
 }

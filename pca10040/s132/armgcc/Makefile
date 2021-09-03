@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/BLE_Services/usr_dfu.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \
   $(SDK_ROOT)/components/ble/nrf_ble_qwr/nrf_ble_qwr.c \
   $(SDK_ROOT)/components/ble/ble_advertising/ble_advertising.c \
@@ -242,6 +243,7 @@ INC_FOLDERS += \
   $(SDK_ROOT)/components/libraries/atomic_flags \
   $(PROJ_DIR)/BLE_Services \
   $(PROJ_DIR)/UTIL \
+  $(PROJ_DIR) \
   $(SDK_ROOT)/components/libraries/libuarte \
   $(SDK_ROOT)/modules/nrfx/drivers/src \
   $(SDK_ROOT)/components/libraries/bootloader/dfu \
