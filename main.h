@@ -56,7 +56,7 @@
 #include "imu_params.h"
 
 // Receive data from Thingy motion service
-#include "ble_tes_c.h"
+#include "ble_imu_service_c.h"
 
 // List of connected slaves
 #include "sdk_mapped_flags.h"

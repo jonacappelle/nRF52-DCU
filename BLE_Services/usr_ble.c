@@ -48,7 +48,7 @@
 // #include "bsp_btn_ble.h"
 // #include "nrf_pwr_mgmt.h"
 
-#include "ble_tes_c.h"
+#include "ble_imu_service_c.h"
 
 #include "ble.h"
 
@@ -103,7 +103,7 @@ static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU2", "IMU2"
 //BLE_NUS_C_DEF(m_ble_nus_c);                                             /**< BLE Nordic UART Service (NUS) client instance. */
 BLE_NUS_C_ARRAY_DEF(m_ble_nus_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< BLE Nordic UART Service (NUS) client instances. */
 /* END CHANGES */
-BLE_TES_C_ARRAY_DEF(m_thingy_tes_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
+BLE_IMU_SERVICE_C_ARRAY_DEF(m_imu_service_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
 
 // Battery serice receiver
 BLE_BAS_C_ARRAY_DEF(m_bas_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT);     /**< Structure used to identify the Battery Service client module. */
@@ -130,17 +130,17 @@ void timer_init(void)
 }
 
 
-void ble_send_config(ble_tes_config_t * stop_config)
+void ble_send_config(ble_imu_service_config_t * stop_config)
 {
     ret_code_t err_code;
 
     // Send config to peripheral
     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        err_code = ble_tes_config_set(&m_thingy_tes_c[i], stop_config);
+        err_code = ble_imu_service_config_set(&m_imu_service_c[i], stop_config);
         if (err_code != NRF_SUCCESS)
         {
-            NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+            NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
         }
     }
 }
@@ -281,7 +281,7 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
     /* END CHANGES */
 
     // Add discovery for TMS service
-    ble_thingy_tes_on_db_disc_evt(&m_thingy_tes_c[p_evt->conn_handle], p_evt);
+    ble_imu_service_on_db_disc_evt(&m_imu_service_c[p_evt->conn_handle], p_evt);
 
     // Add discovery for Battery service
     ble_bas_on_db_disc_evt(&m_bas_c[p_evt->conn_handle], p_evt);
@@ -432,7 +432,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         APP_ERROR_CHECK(err_code);
 
         // TMS CHANGES - add handles
-        err_code = ble_tes_c_handles_assign(&m_thingy_tes_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
+        err_code = ble_imu_service_c_handles_assign(&m_imu_service_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
         APP_ERROR_CHECK(err_code);
 
         // BAS CHANGES - add handles
@@ -705,7 +705,7 @@ static void queue_process_packet(received_data_t * data, uint32_t * len)
     APP_ERROR_CHECK(err_code);
 }
 
-void print_packet_count(ble_tes_c_evt_t *p_evt)
+void print_packet_count(ble_imu_service_c_evt_t *p_evt)
 {
     // Print out the packet count from each of the slaves
     if (p_evt->conn_handle == 0)
@@ -732,7 +732,7 @@ void print_packet_count(ble_tes_c_evt_t *p_evt)
 
 
 
-void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
+void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt)
 {
 
     // nrf_gpio_pin_set(11);
@@ -744,13 +744,13 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     {
         ret_code_t err_code;
 
-    case BLE_THINGY_TES_C_EVT_DISCOVERY_COMPLETE:
+    case BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE:
     {
         // Assign connection handles
-        usr_ble_handles_assign(p_ble_tes_c, p_evt);
+        usr_ble_handles_assign(p_ble_imu_service_c, p_evt);
 
         // Enable notifications - in peripheral this equates to turning on the sensors
-        usr_enable_notif(p_ble_tes_c, p_evt);
+        usr_enable_notif(p_ble_imu_service_c, p_evt);
     }
     break;
 
@@ -865,7 +865,7 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
 
     default:
     {
-        NRF_LOG_INFO("thingy_tes_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
+        NRF_LOG_INFO("imu_service_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
     }
     break;
     }
@@ -873,16 +873,16 @@ void thingy_tes_c_evt_handler(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *
     // nrf_gpio_pin_clear(11);
 }
 
-void thingy_tes_c_init()
+void imu_service_c_init()
 {
     ret_code_t err_code;
 
-    ble_thingy_tes_c_init_t thingy_tes_c_init_obj;
-    thingy_tes_c_init_obj.evt_handler = thingy_tes_c_evt_handler;
+    ble_imu_service_c_init_t imu_service_c_init_obj;
+    imu_service_c_init_obj.evt_handler = imu_service_c_evt_handler;
 
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        err_code = ble_thingy_tes_c_init(&m_thingy_tes_c[i], &thingy_tes_c_init_obj);
+        err_code = ble_imu_service_c_init(&m_imu_service_c[i], &imu_service_c_init_obj);
         APP_ERROR_CHECK(err_code);
     }
 }
@@ -915,7 +915,7 @@ void services_init()
     nus_c_init();
 
     // Motion Service
-    thingy_tes_c_init();
+    imu_service_c_init();
 
     // Battery Service
     bas_c_init();
@@ -925,32 +925,32 @@ void services_init()
 }
 
 
-void usr_ble_handles_assign(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
+void usr_ble_handles_assign(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt)
 {
     ret_code_t err_code;
 
-    err_code = ble_tes_c_handles_assign(m_thingy_tes_c,
+    err_code = ble_imu_service_c_handles_assign(m_imu_service_c,
                                         p_evt->conn_handle,
                                         &p_evt->params.peer_db);
     NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
 }
 
-void usr_enable_notif(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt)
+void usr_enable_notif(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt)
 {
     ret_code_t err_code;
 
     // Enable notifications - in peripheral this equates to turning on the sensors
-    err_code = ble_tes_c_quaternion_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+    err_code = ble_imu_service_c_quaternion_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
     APP_ERROR_CHECK(err_code);
-    err_code = ble_tes_c_adc_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+    err_code = ble_imu_service_c_adc_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
     APP_ERROR_CHECK(err_code);
-    err_code = ble_tes_c_euler_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+    err_code = ble_imu_service_c_euler_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
     APP_ERROR_CHECK(err_code);
-    err_code = ble_tes_c_raw_notif_enable(&m_thingy_tes_c[p_evt->conn_handle]);
+    err_code = ble_imu_service_c_raw_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
     APP_ERROR_CHECK(err_code);
 }
 
-void usr_ble_config_send(ble_tes_config_t config)
+void usr_ble_config_send(ble_imu_service_config_t config)
 {
     ret_code_t err_code;
 
@@ -959,12 +959,12 @@ void usr_ble_config_send(ble_tes_config_t config)
     {
         // do
         // {
-        err_code = ble_tes_config_set(&m_thingy_tes_c[i], &config);
+        err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
         // if(err_code != NRF_SUCCESS)
         // {
-        //     NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+        //     NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
         // }
-        NRF_LOG_INFO("ble_tes_config_set error %d", err_code);
+        NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
         // }while(err_code == NRF_ERROR_RESOURCES);
     }
 }
@@ -1225,7 +1225,7 @@ void config_send()
 {
     ret_code_t err_code;
 
-    ble_tes_config_t config;
+    ble_imu_service_config_t config;
     config.gyro_enabled = imu.gyro_enabled;
     config.accel_enabled = imu.accel_enabled;
     config.mag_enabled = imu.mag_enabled;

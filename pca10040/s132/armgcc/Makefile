@@ -40,7 +40,7 @@ SRC_FILES += \
   $(PROJ_DIR)/UTIL/usr_util.c \
   $(SDK_ROOT)/components/libraries/util/sdk_mapped_flags.c \
   $(SDK_ROOT)/modules/nrfx/drivers/src/nrfx_ppi.c \
-  $(PROJ_DIR)/BLE_Services/ble_tes_c.c \
+  $(PROJ_DIR)/BLE_Services/ble_imu_service_c.c \
   $(SDK_ROOT)/components/libraries/atomic_flags/nrf_atflags.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_state.c \
   $(PROJ_DIR)/TimeSync/time_sync.c \

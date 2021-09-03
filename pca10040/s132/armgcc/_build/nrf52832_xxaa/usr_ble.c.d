@@ -1,5 +1,6 @@
 _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
- ../../../BLE_Services/usr_ble.h ../../../BLE_Services/ble_tes_c.h \
+ ../../../BLE_Services/usr_ble.h \
+ ../../../BLE_Services/ble_imu_service_c.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\_default_types.h \
@@ -164,7 +165,7 @@ _build/nrf52832_xxaa/usr_ble.c.o: ../../../BLE_Services/usr_ble.c \
  ../../../../../../components/libraries/log/src/nrf_log_internal.h \
  ../../../../../../components/libraries/log/nrf_log_types.h
 ../../../BLE_Services/usr_ble.h:
-../../../BLE_Services/ble_tes_c.h:
+../../../BLE_Services/ble_imu_service_c.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\lib\gcc\arm-none-eabi\10.2.1\include\stdint.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\stdint.h:
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\_default_types.h:

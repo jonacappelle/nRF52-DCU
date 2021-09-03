@@ -2,7 +2,7 @@
 #define __USR_BLE_H__
 
 
-#include "ble_tes_c.h"
+#include "ble_imu_service_c.h"
 #include "usr_dfu.h"
 
 #include <stdio.h>
@@ -129,16 +129,16 @@ void received_data_buffers_init();
 void schedule(app_sched_event_handler_t handler);
 void imu_uart_sceduled(void *p_event_data, uint16_t event_size);
 
-void ble_send_config(ble_tes_config_t * stop_config);
+void ble_send_config(ble_imu_service_config_t * stop_config);
 
-void usr_ble_config_send(ble_tes_config_t config);
-void ble_send_config(ble_tes_config_t * stop_config);
+void usr_ble_config_send(ble_imu_service_config_t config);
+void ble_send_config(ble_imu_service_config_t * stop_config);
 
 void usr_ble_disconnect();
 
-void usr_ble_handles_assign(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt);
+void usr_ble_handles_assign(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt);
 
-void usr_enable_notif(ble_thingy_tes_c_t *p_ble_tes_c, ble_tes_c_evt_t *p_evt);
+void usr_enable_notif(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt);
 
 void db_discovery_init(void);
 void ble_stack_init(void);

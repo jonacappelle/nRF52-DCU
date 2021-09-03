@@ -125,7 +125,7 @@ _build/nrf52832_xxaa/usr_util.c.o: ../../../UTIL/usr_util.c \
  ../../../../../../components/libraries/bsp/bsp.h \
  ../../../../../../components/libraries/button/app_button.h \
  ../../../settings.h ../../../BLE_Services/usr_ble.h \
- ../../../BLE_Services/ble_tes_c.h \
+ ../../../BLE_Services/ble_imu_service_c.h \
  ../../../../../../components/softdevice/s132/headers/ble.h \
  ../../../../../../components/softdevice/s132/headers/ble_err.h \
  ../../../../../../components/softdevice/s132/headers/ble_gap.h \
@@ -283,7 +283,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../components/libraries/button/app_button.h:
 ../../../settings.h:
 ../../../BLE_Services/usr_ble.h:
-../../../BLE_Services/ble_tes_c.h:
+../../../BLE_Services/ble_imu_service_c.h:
 ../../../../../../components/softdevice/s132/headers/ble.h:
 ../../../../../../components/softdevice/s132/headers/ble_err.h:
 ../../../../../../components/softdevice/s132/headers/ble_gap.h:
