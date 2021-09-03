@@ -168,7 +168,7 @@ _build/nrf52832_xxaa/main.c.o: ../../../main.c ../../../main.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_clock.h \
  ../../../../../../modules/nrfx/hal/nrf_clock.h \
  ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h \
- ../../../../../../components/libraries/bsp/bsp.h \
+ ../../../../../../components/libraries/bsp/bsp.h ../../../settings.h \
  ../../../BLE_Services/usr_ble.h ../../../BLE_Services/ble_tes_c.h \
  ../../../BLE_Services/usr_dfu.h \
  ../../../../../../components/ble/ble_advertising/ble_advertising.h \
@@ -346,6 +346,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 ../../../../../../modules/nrfx/hal/nrf_clock.h:
 ../../../../../../modules/nrfx/drivers/include/nrfx_power_clock.h:
 ../../../../../../components/libraries/bsp/bsp.h:
+../../../settings.h:
 ../../../BLE_Services/usr_ble.h:
 ../../../BLE_Services/ble_tes_c.h:
 ../../../BLE_Services/usr_dfu.h:

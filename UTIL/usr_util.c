@@ -639,26 +639,6 @@ typedef enum
 } dcu_leds_t;
 
 
-void leds_startup()
-{
-
-    for(uint8_t j=0; j<5; j++)
-    {
-        for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
-        {
-            nrf_gpio_cfg_output(i);
-            nrf_gpio_pin_set(i);
-            nrf_delay_ms(50);
-        }
-        for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
-        {
-            // nrf_gpio_cfg_output(i);
-            nrf_gpio_pin_clear(i);
-            nrf_delay_ms(50);
-        }
-    }
-
-}
 
 APP_TIMER_DEF(indication_led_timer);     /**< Handler for repeated timer used to blink LED 1. */
 

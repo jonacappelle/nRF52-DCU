@@ -16,6 +16,8 @@
 // Application scheduler
 #include "app_scheduler.h"
 
+#include "settings.h"
+
 
 #define CMD_GYRO 0x67  //g
 #define CMD_ACCEL 0x61 //a

@@ -210,11 +210,13 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 static void libuarte_clocks_init()
 {
     // Setup necessary clocks - only necessary when not using softdevice
+    #if SOFTDEVICE_ENABLED == 0
+        ret_code_t ret = nrf_drv_clock_init();
+        APP_ERROR_CHECK(ret);
 
-    // ret_code_t ret = nrf_drv_clock_init();
-    // APP_ERROR_CHECK(ret);
+        nrf_drv_clock_lfclk_request(NULL);
+    #endif
 
-    // nrf_drv_clock_lfclk_request(NULL);
 }
 
 void libuarte_init(app_sched_event_handler_t scheduled_function)

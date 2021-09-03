@@ -28,38 +28,42 @@ int main(void)
 {
     ret_code_t err_code;
 
-    clocks_start();
+    // clocks_start();
 
     nrf_delay_ms(2000);
 
-    // Initialize.
+    // Logging
     log_init();
 
+    // Check reset reason
     check_reset_reason();
 
     // Initialize the async SVCI interface to bootloader before any interrupts are enabled.
+    // DFU enabled by "USR_DFU" define in "settings.h"
     dfu_async_init();
 
+    // Application timers
     timer_init();
-    
-    //    uart_init();
-
-    // A better UART driver than nrf_uart_drv - asynchronous with DMA and QUEUE
-    libuarte_init(uart_rx_scheduled);
-
-    // uart_dma_init();
-
-    // Initialize buffers
-    received_data_buffers_init();
 
     // Application scheduler (soft interrupt like)
     scheduler_init();
 
+    // A better UART driver than nrf_uart_drv - asynchronous with DMA and QUEUE
+    libuarte_init(uart_rx_scheduled);
 
+    // Initialize BLE receive buffers
+    received_data_buffers_init();
+
+    // Nordic buttons and leds initialization
     buttons_leds_init();
 
+    // Discover BLE devices
     db_discovery_init();
+
+    // Power modes
     power_management_init();
+
+    // Enable BLE stack
     ble_stack_init();
     NRF_LOG_FLUSH();
 
@@ -90,7 +94,7 @@ int main(void)
 
     // Init scanning for devices with NUS service + start scanning
     scan_init();
-    scan_start();                
+    scan_start();
 
     // TimeSync
     // Start TimeSync AFTER scan_start()
@@ -99,8 +103,6 @@ int main(void)
 
     // Initialize pins for debugging
     usr_gpio_init();
-
-    // leds_startup();
     
     create_timers(); // Needs to be places after softdevice initialization
 

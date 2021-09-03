@@ -113,6 +113,7 @@ _build/nrf52832_xxaa/usr_uart.c.o: ../../../UTIL/usr_uart.c \
  c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h \
  ../../../../../../components/libraries/log/nrf_log_default_backends.h \
  ../../../../../../components/libraries/scheduler/app_scheduler.h \
+ ../../../settings.h \
  ../../../../../../components/libraries/fifo/app_fifo.h \
  ../../../../../../components/libraries/log/nrf_log.h \
  ../../../../../../components/libraries/strerror/nrf_strerror.h \
@@ -232,6 +233,7 @@ c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-no
 c\:\program\ files\ (x86)\gnu\ arm\ embedded\ toolchain\10\ 2020-q4-major\arm-none-eabi\include\machine\stdlib.h:
 ../../../../../../components/libraries/log/nrf_log_default_backends.h:
 ../../../../../../components/libraries/scheduler/app_scheduler.h:
+../../../settings.h:
 ../../../../../../components/libraries/fifo/app_fifo.h:
 ../../../../../../components/libraries/log/nrf_log.h:
 ../../../../../../components/libraries/strerror/nrf_strerror.h:
