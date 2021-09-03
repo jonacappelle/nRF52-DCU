@@ -9,6 +9,10 @@
 #include "time_sync.h"
 
 
+#define USR_TIME_SYNC_TIMESTAMP_TO_USEC     TIME_SYNC_TIMESTAMP_TO_USEC
+#define USR_TIME_SYNC_MSEC_TO_TICK          TIME_SYNC_MSEC_TO_TICK
+
+
 typedef struct{
     uint32_t ts_led_pin;
     uint32_t ts_meas_pin;
@@ -20,6 +24,7 @@ void ts_imu_trigger_enable(void);
 void ts_imu_trigger_disable(void);
 bool ts_get_imu_trigger_enabled(void);
 void ts_print_sync_time();
+uint64_t usr_ts_timestamp_get_ticks_u64();
 
 
 #endif
