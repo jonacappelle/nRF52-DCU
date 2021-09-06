@@ -150,8 +150,6 @@ void usr_gpio_init()
     nrf_gpio_cfg_output(12);
 
     nrf_gpio_cfg_output(PIN_CPU_ACTIVITY);
-
-
 }
 
 void check_cpu_activity()
@@ -629,16 +627,6 @@ uint8_t usr_adc_voltage_to_percent(float voltage)
 
 
 
-typedef enum
-{
-    USR_LED_0 = 11,
-    USR_LED_1 = 12,
-    USR_LED_2 = 13,
-    USR_LED_3 = 14,
-    USR_LED_4 = 15,
-    USR_LED_5 = 17
-} dcu_leds_t;
-
 // Declare DCU LED pins
 #define USR_LED_0 11
 #define USR_LED_1 12
@@ -739,28 +727,24 @@ void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state)
             first_connection = 0;
         }
     }
-
-
-    dcu_leds_t conn_led;
-    conn_led = conn_handle + 11;
     
     switch (state)
     {
         case CONNECTION:
         {
-            nrf_gpio_pin_set(conn_led);
+            nrf_gpio_pin_set(dcu_led_list[conn_handle]);
         }
         break;
 
         case DISCONNECTION:
         {
-            nrf_gpio_pin_clear(conn_led);
+            nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
         }
         break;
 
         default:
         {
-            nrf_gpio_pin_clear(conn_led);
+            nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
         }
     }
 

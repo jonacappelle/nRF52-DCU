@@ -67,7 +67,10 @@ void timesync_pin_toggle(uint32_t tick)
     // Toggle on multiples of 100 ticks
     if( (tick % 1000) == 0)
     {
-        nrf_gpio_pin_toggle(ts_pin);
+        if(ts_pin != 0)
+        {
+            nrf_gpio_pin_toggle(ts_pin);
+        }
     }
 }
 
@@ -137,7 +140,10 @@ void timesync_pin_init(const usr_timesync_config_t * cfg)
     ts_meas_pin = cfg->ts_meas_pin;
 
     // Config output pin for visual feedback
-    nrf_gpio_cfg_output(ts_pin);
+    if(ts_pin != 0) 
+    {
+        nrf_gpio_cfg_output(ts_pin);
+    }
 
         // Config debug pin:
         // nRF52-DK (PCA10040) Toggle P0.24 from sync timer to allow pin measurement
@@ -166,7 +172,7 @@ void sync_timer_init()
 
     usr_timesync_config_t usr_ts_config =
     {
-        .ts_led_pin = 13,
+        .ts_led_pin = 0, // 0 is not configured
         .ts_meas_pin = 24
     };
 
