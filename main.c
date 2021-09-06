@@ -28,7 +28,7 @@ int main(void)
 {
     ret_code_t err_code;
 
-    // clocks_start();
+    clocks_start();
 
     nrf_delay_ms(2000);
 

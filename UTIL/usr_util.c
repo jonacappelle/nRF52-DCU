@@ -635,15 +635,31 @@ typedef enum
     USR_LED_1 = 12,
     USR_LED_2 = 13,
     USR_LED_3 = 14,
-    USR_LED_4 = 15
+    USR_LED_4 = 15,
+    USR_LED_5 = 17
 } dcu_leds_t;
 
+// Declare DCU LED pins
+#define USR_LED_0 11
+#define USR_LED_1 12
+#define USR_LED_2 13
+#define USR_LED_3 14
+#define USR_LED_4 15
+#define USR_LED_5 17
 
+#define USR_NR_OF_LEDS 6
+
+// Make list out of DCU LEDS
+#define DCU_LEDS_LIST { USR_LED_0, USR_LED_1, USR_LED_2, USR_LED_3, USR_LED_4, USR_LED_5 }
+
+#if USR_NR_OF_LEDS > 0
+static const uint8_t dcu_led_list[USR_NR_OF_LEDS] = DCU_LEDS_LIST;
+#endif
 
 APP_TIMER_DEF(indication_led_timer);     /**< Handler for repeated timer used to blink LED 1. */
 
-dcu_leds_t leds = USR_LED_0;
 bool leds_on_off = 1;
+uint32_t usr_leds_ctr = 0;
 
 /**@brief Timeout handler for the repeated timer.
  */
@@ -651,19 +667,19 @@ static void indication_led_timer_handler(void * p_context)
 {
     if(leds_on_off)
     {
-        nrf_gpio_cfg_output(leds);
-        nrf_gpio_pin_set(leds);
+        nrf_gpio_cfg_output(dcu_led_list[usr_leds_ctr]);
+        nrf_gpio_pin_set(dcu_led_list[usr_leds_ctr]);
     }else if(leds_on_off == 0)
     {
-        nrf_gpio_pin_clear(leds);
+        nrf_gpio_pin_clear(dcu_led_list[usr_leds_ctr]);
     }
 
-    if(leds == USR_LED_4)
+    if(usr_leds_ctr == USR_NR_OF_LEDS)
     {
-        leds = USR_LED_0;
+        usr_leds_ctr = 0;
         leds_on_off = !leds_on_off;
     }else{
-       leds++; 
+       usr_leds_ctr++; 
     }
 
 }
@@ -688,9 +704,9 @@ void create_timers()
 void dcu_leds_reset()
 {
 
-    for(dcu_leds_t i = USR_LED_0; i<=USR_LED_4; i++)
+    for(uint8_t i = 0; i<=USR_NR_OF_LEDS; i++)
     {
-        nrf_gpio_pin_clear(i);
+        nrf_gpio_pin_clear(dcu_led_list[i]);
     }
 
 }
