@@ -471,14 +471,18 @@ void usr_ble_config_send(ble_imu_service_config_t config)
     //You can iterate through the list of connection handles:
     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
+
+        // TODO: Make list of connected handles instead of sending it to all of the 8 handles
+        // This could prevent torubles in the future
+
         NRF_LOG_INFO("IMU conn_handle: %d", m_imu_service_c[i].conn_handle);
 
         err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
 
-        // if(err_code != NRF_ERROR_INVALID_STATE && err_code != NRF_SUCCESS) 
-        // {
+        if(err_code != NRF_ERROR_INVALID_STATE && err_code != NRF_SUCCESS) 
+        {
             APP_ERROR_CHECK(err_code);
-        // }
+        }
         
         NRF_LOG_FLUSH();
 
@@ -599,15 +603,7 @@ void config_send()
 
 
     config.sync_start_time = imu.sync_start_time;
-    NRF_LOG_INFO("sync_start_time: %d", imu.sync_start_time);
-    
-
-    NRF_LOG_INFO("config.adc_enabled %d", config.adc_enabled);
-
-    NRF_LOG_INFO("config wwwwooommmmm %d", config.wom_enabled);
-    NRF_LOG_INFO("imu wwwwooommmmm %d", imu.wom);
-
-
+ 
     // Send config to peripheral
     usr_ble_config_send(config);
 }
