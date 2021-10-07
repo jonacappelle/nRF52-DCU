@@ -88,7 +88,7 @@ void comm_parse_quat(uint8_t sensor_nr, int16_t w, int16_t x, int16_t y, int16_t
     uint8_t cs = calculate_cs(data, len);
     data[PACKET_DATA_PLACEHOLDER + 4*sizeof(w)] = cs;
 
-    NRF_LOG_INFO("QUAT parsed");
+    // NRF_LOG_INFO("QUAT parsed");
 }
 
 

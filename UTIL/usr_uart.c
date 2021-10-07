@@ -179,7 +179,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
             // NRF_LOG_INFO("%s", buffer.uart_tx_done_buff);
 
-            uint32_t index = 1024;
+            uint32_t index = 255;
 
             // NRF_LOG_INFO("buffer.uart_tx_buff changed in NRF_LIBUARTE_ASYNC_EVT_TX_DONE");
 
@@ -188,7 +188,6 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             if (err_code == NRF_SUCCESS)
             {
                 buffer.uart_tx_done_buff_len = index;
-                // NRF_LOG_INFO("extra bytes1: %d", buffer.uart_tx_done_buff_len);
 
                 err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_tx_done_buff, buffer.uart_tx_done_buff_len);
                 APP_ERROR_CHECK(err_code);
@@ -293,6 +292,7 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
     if (err_code == NRF_ERROR_NO_MEM)
     {
         NRF_LOG_INFO("UART FIFO BUFFER FULL!");
+        APP_ERROR_CHECK(err_code);
     }
 
     
@@ -325,6 +325,9 @@ void uart_queued_tx(uint8_t * data, uint32_t * len)
                 APP_ERROR_CHECK(err_code);
             }
         }
+    }else{
+        err_code = NRF_ERROR_INVALID_DATA;
+        APP_ERROR_CHECK(err_code);
     }
 }
 

@@ -278,7 +278,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
     // Print packet count for each connected device
     // print_packet_count(p_evt);
 
-    NRF_LOG_INFO("imu_service_c_evt_handler: %d", p_evt->evt_type);
+    // NRF_LOG_INFO("imu_service_c_evt_handler: %d", p_evt->evt_type);
 
     switch (p_evt->evt_type)
     {
@@ -324,7 +324,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
         #ifdef USE_INTERNAL_COMM
 
-        NRF_LOG_INFO("QUAT received");
+        // NRF_LOG_INFO("QUAT received");
 
         // Received data
         int32_t q_w = p_evt->params.value.quat_data.quat[i].w;
