@@ -1,5 +1,7 @@
 ////////////////////////////////////////////////
 
+#define USE_INTERNAL_COMM
+
 // Header file
 #include "usr_ble.h"
 
@@ -7,6 +9,9 @@
 #include "nordic_common.h"
 
 // Logging
+#define NRF_LOG_MODULE_NAME usr_ble_c
+#include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
@@ -31,6 +36,9 @@
 
 // Time syncronization
 #include "usr_time_sync.h"
+
+// Communication between nRF52 and STM32
+#include "usr_internal_comm.h"
 
 ///////////////////////////////////////////////
 
@@ -214,20 +222,20 @@ static void nus_c_init(void)
 BLE_IMU_SERVICE_C_ARRAY_DEF(m_imu_service_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
 
 
-void ble_send_config(ble_imu_service_config_t * stop_config)
-{
-    ret_code_t err_code;
+// void ble_send_config(ble_imu_service_config_t * stop_config)
+// {
+//     ret_code_t err_code;
 
-    // Send config to peripheral
-    for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-    {
-        err_code = ble_imu_service_config_set(&m_imu_service_c[i], stop_config);
-        if (err_code != NRF_SUCCESS)
-        {
-            NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
-        }
-    }
-}
+//     // Send config to peripheral
+//     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+//     {
+//         err_code = ble_imu_service_config_set(&m_imu_service_c[i], stop_config);
+//         if (err_code != NRF_SUCCESS)
+//         {
+//             NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
+//         }
+//     }
+// }
 
 
 static void queue_process_packet(received_data_t * data, uint32_t * len)
@@ -301,7 +309,6 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
     case BLE_IMU_SERVICE_EVT_QUAT:
     {
-
         for (uint8_t i = 0; i < BLE_PACKET_BUFFER_COUNT; i++)
         {
 
@@ -311,10 +318,34 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
             // Initialize struct to all zeros
             memset(&received_quat, 0, received_quat_len);
 
-    #define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
-
             received_quat.conn_handle = p_evt->conn_handle;
             received_quat.quat_data_present = 1;
+
+        #ifdef USE_INTERNAL_COMM
+
+        NRF_LOG_INFO("QUAT received");
+
+        // Received data
+        int32_t q_w = p_evt->params.value.quat_data.quat[i].w;
+        int32_t q_x = p_evt->params.value.quat_data.quat[i].x;
+        int32_t q_y = p_evt->params.value.quat_data.quat[i].y;
+        int32_t q_z = p_evt->params.value.quat_data.quat[i].z;
+
+        // Parse data
+        uint8_t parsed_packet[256];
+        uint32_t parsed_packet_len = 0;
+        uint8_t sensor_nr = (uint8_t) p_evt->conn_handle + 1;
+
+        // Build packet
+        comm_parse_quat(sensor_nr, q_w, q_x, q_y, q_z, parsed_packet, &parsed_packet_len);
+
+        // Send over UART to STM32
+        uart_queued_tx((uint8_t *) parsed_packet, &parsed_packet_len);
+
+        #else
+
+            #define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
+
             received_quat.quat_data.w = ((float)p_evt->params.value.quat_data.quat[i].w / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             received_quat.quat_data.x = ((float)p_evt->params.value.quat_data.quat[i].x / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
             received_quat.quat_data.y = ((float)p_evt->params.value.quat_data.quat[i].y / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_QUAT));
@@ -324,7 +355,11 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
             // Put data into FIFO buffer and let event handler know to process the packet
             queue_process_packet(&received_quat, &received_quat_len);
+
+        #endif
+
         }
+
     }
     break;
 
@@ -333,13 +368,14 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
         float euler_buff[3];
         uint32_t euler_buff_len = sizeof(euler_buff);
 
-#define FIXED_POINT_FRACTIONAL_BITS_EULER 16
+        #define FIXED_POINT_FRACTIONAL_BITS_EULER 16
 
         euler_buff[0] = ((float)p_evt->params.value.euler_data.yaw / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
         euler_buff[1] = ((float)p_evt->params.value.euler_data.pitch / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
         euler_buff[2] = ((float)p_evt->params.value.euler_data.roll / (float)(1 << FIXED_POINT_FRACTIONAL_BITS_EULER));
 
         NRF_LOG_INFO("euler: %d %d  %d", (int)euler_buff[0], (int)euler_buff[1], (int)euler_buff[2]);
+    
     }
     break;
 
@@ -464,15 +500,16 @@ void usr_ble_config_send(ble_imu_service_config_t config)
     // Send config to peripheral
     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        // do
-        // {
-        err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
+        do // problem: NRF_ERROR_BUSY - can't configure more than one sensor at a time
+        {
+            err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
         // if(err_code != NRF_SUCCESS)
         // {
         //     NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
         // }
-        NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
+            NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
         // }while(err_code == NRF_ERROR_RESOURCES);
+        }while(err_code == NRF_ERROR_BUSY);
     }
 }
 

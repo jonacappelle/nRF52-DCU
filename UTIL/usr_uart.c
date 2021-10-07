@@ -18,9 +18,13 @@
 #include "app_scheduler.h"
 
 // Logging
-#include "nrf_log.h"
+// #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
+
+#define NRF_LOG_MODULE_NAME usr_uart_c
+#include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
 
 
 //////////////////////////////////////
