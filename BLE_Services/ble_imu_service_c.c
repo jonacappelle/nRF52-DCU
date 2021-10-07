@@ -91,36 +91,57 @@ static uint32_t     m_tx_index = 0;               /**< Current index in the tran
 
 /**@brief Function for passing any pending request from the buffer to the stack.
  */
-static void tx_buffer_process(void)
-{
-    if (m_tx_index != m_tx_insert_index)
-    {
-        uint32_t err_code;
+// static void tx_buffer_process(void)
+// {
+//     if (m_tx_index != m_tx_insert_index)
+//     {
+//         uint32_t err_code;
 
-        if (m_tx_buffer[m_tx_index].type == READ_REQ)
-        {
-            err_code = sd_ble_gattc_read(m_tx_buffer[m_tx_index].conn_handle,
-                                         m_tx_buffer[m_tx_index].req.read_handle,
-                                         0);
-        }
-        else
-        {
-            err_code = sd_ble_gattc_write(m_tx_buffer[m_tx_index].conn_handle,
-                                          &m_tx_buffer[m_tx_index].req.write_req.gattc_params);
-        }
-        if (err_code == NRF_SUCCESS)
-        {
-            NRF_LOG_DEBUG("SD Read/Write API returns Success..");
-            m_tx_index++;
-            m_tx_index &= TX_BUFFER_MASK;
-        }
-        else
-        {
-            NRF_LOG_DEBUG("SD Read/Write API returns error. This message sending will be "
-                "attempted again..");
-        }
-    }
+//         if (m_tx_buffer[m_tx_index].type == READ_REQ)
+//         {
+//             err_code = sd_ble_gattc_read(m_tx_buffer[m_tx_index].conn_handle,
+//                                          m_tx_buffer[m_tx_index].req.read_handle,
+//                                          0);
+//         }
+//         else
+//         {
+//             err_code = sd_ble_gattc_write(m_tx_buffer[m_tx_index].conn_handle,
+//                                           &m_tx_buffer[m_tx_index].req.write_req.gattc_params);
+//         }
+//         if (err_code == NRF_SUCCESS)
+//         {
+//             NRF_LOG_DEBUG("SD Read/Write API returns Success..");
+//             m_tx_index++;
+//             m_tx_index &= TX_BUFFER_MASK;
+//         }
+//         else
+//         {
+//             NRF_LOG_DEBUG("SD Read/Write API returns error. This message sending will be attempted again..");
+//         }
+//     }
+// }
+
+
+/**@brief Function for intercepting errors of GATTC and BLE GATT Queue.
+ *
+ * @param[in] nrf_error   Error code.
+ * @param[in] p_ctx       Parameter from the event handler.
+ * @param[in] conn_handle Connection handle.
+ */
+static void gatt_error_handler(uint32_t   nrf_error,
+                               void     * p_ctx,
+                               uint16_t   conn_handle)
+{
+    // ble_imu_service_c_t * p_tes_c = (ble_imu_service_c_t *)p_ctx;
+
+    NRF_LOG_DEBUG("A GATT Client error has occurred on conn_handle: 0X%X", conn_handle);
+
+    // if (p_tes_c->error_handler != NULL)
+    // {
+    //     p_tes_c->error_handler(nrf_error);
+    // }
 }
+
 
 
 /**@brief Function for handling write response events.
@@ -389,6 +410,7 @@ uint32_t ble_imu_service_c_init(ble_imu_service_c_t * p_ble_imu_service_c, ble_i
 
     p_ble_imu_service_c->conn_handle                    = BLE_CONN_HANDLE_INVALID;
     p_ble_imu_service_c->evt_handler                    = p_ble_imu_service_c_init->evt_handler;
+    p_ble_imu_service_c->p_gatt_queue               = p_ble_imu_service_c_init->p_gatt_queue;
 
     err_code = sd_ble_uuid_vs_add(&imu_service_base_uuid, &p_ble_imu_service_c->uuid_type);
     if (err_code != NRF_SUCCESS)
@@ -421,7 +443,7 @@ void ble_imu_service_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
             break;
 
         case BLE_GATTC_EVT_WRITE_RSP:
-            on_write_rsp(p_ble_imu_service_c, p_ble_evt);
+            // on_write_rsp(p_ble_imu_service_c, p_ble_evt);
             break;
 
         case BLE_GAP_EVT_DISCONNECTED:
@@ -442,29 +464,53 @@ void ble_imu_service_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
  *
  * @return NRF_SUCCESS if the CCCD configure was successfully sent to the peer.
  */
-static uint32_t cccd_configure_tes(uint16_t conn_handle, uint16_t handle_cccd, bool enable)
+static uint32_t cccd_configure_tes(ble_imu_service_c_t * p_ble_imu_service_c, uint16_t conn_handle, uint16_t handle_cccd, bool enable)
 {
-    NRF_LOG_DEBUG("Configuring CCCD. CCCD Handle = %d, Connection Handle = %d",
-        handle_cccd,conn_handle);
+    // NRF_LOG_DEBUG("Configuring CCCD. CCCD Handle = %d, Connection Handle = %d",
+    //     handle_cccd,conn_handle);
 
-    tx_message_t * p_msg;
-    uint16_t       cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
+    // tx_message_t * p_msg;
+    // uint16_t       cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
     
-    p_msg              = &m_tx_buffer[m_tx_insert_index++];
-    m_tx_insert_index &= TX_BUFFER_MASK;
+    // p_msg              = &m_tx_buffer[m_tx_insert_index++];
+    // m_tx_insert_index &= TX_BUFFER_MASK;
 
-    p_msg->req.write_req.gattc_params.handle   = handle_cccd;
-    p_msg->req.write_req.gattc_params.len      = WRITE_MESSAGE_LENGTH;
-    p_msg->req.write_req.gattc_params.p_value  = p_msg->req.write_req.gattc_value;
-    p_msg->req.write_req.gattc_params.offset   = 0;
-    p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    p_msg->req.write_req.gattc_value[0]        = LSB_16(cccd_val);
-    p_msg->req.write_req.gattc_value[1]        = MSB_16(cccd_val);
-    p_msg->conn_handle                         = conn_handle;
-    p_msg->type                                = WRITE_REQ;
+    // p_msg->req.write_req.gattc_params.handle   = handle_cccd;
+    // p_msg->req.write_req.gattc_params.len      = WRITE_MESSAGE_LENGTH;
+    // p_msg->req.write_req.gattc_params.p_value  = p_msg->req.write_req.gattc_value;
+    // p_msg->req.write_req.gattc_params.offset   = 0;
+    // p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    // p_msg->req.write_req.gattc_value[0]        = LSB_16(cccd_val);
+    // p_msg->req.write_req.gattc_value[1]        = MSB_16(cccd_val);
+    // p_msg->conn_handle                         = conn_handle;
+    // p_msg->type                                = WRITE_REQ;
 
-    tx_buffer_process();
-    return NRF_SUCCESS;
+    // tx_buffer_process();
+    // return NRF_SUCCESS;
+
+///////////
+
+    NRF_LOG_DEBUG("Configuring CCCD. CCCD Handle = %d, Connection Handle = %d", handle_cccd, conn_handle);
+
+    nrf_ble_gq_req_t tes_c_req;
+    uint8_t          cccd[BLE_CCCD_VALUE_LEN];
+    uint16_t         cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
+
+    cccd[0] = LSB_16(cccd_val);
+    cccd[1] = MSB_16(cccd_val);
+
+    memset(&tes_c_req, 0, sizeof(tes_c_req));
+ 
+    tes_c_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
+    // tes_c_req.error_handler.cb            = gatt_error_handler;
+    tes_c_req.error_handler.p_ctx         = p_ble_imu_service_c;
+    tes_c_req.params.gattc_write.handle   = handle_cccd;
+    tes_c_req.params.gattc_write.len      = BLE_CCCD_VALUE_LEN;
+    tes_c_req.params.gattc_write.p_value  = cccd;
+    tes_c_req.params.gattc_write.offset   = 0;
+    tes_c_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_REQ;
+
+    return nrf_ble_gq_item_add(p_ble_imu_service_c->p_gatt_queue, &tes_c_req, conn_handle);
 }
 
 
@@ -477,7 +523,7 @@ uint32_t ble_imu_service_c_quaternion_notif_enable(ble_imu_service_c_t * p_ble_i
         return NRF_ERROR_INVALID_STATE;
     }
 
-    return cccd_configure_tes(p_ble_imu_service_c->conn_handle,
+    return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
                           p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle,
                           true);
 }
@@ -491,7 +537,7 @@ uint32_t ble_imu_service_c_adc_notif_enable(ble_imu_service_c_t * p_ble_imu_serv
         return NRF_ERROR_INVALID_STATE;
     }
 
-    return cccd_configure_tes(p_ble_imu_service_c->conn_handle,
+    return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
                           p_ble_imu_service_c->peer_imu_service_db.adc_cccd_handle,
                           true);
 }
@@ -505,7 +551,7 @@ uint32_t ble_imu_service_c_euler_notif_enable(ble_imu_service_c_t * p_ble_imu_se
         return NRF_ERROR_INVALID_STATE;
     }
 
-    return cccd_configure_tes(p_ble_imu_service_c->conn_handle,
+    return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
                           p_ble_imu_service_c->peer_imu_service_db.euler_cccd_handle,
                           true);
 }
@@ -519,14 +565,14 @@ uint32_t ble_imu_service_c_raw_notif_enable(ble_imu_service_c_t * p_ble_imu_serv
         return NRF_ERROR_INVALID_STATE;
     }
 
-    return cccd_configure_tes(p_ble_imu_service_c->conn_handle,
+    return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
                           p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle,
                           true);
 }
 
 uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu_service_config_t * p_data)
 {
-    uint16_t               length = sizeof(ble_imu_service_config_t);
+    uint16_t length = sizeof(ble_imu_service_config_t);
 
     VERIFY_PARAM_NOT_NULL(p_imu_service);
 
@@ -535,24 +581,100 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu
         return NRF_ERROR_INVALID_STATE;
     }
 
+    NRF_LOG_INFO("Send config: conn_handle: %d", p_imu_service->conn_handle)
+
     if (length > BLE_IMU_SERVICE_MAX_DATA_LEN)
     {
+        NRF_LOG_WARNING("Content too long.");
         return NRF_ERROR_INVALID_PARAM;
     }
 
-    ble_gattc_write_params_t write_params;
+    // ble_gattc_write_params_t write_params;
 
-    memset(&write_params, 0, sizeof(write_params));
+    // memset(&write_params, 0, sizeof(write_params));
 
-    write_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    write_params.handle = p_imu_service->peer_imu_service_db.config_handle;
-    write_params.len = length;
-    write_params.p_value = (uint8_t *)p_data;
-    write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+    // write_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    // write_params.handle = p_imu_service->peer_imu_service_db.config_handle;
+    // write_params.len = length;
+    // write_params.offset = 0;
+    // write_params.p_value = (uint8_t *)p_data;
+    // write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+    // return sd_ble_gattc_write(p_imu_service->conn_handle, &write_params);
+
+    nrf_ble_gq_req_t write_req;
+
+    memset(&write_req, 0, sizeof(nrf_ble_gq_req_t));
+
+    write_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
+    // write_req.error_handler.cb            = gatt_error_handler;
+    write_req.error_handler.p_ctx         = p_imu_service;
+    write_req.params.gattc_write.handle   = p_imu_service->peer_imu_service_db.config_handle;
+    write_req.params.gattc_write.len      = length;
+    write_req.params.gattc_write.offset   = 0;
+    write_req.params.gattc_write.p_value  = (uint8_t *)p_data;
+    write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_REQ;
+    // write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_CMD;
+    write_req.params.gattc_write.flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+    ret_code_t err_code;
+    err_code =  nrf_ble_gq_item_add(p_imu_service->p_gatt_queue, &write_req, p_imu_service->conn_handle);
+    return err_code;
 
 
-    return sd_ble_gattc_write(p_imu_service->conn_handle, &write_params);
+    // tx_message_t * p_msg;
+    // // uint16_t       cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
+    
+    // p_msg              = &m_tx_buffer[m_tx_insert_index++];
+    // m_tx_insert_index &= TX_BUFFER_MASK;
+
+    // p_msg->req.write_req.gattc_params.handle   = p_imu_service->peer_imu_service_db.config_handle;
+    // p_msg->req.write_req.gattc_params.len      = length;
+    // p_msg->req.write_req.gattc_params.p_value  = (uint8_t *)p_data;
+    // p_msg->req.write_req.gattc_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+    // // p_msg->req.write_req.gattc_params.offset   = 0;
+    // p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
+    // // p_msg->req.write_req.gattc_value[0]        = LSB_16(cccd_val);
+    // // p_msg->req.write_req.gattc_value[1]        = MSB_16(cccd_val);
+    // p_msg->conn_handle                         = p_imu_service->conn_handle;
+    // p_msg->type                                = WRITE_REQ;
+
+    // tx_buffer_process();
+    // return NRF_SUCCESS;
 }
+
+
+// uint32_t ble_nus_c_string_send(ble_nus_c_t * p_ble_nus_c, uint8_t * p_string, uint16_t length)
+// {
+//     VERIFY_PARAM_NOT_NULL(p_ble_nus_c);
+
+//     nrf_ble_gq_req_t write_req;
+
+//     memset(&write_req, 0, sizeof(nrf_ble_gq_req_t));
+
+//     if (length > BLE_NUS_MAX_DATA_LEN)
+//     {
+//         NRF_LOG_WARNING("Content too long.");
+//         return NRF_ERROR_INVALID_PARAM;
+//     }
+//     if (p_ble_nus_c->conn_handle == BLE_CONN_HANDLE_INVALID)
+//     {
+//         NRF_LOG_WARNING("Connection handle invalid.");
+//         return NRF_ERROR_INVALID_STATE;
+//     }
+
+//     write_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
+//     write_req.error_handler.cb            = gatt_error_handler;
+//     write_req.error_handler.p_ctx         = p_ble_nus_c;
+//     write_req.params.gattc_write.handle   = p_ble_nus_c->handles.nus_rx_handle;
+//     write_req.params.gattc_write.len      = length;
+//     write_req.params.gattc_write.offset   = 0;
+//     write_req.params.gattc_write.p_value  = p_string;
+//     write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_CMD;
+//     write_req.params.gattc_write.flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
+
+//     return nrf_ble_gq_item_add(p_ble_nus_c->p_gatt_queue, &write_req, p_ble_nus_c->conn_handle);
+// }
 
 
 uint32_t ble_imu_service_c_handles_assign(ble_imu_service_c_t    * p_ble_imu_service_c,
@@ -566,7 +688,12 @@ uint32_t ble_imu_service_c_handles_assign(ble_imu_service_c_t    * p_ble_imu_ser
     {
         p_ble_imu_service_c->peer_imu_service_db = *p_peer_handles;
     }
-    return NRF_SUCCESS;
+
+    NRF_LOG_INFO("conn_handle assign: %d", p_ble_imu_service_c->conn_handle);
+
+    // return NRF_SUCCESS;
+
+    return nrf_ble_gq_conn_handle_register(p_ble_imu_service_c->p_gatt_queue, conn_handle);
 }
 
 // #endif // NRF_MODULE_ENABLED(BLE_IMU_SERVICE_C)

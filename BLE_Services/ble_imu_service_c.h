@@ -314,12 +314,14 @@ struct ble_imu_service_c_s
     ble_imu_service_c_evt_handler_t evt_handler;  /**< Application event handler to be called when there is an event related to the Thingy Enviroment service. */
     uint8_t                 uuid_type;    /**< UUID type. */
     // ble_gatts_char_handles_t config_handles;               /**< Handles related to the config characteristic (as provided by the S132 SoftDevice). */
+    nrf_ble_gq_t            * p_gatt_queue; /**< Pointer to the BLE GATT Queue instance. */
 };
 
 /**@brief Thingy Enviroment Client initialization structure. */
 typedef struct
 {
     ble_imu_service_c_evt_handler_t evt_handler;  /**< Event handler to be called by the Thingy Enviroment Client module whenever there is an event related to the Thingy Enviroment Service. */
+    nrf_ble_gq_t            * p_gatt_queue; /**< Pointer to the BLE GATT Queue instance. */
 } ble_imu_service_c_init_t;
 
 

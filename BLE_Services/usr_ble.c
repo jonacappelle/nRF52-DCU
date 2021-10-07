@@ -7,7 +7,12 @@
 #include "nordic_common.h"
 
 // Logging
+
+#define NRF_LOG_MODULE_NAME usr_ble_c
 #include "nrf_log.h"
+NRF_LOG_MODULE_REGISTER();
+
+// #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
 
@@ -85,7 +90,7 @@ IMU imu = {
 // Initialisation of struct to keep track of different buffers
 BUFFER buffer;
 
-static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU2", "IMU2", "IMU2", "IMU2"};
+static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU1", "IMU2", "IMU3", "IMU4"};
 
 #define APP_BLE_CONN_CFG_TAG 1  /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO 3 /**< BLE observer priority of the application. There is no need to modify this value. */
@@ -214,22 +219,6 @@ static void nus_c_init(void)
 BLE_IMU_SERVICE_C_ARRAY_DEF(m_imu_service_c, NRF_SDH_BLE_CENTRAL_LINK_COUNT); /**< Structure used to identify the battery service. */
 
 
-void ble_send_config(ble_imu_service_config_t * stop_config)
-{
-    ret_code_t err_code;
-
-    // Send config to peripheral
-    for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
-    {
-        err_code = ble_imu_service_config_set(&m_imu_service_c[i], stop_config);
-        if (err_code != NRF_SUCCESS)
-        {
-            NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
-        }
-    }
-}
-
-
 static void queue_process_packet(received_data_t * data, uint32_t * len)
 {
     ret_code_t err_code;
@@ -276,7 +265,6 @@ void print_packet_count(ble_imu_service_c_evt_t *p_evt)
 }
 
 
-
 void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt)
 {
 
@@ -285,17 +273,33 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
     // Print packet count for each connected device
     // print_packet_count(p_evt);
 
+    NRF_LOG_INFO("imu_service_c_evt_handler: %d", p_evt->evt_type);
+
     switch (p_evt->evt_type)
     {
         ret_code_t err_code;
 
     case BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE:
     {
+
+        NRF_LOG_INFO("imu_service_c_evt_handler: conn_handle: %d", p_evt->conn_handle);
+
         // Assign connection handles
-        usr_ble_handles_assign(p_ble_imu_service_c, p_evt);
+        // usr_ble_handles_assign(p_ble_imu_service_c, p_evt);
+
+        ret_code_t err_code;
+
+        err_code = ble_imu_service_c_handles_assign(p_ble_imu_service_c,
+                                        p_evt->conn_handle,
+                                        &p_evt->params.peer_db);
+        APP_ERROR_CHECK(err_code);
+
+        NRF_LOG_INFO("IMU assigned conn_handle: %d - %d, %d", p_ble_imu_service_c->conn_handle, m_imu_service_c[0].conn_handle, m_imu_service_c[1].conn_handle);
 
         // Enable notifications - in peripheral this equates to turning on the sensors
         usr_enable_notif(p_ble_imu_service_c, p_evt);
+
+        NRF_LOG_FLUSH();
     }
     break;
 
@@ -424,6 +428,7 @@ void imu_service_c_init()
 
     ble_imu_service_c_init_t imu_service_c_init_obj;
     imu_service_c_init_obj.evt_handler = imu_service_c_evt_handler;
+    imu_service_c_init_obj.p_gatt_queue = &m_ble_gatt_queue;
 
     for (uint32_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
@@ -436,9 +441,11 @@ void usr_ble_handles_assign(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_se
 {
     ret_code_t err_code;
 
-    err_code = ble_imu_service_c_handles_assign(m_imu_service_c,
+    err_code = ble_imu_service_c_handles_assign(p_ble_imu_service_c,
                                         p_evt->conn_handle,
                                         &p_evt->params.peer_db);
+
+    
     NRF_LOG_INFO("Thingy Environment service discovered on conn_handle 0x%x.", p_evt->conn_handle);
 }
 
@@ -461,18 +468,20 @@ void usr_ble_config_send(ble_imu_service_config_t config)
 {
     ret_code_t err_code;
 
-    // Send config to peripheral
+    //You can iterate through the list of connection handles:
     for (uint8_t i = 0; i < NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        // do
-        // {
+        NRF_LOG_INFO("IMU conn_handle: %d", m_imu_service_c[i].conn_handle);
+
         err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
-        // if(err_code != NRF_SUCCESS)
+
+        // if(err_code != NRF_ERROR_INVALID_STATE && err_code != NRF_SUCCESS) 
         // {
-        //     NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
+            APP_ERROR_CHECK(err_code);
         // }
-        NRF_LOG_INFO("ble_imu_service_config_set error %d", err_code);
-        // }while(err_code == NRF_ERROR_RESOURCES);
+        
+        NRF_LOG_FLUSH();
+
     }
 }
 
@@ -722,6 +731,8 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
 {
     ret_code_t err_code;
 
+    NRF_LOG_INFO("bas_c_evt_handler: %d", p_bas_c_evt->evt_type);
+
     switch (p_bas_c_evt->evt_type)
     {
         case BLE_BAS_C_EVT_DISCOVERY_COMPLETE:
@@ -730,6 +741,8 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
                                                 p_bas_c_evt->conn_handle,
                                                 &p_bas_c_evt->params.bas_db);
             APP_ERROR_CHECK(err_code);
+
+            NRF_LOG_INFO("BAS assigned conn_handle: %d - %d, %d", p_bas_c_evt->conn_handle, m_bas_c[0].conn_handle, m_bas_c[1].conn_handle);
 
             // Battery service discovered. Enable notification of Battery Level.
             NRF_LOG_DEBUG("Battery Service discovered. Reading battery level.");
@@ -740,6 +753,8 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
             NRF_LOG_DEBUG("Enabling Battery Level Notification.");
             err_code = ble_bas_c_bl_notif_enable(p_bas_c);
             APP_ERROR_CHECK(err_code);
+
+            NRF_LOG_FLUSH();
 
         } break;
 
@@ -800,8 +815,6 @@ void usr_batt_print_conn_handle()
         }
         uart_print("------------------------------------------\n");  
 }
-
-
 
 
 
@@ -878,6 +891,9 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         /* END CHANGES */
 
         APP_ERROR_CHECK(err_code);
+
+
+        NRF_LOG_INFO("ble_evt_handler conn_handle: %d", p_gap_evt->conn_handle);
 
         // IMU_SERVICE CHANGES - add handles
         err_code = ble_imu_service_c_handles_assign(&m_imu_service_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
@@ -1118,6 +1134,8 @@ void ble_stack_init(void)
 /**@brief Function for handling events from the GATT library. */
 void gatt_evt_handler(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt)
 {
+    NRF_LOG_INFO("BLE gatt evt handler");
+
     if (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED)
     {
         NRF_LOG_INFO("ATT MTU exchange completed.");
