@@ -7,8 +7,10 @@
 #include <stdbool.h>
 #include <string.h>
 
+#include "ble_imu_service_c.h"
 
-void comm_parse_quat(uint8_t sensor_nr, int16_t w, int16_t x, int16_t y, int16_t z, uint8_t *data, uint32_t * len);
+
+void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * data_in);
 
 
 #endif

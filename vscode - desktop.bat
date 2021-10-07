@@ -21,8 +21,8 @@ set PCA10056_SN=000000000
 set PCA10040_SN=682864789
 set PCA10040_SN=261004954
 set PCA10040_SN=682242161
-set PCA10040_SN=261004954
 set PCA10040_SN=682242161
+set PCA10040_SN=261004954
 
 start "C:/Users/JonaCappelle/AppData/Local/Programs/Microsoft VS Code/Code.exe" workspace.code-workspace
 exit

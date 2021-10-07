@@ -310,9 +310,21 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
     case BLE_IMU_SERVICE_EVT_QUAT:
     {
+
+        #ifdef USE_INTERNAL_COMM
+
+        NRF_LOG_INFO("QUAT received");
+
+        // Build packet
+        ble_imu_service_c_evt_type_t type = BLE_IMU_SERVICE_EVT_QUAT;
+        comm_process(type, p_evt);
+
+        NRF_LOG_INFO("QUAT processed");
+
+        #else
+
         for (uint8_t i = 0; i < BLE_PACKET_BUFFER_COUNT; i++)
         {
-
             received_data_t received_quat;
             uint32_t received_quat_len = sizeof(received_quat);
 
@@ -321,29 +333,6 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
             received_quat.conn_handle = p_evt->conn_handle;
             received_quat.quat_data_present = 1;
-
-        #ifdef USE_INTERNAL_COMM
-
-        // NRF_LOG_INFO("QUAT received");
-
-        // Received data
-        int32_t q_w = p_evt->params.value.quat_data.quat[i].w;
-        int32_t q_x = p_evt->params.value.quat_data.quat[i].x;
-        int32_t q_y = p_evt->params.value.quat_data.quat[i].y;
-        int32_t q_z = p_evt->params.value.quat_data.quat[i].z;
-
-        // Parse data
-        uint8_t parsed_packet[256];
-        uint32_t parsed_packet_len = 0;
-        uint8_t sensor_nr = (uint8_t) p_evt->conn_handle + 1;
-
-        // Build packet
-        comm_parse_quat(sensor_nr, q_w, q_x, q_y, q_z, parsed_packet, &parsed_packet_len);
-
-        // Send over UART to STM32
-        uart_queued_tx((uint8_t *) parsed_packet, &parsed_packet_len);
-
-        #else
 
             #define FIXED_POINT_FRACTIONAL_BITS_QUAT 30
 
@@ -356,10 +345,8 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
             // Put data into FIFO buffer and let event handler know to process the packet
             queue_process_packet(&received_quat, &received_quat_len);
-
-        #endif
-
         }
+        #endif
 
     }
     break;
