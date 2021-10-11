@@ -313,13 +313,9 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
         #ifdef USE_INTERNAL_COMM
 
-        NRF_LOG_INFO("QUAT received");
-
-        // Build packet
+        // Process packet
         ble_imu_service_c_evt_type_t type = BLE_IMU_SERVICE_EVT_QUAT;
         comm_process(type, p_evt);
-
-        NRF_LOG_INFO("QUAT processed");
 
         #else
 
@@ -369,6 +365,13 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
     case BLE_IMU_SERVICE_EVT_RAW:
     {
+        #ifdef USE_INTERNAL_COMM
+
+        // Process packet
+        ble_imu_service_c_evt_type_t type = BLE_IMU_SERVICE_EVT_RAW;
+        comm_process(type, p_evt);
+
+        #else
 
         for (uint8_t i = 0; i < BLE_PACKET_BUFFER_COUNT; i++)
         {
@@ -408,6 +411,8 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
             // NRF_LOG_INFO("raw:  accel: %d   %d  %d", (int)(accel[0]*1000), (int)(accel[1]*1000), (int)(accel[2]*1000));
             // NRF_LOG_INFO("raw:  mag: %d %d  %d", (int)(mag[0]*1000), (int)(mag[1]*1000), (int)(mag[2]*1000));
         }
+
+        #endif
     }
     break;
 
