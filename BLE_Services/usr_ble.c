@@ -535,6 +535,12 @@ ret_code_t imu_disconnect(uint32_t conn_handle_num)
     return err_code;
 }
 
+void set_config_raw_enable(bool enable)
+{
+    imu.gyro_enabled = enable;
+    imu.accel_enabled = enable;
+    imu.mag_enabled = enable;
+}
 
 void set_config_sync_enable(bool enable)
 {

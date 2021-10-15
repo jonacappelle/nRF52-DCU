@@ -1,6 +1,8 @@
 #include "usr_internal_comm.h"
 
 #include "usr_uart.h"
+#include "usr_ble.h"
+#include "usr_time_sync.h"
 
 // Logging
 #include "nrf_log_ctrl.h"
@@ -13,7 +15,9 @@ NRF_LOG_MODULE_REGISTER();
 #define START_BYTE          0x73 // s
 #define OVERHEAD_BYTES      6
 #define PACKET_DATA_PLACEHOLDER 5
-
+#define USR_INTERNAL_COMM_MAX_LEN   64
+#define CONFIG_PACKET_DATA_OFFSET   3
+#define CS_LEN                      1
 
 typedef enum 
 { 
@@ -28,26 +32,243 @@ typedef enum
     RAW
 } data_type_byte_t;
 
+
+typedef enum
+{
+    COMM_CMD_MEAS_START = 1,
+    COMM_CMD_MEAS_STOP,
+    COMM_CMD_MEAS_RAW,
+    COMM_CMD_MEAS_QUAT6,
+    COMM_CMD_MEAS_QUAT9,
+    COMM_CMD_MEAS_WOM
+} command_type_meas_byte_t;
+
+typedef enum
+{
+    COMM_CMD_START_SYNC = 1,
+    COMM_CMD_STOP_SYNC
+} command_type_sync_byte_t;
+
 typedef enum 
 { 
     COMM_CMD_LIST_CONN_DEV = 1,
-    COMM_CMD_GYRO,
-    COMM_CMD_ACCEL,
-    COMM_CMD_MAG,
-    COMM_CMD_EULER,
-    COMM_CMD_QUAT6,
-    COMM_CMD_QUAT9,
-    COMM_CMD_START_SYNC,
-    COMM_CMD_STOP_SYNC,
-    COMM_CMD_SET_FREQUENCY,
+    COMM_CMD_MEAS,
+    COMM_CMD_SYNC,
+    COMM_CMD_FREQUENCY,
     COMM_CMD_RESET,
-    COMM_CMD_SEND_CONFIG,
     COMM_CMD_BATTERY_LEVEL
 } command_type_byte_t;
 
 
 
-uint8_t calculate_cs(uint8_t * data, uint32_t * len) //tested
+static void decode_meas(uint8_t data)
+{
+    switch (data)
+    {
+    case COMM_CMD_MEAS_START:
+        config_send();
+        break;
+    
+    case COMM_CMD_MEAS_STOP:
+        set_config_reset();
+        config_send();
+        break;
+
+    case COMM_CMD_MEAS_RAW:
+        set_config_raw_enable(1);
+        break;
+
+    case COMM_CMD_MEAS_QUAT6:
+        set_config_quat6_enable(1);
+        break;
+
+    case COMM_CMD_MEAS_QUAT9:
+        set_config_quat9_enable(1);
+        break;
+
+    case COMM_CMD_MEAS_WOM:
+        set_config_wom_enable(1);
+        break;
+
+    default:
+        break;
+    }
+}
+
+static void decode_sync(uint8_t data)
+{
+    ret_code_t err_code;
+
+    switch (data)
+    {
+    case COMM_CMD_START_SYNC:
+        
+        // Start synchronization
+        err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO); //TIME_SYNC_FREQ_AUTO
+        // err_code = ts_tx_start(2);
+        APP_ERROR_CHECK(err_code);
+        // ts_gpio_trigger_enable();
+        ts_imu_trigger_enable();
+        NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+
+        set_config_sync_enable(1);
+
+        break;
+    
+    case COMM_CMD_STOP_SYNC:
+
+         // Stop synchronization
+        err_code = ts_tx_stop();
+        ts_imu_trigger_disable();
+        APP_ERROR_CHECK(err_code);
+        NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+
+        set_config_sync_enable(0);
+
+        break;
+
+    default:
+        break;
+    }
+}
+
+static void decode_frequency(uint8_t data)
+{
+    set_config_frequency(data);
+}
+
+
+void comm_rx_process(void *p_event_data, uint16_t event_size)
+{
+    //| START_BYTE | packet_len | command (CONFIG_BYTE) |  config_data | CS    |
+    //| ----------- |-----------|---------           --|------------- |-----  -|
+    //| 1 byte        | 1 byte  |               1 byte |      k bytes |  1 byte |
+
+
+    // Get data from buffer - store in var rx_data
+    uint8_t p_byte;
+    uint8_t rx_data[USR_INTERNAL_COMM_MAX_LEN];
+    uint8_t i = 0;
+    while ((uart_rx_buff_get(&p_byte) != NRF_ERROR_NOT_FOUND))
+    {
+        rx_data[i] = p_byte;
+        i++;
+    }
+
+    // Store the received packet length
+    uint8_t len = i;
+
+    // Check if start byte is correct
+    if(rx_data[0] != START_BYTE)
+    {
+        NRF_LOG_INFO("Invalid RX packet received");
+        NRF_LOG_INFO("Start byte not correct");
+        return;
+    }
+
+    // Check if packet len == received packet len
+    if(rx_data[1] != len)
+    {
+        NRF_LOG_INFO("Invalid RX packet received");
+        NRF_LOG_INFO("Invalid RX packet len");
+        return;
+    }
+
+    
+    // Check checksum (not including last CS byte)
+    uint32_t len_no_cs = len - CS_LEN;
+    uint8_t cs = calculate_cs(rx_data, &len_no_cs);
+
+    if(cs != rx_data[len_no_cs])
+    {
+        NRF_LOG_INFO("Invalid RX packet received");
+        NRF_LOG_INFO("Invalid RX packet CS");
+        return;
+    }
+
+    // Check for command dataframe
+    command_byte_t command = rx_data[2];
+    if(command !=  CONFIG)
+    {
+        NRF_LOG_INFO("Invalid RX packet received");
+        NRF_LOG_INFO("Invalid COMMAND received");
+        return;
+    }
+
+    // Decode payload
+    uint8_t remaining_data_len = len_no_cs - CONFIG_PACKET_DATA_OFFSET;
+    uint8_t j = CONFIG_PACKET_DATA_OFFSET;
+    
+    while(remaining_data_len >=1) // Keep processing when there is data available
+    {
+        uint8_t config_data = rx_data[j]; // Get packet
+
+        switch (config_data)
+        {
+        case COMM_CMD_LIST_CONN_DEV:
+
+            // TODO: return packet with connected devices
+
+            remaining_data_len--;
+            j++;
+            break;
+
+        case COMM_CMD_MEAS:
+
+            // Check which measurement to start
+            config_data = rx_data[j+1]; // Peek the next byte
+
+            // Decode meas payload
+            decode_meas(config_data);
+
+            remaining_data_len = remaining_data_len-2;
+            j=j+2;
+            break;
+        
+        case COMM_CMD_SYNC:
+            
+            config_data = rx_data[j+1];
+            
+            decode_sync(config_data);
+
+            remaining_data_len = remaining_data_len-2;
+            j=j+2;
+            break;
+
+        case COMM_CMD_FREQUENCY:
+
+            config_data = rx_data[j+1];
+
+            decode_frequency(config_data);
+
+            remaining_data_len = remaining_data_len-2;
+            j=j+2;
+            break;
+
+        case COMM_CMD_RESET:
+
+            set_config_reset();
+
+            remaining_data_len--;
+            j++;
+            break;
+
+        case COMM_CMD_BATTERY_LEVEL:
+
+            // TODO return battery level packet
+
+            remaining_data_len--;
+            j++;
+            break;
+
+        default:
+            break;
+        }
+    }
+}
+
+
+static uint8_t calculate_cs(uint8_t * data, uint32_t * len) //tested
 {
     // Init to zero
     uint8_t cs = 0x00;
@@ -68,13 +289,13 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     // | ----------- |-----------|-----------|------------|-----------|----------------|---|
     // | 1 byte     | 1 byte     | 1 byte               | 1 byte    | 1 byte    | k bytes | 1 byte |
 
-    
+    ret_code_t err_code;
 
     // BLE_PACKET_BUFFER_COUNT bytes in 1 BLE packet
     for(uint8_t i=0; i<BLE_PACKET_BUFFER_COUNT; i++)
     {
 
-        uint8_t data_out[64]; //64 bytes long is more than enough for a data packet
+        uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
 
         uint32_t data_len = 0;
         data_type_byte_t type_byte;
@@ -160,7 +381,12 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
             }break;
         }
 
-        // TODO change place for CS - is now at wrong place
+        // check for buffer overflows
+        if(data_len >= USR_INTERNAL_COMM_MAX_LEN)
+        {
+            err_code = NRF_ERROR_NO_MEM;
+            APP_ERROR_CHECK(err_code);
+        }
 
         // Send over UART to STM32
         uart_queued_tx(data_out, &data_len);

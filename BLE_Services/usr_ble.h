@@ -148,6 +148,7 @@ void scan_start(void);
 void usr_ble_print_settings();
 void usr_ble_print_connection_handles();
 
+void set_config_raw_enable(bool enable);
 void set_config_sync_enable(bool enable);
 void set_config_adc_enable(bool enable);
 void set_config_gyro_enable(bool enable);

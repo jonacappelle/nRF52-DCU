@@ -23,6 +23,8 @@
 
 #include "main.h"
 
+#define USE_INTERNAL_COMM
+
 
 int main(void)
 {
@@ -49,7 +51,11 @@ int main(void)
     scheduler_init();
 
     // A better UART driver than nrf_uart_drv - asynchronous with DMA and QUEUE
+    #ifdef USE_INTERNAL_COMM
+    libuarte_init(comm_rx_process);
+    #else
     libuarte_init(uart_rx_scheduled);
+    #endif
 
     // Initialize BLE receive buffers
     received_data_buffers_init();
