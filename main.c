@@ -23,7 +23,7 @@
 
 #include "main.h"
 
-#define USE_INTERNAL_COMM
+// #define USE_INTERNAL_COMM
 
 
 int main(void)

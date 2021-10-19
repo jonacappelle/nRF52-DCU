@@ -97,6 +97,49 @@ BUFFER buffer;
 
 static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU1", "IMU2", "IMU3", "IMU4"};
 
+static ble_gap_addr_t const address_1 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xF2, 0x9C, 0x43, 0xE8, 0x5C, 0xD2 }
+};
+static ble_gap_addr_t const address_2 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0x44, 0x11, 0x91, 0xC8, 0xA8, 0xD3 }
+};
+
+static ble_gap_addr_t const address_3 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const address_4 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const address_5 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const address_6 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const address_7 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const address_8 = {
+    .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF }
+};
+
+static ble_gap_addr_t const m_target_periph_address[NRF_BLE_SCAN_ADDRESS_CNT] = { address_1, address_2 };
+// static ble_gap_addr_t const m_target_periph_address = { address_1, address_2 };
+
+
 #define APP_BLE_CONN_CFG_TAG 1  /**< Tag that refers to the BLE stack configuration set with @ref sd_ble_cfg_set. The default tag is @ref BLE_CONN_CFG_TAG_DEFAULT. */
 #define APP_BLE_OBSERVER_PRIO 3 /**< BLE observer priority of the application. There is no need to modify this value. */
 
@@ -107,6 +150,11 @@ NRF_BLE_GQ_DEF(m_ble_gatt_queue, /**< BLE GATT Queue instance. */
                NRF_SDH_BLE_CENTRAL_LINK_COUNT,
                NRF_BLE_GQ_QUEUE_SIZE);
 
+
+// Keep track of connected device conn_handles and IDs
+dcu_connected_devices_t dcu_conn_dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+
+// List of devices that can connect
 
 
 
@@ -890,6 +938,19 @@ static void db_disc_handler(ble_db_discovery_evt_t *p_evt)
 }
 
 
+bool compare_equal_ble_gap_addr_t(ble_gap_addr_t first, ble_gap_addr_t second)
+{
+    for(uint16_t i=0; i<BLE_GAP_ADDR_LEN; i++)
+    {
+       if( first.addr[i] != second.addr[i])
+       {
+           return false;
+       }
+    }
+    return true;
+}
+
+
 /**@brief Function for handling BLE events.
  *
  * @param[in]   p_ble_evt   Bluetooth stack event.
@@ -912,6 +973,44 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
 
     case BLE_GAP_EVT_CONNECTED:
     {
+
+        NRF_LOG_INFO("Connected to %02x:%02x:%02x:%02x:%02x:%02x", p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[0],
+                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[1],
+                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[2],
+                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[3],
+                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[4],
+                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[5]);
+        NRF_LOG_INFO("conn_handle: %02x", p_ble_evt->evt.gap_evt.conn_handle);
+
+        // Save connection handles and IDs
+        if(p_gap_evt->conn_handle != BLE_CONN_HANDLE_INVALID)
+        {
+            for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+            {
+                // Search address in table
+                if(compare_equal_ble_gap_addr_t(dcu_conn_dev[i].addr, p_gap_evt->params.connected.peer_addr))
+                {
+                    // Map connection handle to address
+                    dcu_conn_dev[i].conn_handle = p_gap_evt->conn_handle;
+
+                    NRF_LOG_INFO("SAVED conn_handle: %d", dcu_conn_dev[i].conn_handle);
+
+                    NRF_LOG_INFO("SAVED id: %02x:%02x:%02x:%02x:%02x:%02x",
+                        dcu_conn_dev[i].addr.addr[0],
+                        dcu_conn_dev[i].addr.addr[1],
+                        dcu_conn_dev[i].addr.addr[2],
+                        dcu_conn_dev[i].addr.addr[3],
+                        dcu_conn_dev[i].addr.addr[4],
+                        dcu_conn_dev[i].addr.addr[5]);
+                }            
+            }
+        }else
+        {
+            err_code = NRF_ERROR_NOT_FOUND;
+            APP_ERROR_CHECK(err_code);
+        }
+
+
         /* CHANGES */
         //err_code = ble_nus_c_handles_assign(&m_ble_nus_c, p_ble_evt->evt.gap_evt.conn_handle, NULL);
         err_code = ble_nus_c_handles_assign(&m_ble_nus_c[p_ble_evt->evt.gap_evt.conn_handle], p_ble_evt->evt.gap_evt.conn_handle, NULL);
@@ -963,12 +1062,34 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         uart_print(str1);
         // uart_print("------------------------------------------\n");
 
-        DCU_set_connection_leds(p_gap_evt->conn_handle, CONNECTION);
+        DCU_set_connection_leds(dcu_conn_dev, CONNECTION);
     }
     break;
 
     case BLE_GAP_EVT_DISCONNECTED:
     {
+
+        // Delete connection handles and IDs
+        if(p_gap_evt->conn_handle != BLE_CONN_HANDLE_INVALID)
+        {
+            for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+            {
+                // Search address in table
+                if(dcu_conn_dev[i].conn_handle == p_gap_evt->conn_handle)
+                {
+                    NRF_LOG_INFO("Disconnected: equal ID found!")
+                    // Map connection handle to address
+                    dcu_conn_dev[i].conn_handle = BLE_CONN_HANDLE_INVALID;
+                    NRF_LOG_INFO("Set connection handle to INVALID");
+                }            
+            }
+        }else
+        {
+            err_code = NRF_ERROR_NOT_FOUND;
+            APP_ERROR_CHECK(err_code);
+        }
+
+        
         // Print to uart if device disconnects
         char str2[100];
         sprintf(str2, "Disconnected: %d\n", p_gap_evt->conn_handle);
@@ -980,7 +1101,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
                      p_gap_evt->conn_handle,
                      p_gap_evt->params.disconnected.reason);
 
-        DCU_set_connection_leds(p_gap_evt->conn_handle, DISCONNECTION);
+        DCU_set_connection_leds(dcu_conn_dev, DISCONNECTION);
     }
     break;
 
@@ -1121,15 +1242,41 @@ void scan_init(void)
     err_code = nrf_ble_scan_init(&m_scan, &init_scan, scan_evt_handler);
     APP_ERROR_CHECK(err_code);
 
-    // Set filter based on name
-    for (int i=0; i< NRF_BLE_SCAN_NAME_CNT; i++){
-        err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_NAME_FILTER, m_target_periph_name[i]);
+    // // Set filter based on name
+    // for (int i=0; i< NRF_BLE_SCAN_NAME_CNT; i++){
+    //     err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_NAME_FILTER, m_target_periph_name[i]);
+    //     APP_ERROR_CHECK(err_code);
+    // }
+
+    // // Only enable name filter
+    // err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_NAME_FILTER, true);
+    // APP_ERROR_CHECK(err_code);
+
+    // Set filter based on address
+    for (int i=0; i< NRF_BLE_SCAN_ADDRESS_CNT; i++){
+        err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_ADDR_FILTER, &m_target_periph_address[i].addr);
         APP_ERROR_CHECK(err_code);
     }
 
-    // Only enable name filter
-    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_NAME_FILTER, true);
+    // Only enable address filter
+    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_ADDR_FILTER, true);
     APP_ERROR_CHECK(err_code);
+
+    // To start, set all connection handles invalid
+    for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+    {
+        dcu_conn_dev[i].conn_handle = BLE_CONN_HANDLE_INVALID;
+    }
+
+    // Add fixed addresses to list
+    dcu_conn_dev[0].addr = address_1;
+    dcu_conn_dev[1].addr = address_2;
+    dcu_conn_dev[2].addr = address_3;
+    dcu_conn_dev[3].addr = address_4;
+    dcu_conn_dev[4].addr = address_5;
+    dcu_conn_dev[5].addr = address_6;
+    dcu_conn_dev[6].addr = address_7;
+    dcu_conn_dev[7].addr = address_8;
 }
 
 

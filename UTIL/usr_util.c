@@ -25,6 +25,7 @@
 
 #include "bsp_btn_ble.h"
 
+
 extern BATTERY_ARRAY batt_array;
 
 /**
@@ -413,7 +414,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
 
             // for(uint8_t i=0; i<)
 
-            // // if(batt.level != BATT_INVALID_VALUE)
+            // // if(batt.level != INVALID_VALUE)
             // // {
             //     uint8_t temp[10];
             //     sprintf(temp, "Battery level:   %0.2f   ( +- %d procent )\n", batt.voltage, batt.level);
@@ -701,8 +702,7 @@ void dcu_leds_reset()
 
 bool first_connection = 1;
 
-
-void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state)
+void DCU_set_connection_leds(dcu_connected_devices_t evt[], uint8_t state)
 {
     ret_code_t err_code;
 
@@ -728,23 +728,39 @@ void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state)
         }
     }
     
-    switch (state)
+    // switch (state)
+    // {
+    //     case CONNECTION:
+    //     {
+    //         // Set appropriate LED on
+
+    //         uint16_t temp;
+            
+            
+            
+    //         nrf_gpio_pin_set(dcu_led_list[temp]);
+    //     }
+    //     break;
+
+    //     case DISCONNECTION:
+    //     {
+    //         nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
+    //     }
+    //     break;
+
+    //     default:
+    //     {
+    //         nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
+    //     }
+    // }
+
+    for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
-        case CONNECTION:
+        if(evt[i].conn_handle != BLE_CONN_HANDLE_INVALID)
         {
-            nrf_gpio_pin_set(dcu_led_list[conn_handle]);
-        }
-        break;
-
-        case DISCONNECTION:
-        {
-            nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
-        }
-        break;
-
-        default:
-        {
-            nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
+            nrf_gpio_pin_set(dcu_led_list[i]);
+        }else{
+            nrf_gpio_pin_clear(dcu_led_list[i]);
         }
     }
 

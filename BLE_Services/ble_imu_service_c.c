@@ -284,54 +284,54 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
         for (uint32_t i = 0; i < p_evt->params.discovered_db.char_count; i++)
         {
             const ble_gatt_db_char_t * p_char = &(p_evt->params.discovered_db.charateristics[i]);
-            NRF_LOG_INFO("<i=%d> UUID : %x", i, p_char->characteristic.uuid.uuid);
+            // NRF_LOG_INFO("<i=%d> UUID : %x", i, p_char->characteristic.uuid.uuid);
             switch (p_char->characteristic.uuid.uuid)
             {
                 case IMU_SERVICE_UUID_CONFIG_CHAR:
                     evt.params.peer_db.config_cccd_handle      = p_char->cccd_handle;
                     evt.params.peer_db.config_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("401 evt CONFIG handle = %d", p_char->characteristic.handle_value);
+                    // NRF_LOG_INFO("401 evt CONFIG handle = %d", p_char->characteristic.handle_value);
                     break;                    
                 case IMU_SERVICE_UUID_TAP_CHAR:
                     evt.params.peer_db.tap_cccd_handle      = p_char->cccd_handle;
                     evt.params.peer_db.tap_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("402 evt TAP handle = %d", p_char->characteristic.handle_value);
+                    // NRF_LOG_INFO("402 evt TAP handle = %d", p_char->characteristic.handle_value);
                     break;
                 case IMU_SERVICE_UUID_ADC_CHAR: 
                     evt.params.peer_db.adc_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.adc_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("403 evt ADC handle = %d", evt.params.peer_db.adc_handle);
+                    // NRF_LOG_INFO("403 evt ADC handle = %d", evt.params.peer_db.adc_handle);
                     break;
                 case IMU_SERVICE_UUID_QUATERNION_CHAR:
                     evt.params.peer_db.quat_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.quat_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("404 evt Quaternion handle = %d", evt.params.peer_db.quat_handle);
+                    // NRF_LOG_INFO("404 evt Quaternion handle = %d", evt.params.peer_db.quat_handle);
                 case IMU_SERVICE_UUID_PEDOMETER_CHAR: 
                     evt.params.peer_db.pedometer_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.pedometer_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("405 evt step counter handle = %d", evt.params.peer_db.pedometer_handle);
+                    // NRF_LOG_INFO("405 evt step counter handle = %d", evt.params.peer_db.pedometer_handle);
                 case IMU_SERVICE_UUID_RAW_CHAR:
                     evt.params.peer_db.raw_cccd_handle      = p_char->cccd_handle;
                     evt.params.peer_db.raw_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("406 evt raw data handle = %d", evt.params.peer_db.raw_handle);
+                    // NRF_LOG_INFO("406 evt raw data handle = %d", evt.params.peer_db.raw_handle);
                     break;
                 case IMU_SERVICE_UUID_EULER_CHAR: 
                     evt.params.peer_db.euler_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.euler_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("407 evt euler handle = %d", evt.params.peer_db.euler_handle);
+                    // NRF_LOG_INFO("407 evt euler handle = %d", evt.params.peer_db.euler_handle);
                     break;
                 case IMU_SERVICE_UUID_ROT_MAT_CHAR: 
                     evt.params.peer_db.rot_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.rot_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("408 evt rotation matrix handle = %d", evt.params.peer_db.rot_handle);
+                    // NRF_LOG_INFO("408 evt rotation matrix handle = %d", evt.params.peer_db.rot_handle);
                 case IMU_SERVICE_UUID_HEADING_CHAR:
                     evt.params.peer_db.heading_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.heading_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("409 evt heading handle = %d", evt.params.peer_db.heading_handle);
+                    // NRF_LOG_INFO("409 evt heading handle = %d", evt.params.peer_db.heading_handle);
                 case IMU_SERVICE_UUID_GRAVITY_CHAR: 
                     evt.params.peer_db.gravity_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.gravity_handle = p_char->characteristic.handle_value;
-                    NRF_LOG_INFO("410 evt gravity handle = %d", evt.params.peer_db.gravity_handle);
+                    // NRF_LOG_INFO("410 evt gravity handle = %d", evt.params.peer_db.gravity_handle);
                 default:
                     break;
             }

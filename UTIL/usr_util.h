@@ -12,6 +12,8 @@
 #include "app_timer.h"
 #include "app_fifo.h"
 
+#include "usr_ble.h"
+
 void uart_rx_scheduled(void *p_event_data, uint16_t event_size);
 
 void idle_state_handle(void);
@@ -41,7 +43,7 @@ uint8_t usr_adc_voltage_to_percent(float voltage);
 
 void leds_startup(void);
 void create_timers();
-void DCU_set_connection_leds(uint16_t conn_handle, uint8_t state);
+void DCU_set_connection_leds(dcu_connected_devices_t evt[], uint8_t state);
 
 void check_reset_reason();
 void clocks_start(void);

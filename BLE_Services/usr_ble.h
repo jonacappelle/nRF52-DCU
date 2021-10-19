@@ -22,7 +22,15 @@
 #define CONNECTION   1
 #define DISCONNECTION 0
 
-#define BATT_INVALID_VALUE  0xFF
+#define INVALID_VALUE  0xFFFF
+
+// Match connection handles to unique IDs
+typedef struct
+{
+  uint16_t conn_handle;
+  ble_gap_addr_t addr;
+} dcu_connected_devices_t;
+
 
 typedef struct batt
 {
