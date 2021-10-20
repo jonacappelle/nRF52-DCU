@@ -35,9 +35,7 @@ typedef enum
 
 typedef enum
 {
-    COMM_CMD_MEAS_START = 1,
-    COMM_CMD_MEAS_STOP,
-    COMM_CMD_MEAS_RAW,
+    COMM_CMD_MEAS_RAW = 1,
     COMM_CMD_MEAS_QUAT6,
     COMM_CMD_MEAS_QUAT9,
     COMM_CMD_MEAS_WOM
@@ -52,9 +50,12 @@ typedef enum
 typedef enum 
 { 
     COMM_CMD_LIST_CONN_DEV = 1,
+    COMM_CMD_START,
+    COMM_CMD_STOP,
     COMM_CMD_MEAS,
     COMM_CMD_SYNC,
     COMM_CMD_FREQUENCY,
+    COMM_CMD_CALIBRATE,
     COMM_CMD_RESET,
     COMM_CMD_BATTERY_LEVEL
 } command_type_byte_t;
@@ -65,15 +66,6 @@ static void decode_meas(uint8_t data)
 {
     switch (data)
     {
-    case COMM_CMD_MEAS_START:
-        config_send();
-        break;
-    
-    case COMM_CMD_MEAS_STOP:
-        set_config_reset();
-        config_send();
-        break;
-
     case COMM_CMD_MEAS_RAW:
         set_config_raw_enable(1);
         break;
@@ -173,7 +165,6 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
         NRF_LOG_INFO("Invalid RX packet len");
         return;
     }
-
     
     // Check checksum (not including last CS byte)
     uint32_t len_no_cs = len - CS_LEN;
@@ -209,8 +200,18 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
             // TODO: return packet with connected devices
 
+
             remaining_data_len--;
             j++;
+            break;
+
+        case COMM_CMD_START:
+            config_send();
+            break;
+
+        case COMM_CMD_STOP:
+            set_config_reset();
+            config_send();
             break;
 
         case COMM_CMD_MEAS:
@@ -243,6 +244,12 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
             remaining_data_len = remaining_data_len-2;
             j=j+2;
+            break;
+
+        case COMM_CMD_CALIBRATE:
+
+            
+
             break;
 
         case COMM_CMD_RESET:
@@ -294,13 +301,12 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     // BLE_PACKET_BUFFER_COUNT bytes in 1 BLE packet
     for(uint8_t i=0; i<BLE_PACKET_BUFFER_COUNT; i++)
     {
-
         uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
 
         uint32_t data_len = 0;
         data_type_byte_t type_byte;
 
-                // Length of frame
+        // Length of frame
         data_len += OVERHEAD_BYTES;
 
         command_byte_t command_byte = DATA;

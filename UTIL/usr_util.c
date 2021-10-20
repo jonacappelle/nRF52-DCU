@@ -727,32 +727,6 @@ void DCU_set_connection_leds(dcu_connected_devices_t evt[], uint8_t state)
             first_connection = 0;
         }
     }
-    
-    // switch (state)
-    // {
-    //     case CONNECTION:
-    //     {
-    //         // Set appropriate LED on
-
-    //         uint16_t temp;
-            
-            
-            
-    //         nrf_gpio_pin_set(dcu_led_list[temp]);
-    //     }
-    //     break;
-
-    //     case DISCONNECTION:
-    //     {
-    //         nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
-    //     }
-    //     break;
-
-    //     default:
-    //     {
-    //         nrf_gpio_pin_clear(dcu_led_list[conn_handle]);
-    //     }
-    // }
 
     for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
     {
