@@ -50,6 +50,8 @@
 #define CMD_SYNC_ENABLE 0x31  //1
 #define CMD_SYNC_DISABLE 0x30 //0
 
+#define CMD_CALIBRATION 0x63 //c
+
 #define CMD_ADC 0x65 //e
 
 #define CMD_LIST 0x6c //l

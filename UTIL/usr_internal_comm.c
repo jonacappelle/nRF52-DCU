@@ -248,7 +248,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_CALIBRATE:
 
-            
+            set_config_start_calibration(1);
 
             break;
 

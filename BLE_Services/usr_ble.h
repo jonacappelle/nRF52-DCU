@@ -126,6 +126,7 @@ typedef struct imu
     uint32_t evt_scheduled;
     uint32_t uart_rx_evt_scheduled;
     bool adc;
+    bool start_calibration;
 } IMU;
 
 void usr_batt_print_conn_handle();
@@ -167,6 +168,7 @@ void set_config_quat9_enable(bool enable);
 void set_config_euler_enable(bool enable);
 void set_config_wom_enable(bool enable);
 void set_config_frequency(uint32_t freq);
+void set_config_start_calibration(bool enable);
 void set_config_reset();
 void config_send();
 

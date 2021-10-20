@@ -403,6 +403,14 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             }
             break;
 
+        case CMD_CALIBRATION:
+
+            NRF_LOG_INFO("CMD_CALIBRATION received");
+
+            set_config_start_calibration(1);
+
+            break;
+
         // case CMD_EULER:
         //     NRF_LOG_INFO("CMD_EULER received");
         //     // NRF_LOG_FLUSH();

@@ -90,6 +90,7 @@ IMU imu = {
     .uart_rx_evt_scheduled = 0,
     .uart = NRF_DRV_UART_INSTANCE(0),
     .wom = 0,
+    .start_calibration = 0,
 };
 
 // Initialisation of struct to keep track of different buffers
@@ -640,6 +641,11 @@ void set_config_frequency(uint32_t freq)
     imu.frequency = freq;
 }
 
+void set_config_start_calibration(bool enable)
+{
+    imu.start_calibration = enable;
+}
+
 void set_config_reset()
 {
     imu.gyro_enabled = 0;
@@ -653,6 +659,7 @@ void set_config_reset()
     imu.stop = 0;
     imu.adc = 0;
     imu.wom = 0;
+    imu.start_calibration = 0;
 }
 
 void config_send()
@@ -671,6 +678,7 @@ void config_send()
     config.sync_enabled = imu.sync_enabled;
     config.stop = imu.stop;
     config.adc_enabled = imu.adc;
+    config.start_calibration = imu.start_calibration;
 
     // Get timestamp from master
     imu.sync_start_time = usr_ts_timestamp_get_ticks_u64();
@@ -1492,6 +1500,9 @@ void usr_ble_print_settings()
         uart_print("---   Synchonization enabled\n");
     if (imu.wom)
         uart_print("---   WoM enabled\n");
+
+    if (imu.start_calibration)
+        uart_print("---   Start calibration enabled\n");
     uart_print("------------------------------------------\n");
 }
 
