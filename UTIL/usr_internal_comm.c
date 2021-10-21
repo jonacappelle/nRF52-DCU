@@ -313,12 +313,9 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     ret_code_t err_code;
 
     uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
-    uint32_t data_len = 0;
+    uint32_t data_len;
     data_type_byte_t type_byte;
     command_byte_t command_byte;
-
-    // Length of frame
-    data_len += OVERHEAD_BYTES;
 
     // Fill configuration bytes
     data_out[0] = START_BYTE;
@@ -327,6 +324,10 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     if(type == BLE_IMU_SERVICE_EVT_INFO)
     {
         NRF_LOG_INFO("SEND CALIBRATION CONFIG over uart");
+
+        data_len = 0;
+        // Length of frame
+        data_len += OVERHEAD_BYTES;
 
         // Tell the receiver its config we're sending
         command_byte = CONFIG;
@@ -360,12 +361,15 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
         uart_queued_tx(data_out, &data_len);
         // NRF_LOG_INFO("Data send");
 
-
     }else{ // Else it's DATA
 
     // BLE_PACKET_BUFFER_COUNT bytes in 1 BLE packet
     for(uint8_t i=0; i<BLE_PACKET_BUFFER_COUNT; i++)
     {
+        data_len = 0;
+        // Length of frame
+        data_len += OVERHEAD_BYTES;
+
         // Tell the receiver its data we're sending
         command_byte = DATA;
 
@@ -445,6 +449,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
         // check for buffer overflows
         if(data_len >= USR_INTERNAL_COMM_MAX_LEN)
         {
+            NRF_LOG_INFO("data_len: %d", data_len);
             err_code = NRF_ERROR_NO_MEM;
             APP_ERROR_CHECK(err_code);
         }
