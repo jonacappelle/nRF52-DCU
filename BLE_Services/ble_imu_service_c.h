@@ -125,6 +125,7 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define IMU_SERVICE_UUID_ROT_MAT_CHAR     0x0408                      /**< The UUID of the rotation matrix Characteristic. */
 #define IMU_SERVICE_UUID_HEADING_CHAR     0x0409                      /**< The UUID of the compass heading Characteristic. */
 #define IMU_SERVICE_UUID_GRAVITY_CHAR     0x040A                      /**< The UUID of the gravity vector Characteristic. */
+#define IMU_SERVICE_UUID_INFO_CHAR        0x040B
 
 // How many packets (QUAT - RAW) are grouped in a message
 #define BLE_PACKET_BUFFER_COUNT     5
@@ -143,6 +144,7 @@ typedef enum
     BLE_IMU_SERVICE_EVT_ROT_MAT,
     BLE_IMU_SERVICE_EVT_HEADING,
     BLE_IMU_SERVICE_EVT_GRAVITY,     /**< Event indicating that a notification of the Thingy enviroment temperature characteristic has been received from the peer. */
+    BLE_IMU_SERVICE_EVT_INFO,
 } ble_imu_service_c_evt_type_t;
 
 
@@ -196,6 +198,15 @@ typedef struct
 {
     ble_imu_service_single_quat_t quat[BLE_PACKET_BUFFER_COUNT];
 } ble_imu_service_quat_t;
+
+typedef struct
+{ 
+    bool calibration_start;
+    bool gyro_calibration_done;
+    bool accel_calibration_drone;
+    bool mag_calibration_done;
+    bool calibration_done;
+} ble_imu_service_info_t;
 
 typedef struct
 {
@@ -258,6 +269,7 @@ typedef union
     ble_imu_service_euler_t euler_data;
     ble_imu_service_raw_t raw_data;
     ble_imu_service_adc_t adc_data;
+    ble_imu_service_info_t info_data;
 } ble_evt_value_t;
 
 /**@brief Structure containing the handles related to the Thingy Enviroment Service found on the peer. */
@@ -269,6 +281,7 @@ typedef struct
     uint16_t adc_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t pedometer_cccd_handle;               /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t quat_cccd_handle;             /**< Handle of the CCCD of the <...> characteristic. */
+    uint16_t info_cccd_handle;
     uint16_t raw_cccd_handle;            /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t rot_cccd_handle;       /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t tap_cccd_handle;          /**< Handle of the <...> characteristic as provided by the SoftDevice. */
@@ -279,6 +292,7 @@ typedef struct
     uint16_t adc_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t pedometer_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t quat_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
+    uint16_t info_handle;
     uint16_t raw_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t rot_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t tap_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
@@ -370,6 +384,7 @@ void ble_imu_service_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
  *          NRF_ERROR_NULL if the given parameter is NULL
  */
 uint32_t ble_imu_service_c_quaternion_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
+uint32_t ble_imu_service_c_info_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 uint32_t ble_imu_service_c_adc_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 uint32_t ble_imu_service_c_euler_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 uint32_t ble_imu_service_c_raw_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);

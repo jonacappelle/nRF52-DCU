@@ -61,6 +61,20 @@ typedef enum
 } command_type_byte_t;
 
 
+typedef enum
+{
+    COMM_CMD_CALIBRATION = 1,
+} command_type_info_byte_t;
+
+typedef enum
+{
+    COMM_CMD_CALIBRATION_START = 1,
+    COMM_CMD_CALIBRATION_DONE,
+    COMM_CMD_CALIBRATION_GYRO_DONE,
+    COMM_CMD_CALIBRATION_ACCEL_DONE,
+    COMM_CMD_CALIBRATION_MAG_DONE,
+} command_type_calibration_byte_t;
+
 
 static void decode_meas(uint8_t data)
 {
@@ -289,7 +303,7 @@ static uint8_t calculate_cs(uint8_t * data, uint32_t * len) //tested
     return cs;
 }
 
-
+// Tested and working
 void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * data_in)
 {
     // | START_BYTE | packet_len | command (DATA_BYTE) |  sensor_nr |  data_type | data | CS |
@@ -298,26 +312,67 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
 
     ret_code_t err_code;
 
+    uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
+    uint32_t data_len = 0;
+    data_type_byte_t type_byte;
+    command_byte_t command_byte;
+
+    // Length of frame
+    data_len += OVERHEAD_BYTES;
+
+    // Fill configuration bytes
+    data_out[0] = START_BYTE;
+
+    // Calibration info
+    if(type == BLE_IMU_SERVICE_EVT_INFO)
+    {
+        NRF_LOG_INFO("SEND CALIBRATION CONFIG over uart");
+
+        // Tell the receiver its config we're sending
+        command_byte = CONFIG;
+
+        // TODO match this to the MAC address - keep track of list of MAC addresses
+        uint8_t sensor_nr = data_in->conn_handle + 1;
+
+        data_out[2] = command_byte;
+        data_out[3] = sensor_nr;
+        data_out[4] = COMM_CMD_CALIBRATION;
+
+        uint8_t temp;
+
+        if(data_in->params.value.info_data.calibration_start) temp = COMM_CMD_CALIBRATION_START;
+        else if(data_in->params.value.info_data.calibration_done) temp = COMM_CMD_CALIBRATION_DONE;
+        else if(data_in->params.value.info_data.gyro_calibration_done) temp = COMM_CMD_CALIBRATION_GYRO_DONE;
+        else if (data_in->params.value.info_data.accel_calibration_drone) temp = COMM_CMD_CALIBRATION_ACCEL_DONE;
+        else if(data_in->params.value.info_data.mag_calibration_done) temp = COMM_CMD_CALIBRATION_MAG_DONE;
+
+        data_len += sizeof(uint8_t);
+        data_out[1] = (uint8_t) data_len;
+
+        // Copy data into packet
+        memcpy((data_out + PACKET_DATA_PLACEHOLDER), &temp, sizeof(temp));
+
+        // Checksum
+        uint8_t cs = calculate_cs(data_out, &data_len);
+        data_out[PACKET_DATA_PLACEHOLDER + sizeof(temp)] = cs;
+
+        // Send over UART to STM32
+        uart_queued_tx(data_out, &data_len);
+        // NRF_LOG_INFO("Data send");
+
+
+    }else{ // Else it's DATA
+
     // BLE_PACKET_BUFFER_COUNT bytes in 1 BLE packet
     for(uint8_t i=0; i<BLE_PACKET_BUFFER_COUNT; i++)
     {
-        uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
-
-        uint32_t data_len = 0;
-        data_type_byte_t type_byte;
-
-        // Length of frame
-        data_len += OVERHEAD_BYTES;
-
-        command_byte_t command_byte = DATA;
+        // Tell the receiver its data we're sending
+        command_byte = DATA;
 
         uint8_t sensor_nr = data_in->conn_handle + 1;
 
-        // Fill configuration bytes
-        data_out[0] = START_BYTE;
         data_out[2] = command_byte;
         data_out[3] = sensor_nr;
-        
 
         switch (type)
         {
@@ -399,6 +454,10 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
         // NRF_LOG_INFO("Data send");
 
     }
+
+    }
+
+    
 }
 
 

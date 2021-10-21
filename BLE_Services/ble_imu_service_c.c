@@ -191,6 +191,12 @@ static void on_hvx(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t const * 
         ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_QUAT;
         ble_imu_service_c_evt.params.value.quat_data = *(ble_imu_service_quat_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     } 
+    // Check if this is a info notification.
+    else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.info_handle)
+    {
+        ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_INFO;
+        ble_imu_service_c_evt.params.value.info_data = *(ble_imu_service_info_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
+    }
     // Check if this is a Euler angle notification.
     else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.euler_handle)
     {
@@ -250,6 +256,7 @@ static void on_disconnected(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t
         p_ble_imu_service_c->peer_imu_service_db.adc_cccd_handle       = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.pedometer_cccd_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle          = BLE_GATT_HANDLE_INVALID;
+        p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle          = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle         = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.rot_cccd_handle         = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.tap_cccd_handle            = BLE_GATT_HANDLE_INVALID;
@@ -259,6 +266,7 @@ static void on_disconnected(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t
         p_ble_imu_service_c->peer_imu_service_db.adc_handle              = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.pedometer_handle         = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.quat_handle            = BLE_GATT_HANDLE_INVALID;
+        p_ble_imu_service_c->peer_imu_service_db.info_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.raw_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.rot_handle                 = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.tap_handle               = BLE_GATT_HANDLE_INVALID;
@@ -306,6 +314,10 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.quat_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.quat_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("404 evt Quaternion handle = %d", evt.params.peer_db.quat_handle);
+                case IMU_SERVICE_UUID_INFO_CHAR:
+                    evt.params.peer_db.info_cccd_handle = p_char->cccd_handle;
+                    evt.params.peer_db.info_handle = p_char->characteristic.handle_value;
+                    // NRF_LOG_INFO("404 evt Info handle = %d", evt.params.peer_db.info_handle);
                 case IMU_SERVICE_UUID_PEDOMETER_CHAR: 
                     evt.params.peer_db.pedometer_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.pedometer_handle = p_char->characteristic.handle_value;
@@ -349,6 +361,8 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                 (p_ble_imu_service_c->peer_imu_service_db.pedometer_handle     = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle     = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.quat_handle          = BLE_GATT_HANDLE_INVALID)&&
+                (p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle     = BLE_GATT_HANDLE_INVALID)&&
+                (p_ble_imu_service_c->peer_imu_service_db.info_handle          = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.raw_handle           = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.tap_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
@@ -399,6 +413,8 @@ uint32_t ble_imu_service_c_init(ble_imu_service_c_t * p_ble_imu_service_c, ble_i
     p_ble_imu_service_c->peer_imu_service_db.pedometer_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.quat_handle            = BLE_GATT_HANDLE_INVALID;
+    p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle       = BLE_GATT_HANDLE_INVALID;
+    p_ble_imu_service_c->peer_imu_service_db.info_handle            = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle        = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.raw_handle             = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.rot_cccd_handle        = BLE_GATT_HANDLE_INVALID;
@@ -525,6 +541,20 @@ uint32_t ble_imu_service_c_quaternion_notif_enable(ble_imu_service_c_t * p_ble_i
 
     return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
                           p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle,
+                          true);
+}
+
+uint32_t ble_imu_service_c_info_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c)
+{
+    VERIFY_PARAM_NOT_NULL(p_ble_imu_service_c);
+
+    if (p_ble_imu_service_c->conn_handle == BLE_CONN_HANDLE_INVALID)
+    {
+        return NRF_ERROR_INVALID_STATE;
+    }
+
+    return cccd_configure_tes(p_ble_imu_service_c, p_ble_imu_service_c->conn_handle,
+                          p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle,
                           true);
 }
 
