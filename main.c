@@ -61,7 +61,7 @@ int main(void)
     received_data_buffers_init();
 
     // Nordic buttons and leds initialization
-    buttons_leds_init();
+    // buttons_leds_init();
 
     // Discover BLE devices
     db_discovery_init();

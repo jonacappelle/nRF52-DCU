@@ -10,6 +10,7 @@ $(OUTPUT_DIRECTORY)/nrf52832_xxaa.out: \
 
 # Source files common to all targets
 SRC_FILES += \
+  $(PROJ_DIR)/UTIL/usr_leds.c \
   $(PROJ_DIR)/UTIL/usr_internal_comm.c \
   $(PROJ_DIR)/BLE_Services/usr_dfu.c \
   $(SDK_ROOT)/components/ble/common/ble_conn_params.c \

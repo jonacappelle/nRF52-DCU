@@ -75,6 +75,7 @@
 
 #include "usr_internal_comm.h"
 
+#include "usr_leds.h"
 
 
 #endif

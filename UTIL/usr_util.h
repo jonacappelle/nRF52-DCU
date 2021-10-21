@@ -2,8 +2,6 @@
 #define _USR_UTIL_H__
 
 
-#define PIN_CPU_ACTIVITY    19
-
 #include <stdio.h>
 #include <stdint.h>
 #include <stdbool.h>
