@@ -71,6 +71,8 @@ NRF_LOG_MODULE_REGISTER();
 
 #include "ble.h"
 
+
+
 /////////////
 // Defines //
 /////////////
@@ -100,11 +102,11 @@ static char const *m_target_periph_name[NRF_BLE_SCAN_NAME_CNT] = {"IMU1", "IMU2"
 
 static ble_gap_addr_t const address_1 = {
     .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
-    .addr = { 0xF2, 0x9C, 0x43, 0xE8, 0x5C, 0xD2 }
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF } // { 0xF2, 0x9C, 0x43, 0xE8, 0x5C, 0xD2 }
 };
 static ble_gap_addr_t const address_2 = {
     .addr_type = BLE_GAP_ADDR_TYPE_RANDOM_STATIC,
-    .addr = { 0x44, 0x11, 0x91, 0xC8, 0xA8, 0xD3 }
+    .addr = { 0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF } // { 0x44, 0x11, 0x91, 0xC8, 0xA8, 0xD3 }
 };
 
 static ble_gap_addr_t const address_3 = {
@@ -321,9 +323,6 @@ void print_packet_count(ble_imu_service_c_evt_t *p_evt)
 
 void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt)
 {
-
-    // nrf_gpio_pin_set(11);
-
     // Print packet count for each connected device
     // print_packet_count(p_evt);
 
@@ -510,8 +509,6 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
     }
     break;
     }
-
-    // nrf_gpio_pin_clear(11);
 }
 
 void imu_service_c_init()
@@ -1203,6 +1200,14 @@ void scan_start(void)
     APP_ERROR_CHECK(ret);
 }
 
+void scan_stop()
+{
+    // ret_code_t err_code;
+
+    nrf_ble_scan_stop();
+    // APP_ERROR_CHECK(err_code);
+}
+
 
 /**@brief Function for handling Scanning Module events.
  */
@@ -1278,15 +1283,15 @@ void scan_init(void)
     // err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_NAME_FILTER, true);
     // APP_ERROR_CHECK(err_code);
 
-    // Set filter based on address
-    for (int i=0; i< NRF_BLE_SCAN_ADDRESS_CNT; i++){
-        err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_ADDR_FILTER, &m_target_periph_address[i].addr);
-        APP_ERROR_CHECK(err_code);
-    }
+    // // Set filter based on address
+    // for (int i=0; i< NRF_BLE_SCAN_ADDRESS_CNT; i++){
+    //     err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_ADDR_FILTER, &m_target_periph_address[i].addr);
+    //     APP_ERROR_CHECK(err_code);
+    // }
 
-    // Only enable address filter
-    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_ADDR_FILTER, true);
-    APP_ERROR_CHECK(err_code);
+    // // Only enable address filter
+    // err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_ADDR_FILTER, true);
+    // APP_ERROR_CHECK(err_code);
 
     // To start, set all connection handles invalid
     for(uint16_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
@@ -1443,6 +1448,48 @@ void usr_ble_disconnect()
             APP_ERROR_CHECK(err_code);
         }
     }    
+}
+
+// Tested - works
+void set_conn_dev_mask(dcu_conn_dev_t data[], uint8_t len)
+{
+    ret_code_t err_code;
+
+    // Stop scanning
+    scan_stop();
+
+    // Copy addresses
+    for(uint8_t i=0; i<NRF_BLE_SCAN_ADDRESS_CNT; i++)
+    {
+        for(uint8_t j=0; j<BLE_GAP_ADDR_LEN; j++)
+        {
+           dcu_conn_dev[i].addr.addr[j] = data[i].addr[j];
+        }
+    }
+
+    // Clear previous filter when receiving a reset event
+    err_code = nrf_ble_scan_filters_disable(&m_scan);
+    APP_ERROR_CHECK(err_code);
+
+    // Remove all existing filters
+    err_code = nrf_ble_scan_all_filter_remove(&m_scan);
+    APP_ERROR_CHECK(err_code);
+
+    // Set filter based on address
+    for (int i=0; i< NRF_BLE_SCAN_ADDRESS_CNT; i++){
+        err_code = nrf_ble_scan_filter_set(&m_scan, SCAN_ADDR_FILTER, &dcu_conn_dev[i].addr.addr);
+        APP_ERROR_CHECK(err_code);
+    }
+    NRF_LOG_INFO("Filters set");
+
+    // Only enable address filter
+    err_code = nrf_ble_scan_filters_enable(&m_scan, NRF_BLE_SCAN_ADDR_FILTER, true);
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Filters enabled");
+
+    // Start scanning
+    scan_start();
+
 }
 
 

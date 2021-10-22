@@ -18,6 +18,8 @@
 
 #include "ble_advertising.h"
 
+#include "usr_internal_comm.h"
+
 
 #define CONNECTION   1
 #define DISCONNECTION 0
@@ -171,6 +173,8 @@ void set_config_frequency(uint32_t freq);
 void set_config_start_calibration(bool enable);
 void set_config_reset();
 void config_send();
+
+void set_conn_dev_mask(dcu_conn_dev_t data[], uint8_t len);
 
 ret_code_t imu_disconnect(uint32_t conn_handle_num);
 

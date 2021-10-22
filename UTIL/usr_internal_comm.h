@@ -9,6 +9,11 @@
 
 #include "ble_imu_service_c.h"
 
+typedef struct
+{
+    uint8_t addr[BLE_GAP_ADDR_LEN]; /**< 48-bit address, LSB format. */
+} dcu_conn_dev_t;
+
 
 void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * data_in);
 void comm_rx_process(void *p_event_data, uint16_t event_size);

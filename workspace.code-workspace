@@ -60,7 +60,9 @@
 			"system_error": "c",
 			"array": "c",
 			"tuple": "c",
-			"utility": "c"
+			"utility": "c",
+			"usr_internal_comm.h": "c",
+			"usr_dfu.h": "c"
 		}
 	}
 }

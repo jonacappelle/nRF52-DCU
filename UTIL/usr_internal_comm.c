@@ -15,7 +15,7 @@ NRF_LOG_MODULE_REGISTER();
 #define START_BYTE          0x73 // s
 #define OVERHEAD_BYTES      6
 #define PACKET_DATA_PLACEHOLDER 5
-#define USR_INTERNAL_COMM_MAX_LEN   64
+#define USR_INTERNAL_COMM_MAX_LEN   128
 #define CONFIG_PACKET_DATA_OFFSET   3
 #define CS_LEN                      1
 
@@ -61,9 +61,11 @@ typedef enum
 } command_type_byte_t;
 
 
+
+
 typedef enum
 {
-    COMM_CMD_CALIBRATION = 1,
+    COMM_CMD_CALIBRATION = 1, // command_type_calibration_byte_t
 } command_type_info_byte_t;
 
 typedef enum
@@ -162,7 +164,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
     }
 
     // Store the received packet length
-    uint8_t len = i;
+    uint32_t len = i;
 
     // Check if start byte is correct
     if(rx_data[0] != START_BYTE)
@@ -182,10 +184,13 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
     
     // Check checksum (not including last CS byte)
     uint32_t len_no_cs = len - CS_LEN;
-    uint8_t cs = calculate_cs(rx_data, &len_no_cs);
+    uint8_t cs = calculate_cs(rx_data, &len);
 
     if(cs != rx_data[len_no_cs])
     {
+        NRF_LOG_INFO("Correct CS: 0x%X - Received CS: 0x%X", cs, rx_data[len_no_cs]);
+        NRF_LOG_INFO("len: %d - 0x%X", len, len);
+
         NRF_LOG_INFO("Invalid RX packet received");
         NRF_LOG_INFO("Invalid RX packet CS");
         return;
@@ -200,32 +205,54 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
         return;
     }
 
+    NRF_LOG_INFO("Correct payload packet received");
+    NRF_LOG_FLUSH();
+
     // Decode payload
     uint8_t remaining_data_len = len_no_cs - CONFIG_PACKET_DATA_OFFSET;
     uint8_t j = CONFIG_PACKET_DATA_OFFSET;
     
     while(remaining_data_len >=1) // Keep processing when there is data available
     {
+        NRF_LOG_INFO("remaining_data_len: %d", remaining_data_len);
+
         uint8_t config_data = rx_data[j]; // Get packet
+        NRF_LOG_INFO("Config data: 0x%X", config_data);
+        NRF_LOG_FLUSH();
 
         switch (config_data)
         {
         case COMM_CMD_LIST_CONN_DEV:
+        {
 
-            // TODO: return packet with connected devices
+            NRF_LOG_INFO("COMM_CMD_LIST_CONN_DEV");
+            
+            dcu_conn_dev_t conn_dev[NRF_BLE_SCAN_ADDRESS_CNT];
+             // Init with zeros
+            memset(conn_dev, 0, sizeof(conn_dev));
 
 
-            remaining_data_len--;
-            j++;
-            break;
+            // Copy data into buffer
+            memcpy(conn_dev, &rx_data[j+1], sizeof(conn_dev));
+
+            // Return packet with connected devices
+            set_conn_dev_mask(conn_dev, sizeof(conn_dev));
+
+            remaining_data_len = remaining_data_len - sizeof(conn_dev) - 1;
+            // j++;
+        }break;
 
         case COMM_CMD_START:
             config_send();
+            remaining_data_len--;
+            j++;
             break;
 
         case COMM_CMD_STOP:
             set_config_reset();
             config_send();
+            remaining_data_len--;
+            j++;
             break;
 
         case COMM_CMD_MEAS:
@@ -263,6 +290,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
         case COMM_CMD_CALIBRATE:
 
             set_config_start_calibration(1);
+            remaining_data_len--;
+            j++;
 
             break;
 

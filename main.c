@@ -23,7 +23,7 @@
 
 #include "main.h"
 
-// #define USE_INTERNAL_COMM
+#define USE_INTERNAL_COMM
 
 
 int main(void)
@@ -32,7 +32,7 @@ int main(void)
 
     clocks_start();
 
-    nrf_delay_ms(2000);
+    // nrf_delay_ms(2000);
 
     // Logging
     log_init();
