@@ -397,7 +397,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             j++;
             break;
 
-        case COMM_CMD_REQ_BATTERY_LEVEL:
+        case COMM_CMD_REQ_BATTERY_LEVEL: // WORKING
 
             // TODO return battery level packet
             send_battery_voltages();
