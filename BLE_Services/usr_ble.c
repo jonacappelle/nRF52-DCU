@@ -1492,7 +1492,11 @@ void set_conn_dev_mask(dcu_conn_dev_t data[], uint8_t len)
 
 }
 
-
+void get_connected_devices(dcu_connected_devices_t* conn_dev, uint32_t len)
+{
+    // Copy data to struct
+    memcpy(conn_dev, dcu_conn_dev, len);
+}
 
 
 

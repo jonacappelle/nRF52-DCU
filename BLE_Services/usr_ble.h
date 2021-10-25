@@ -175,6 +175,7 @@ void set_config_reset();
 void config_send();
 
 void set_conn_dev_mask(dcu_conn_dev_t data[], uint8_t len);
+void get_connected_devices(dcu_connected_devices_t* conn_dev, uint32_t len);
 
 ret_code_t imu_disconnect(uint32_t conn_handle_num);
 

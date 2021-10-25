@@ -49,7 +49,8 @@ typedef enum
 
 typedef enum 
 { 
-    COMM_CMD_LIST_CONN_DEV = 1,
+    COMM_CMD_SET_CONN_DEV_LIST = 1,
+    COMM_CMD_REQ_CONN_DEV_LIST,
     COMM_CMD_START,
     COMM_CMD_STOP,
     COMM_CMD_MEAS,
@@ -145,6 +146,52 @@ static void decode_frequency(uint8_t data)
     set_config_frequency(data);
 }
 
+void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
+{
+    // | START_BYTE | packet_len | command (DATA_BYTE) |  sensor_nr |  data_type | data | CS |
+    // | ----------- |-----------|-----------|------------|-----------|----------------|---|
+    // | 1 byte     | 1 byte     | 1 byte               | 1 byte    | 1 byte    | k bytes | 1 byte |
+
+    ret_code_t err_code;
+
+    uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
+    uint32_t data_len;
+    data_type_byte_t type_byte;
+    command_byte_t command_byte;
+
+    // Fill configuration bytes
+    data_out[0] = START_BYTE;
+
+    data_len = 0;
+    // Length of frame
+    data_len += OVERHEAD_BYTES;
+
+    // Tell the receiver its data we're sending
+    command_byte = CONFIG;
+
+    // TODO match this to the MAC address - keep track of list of MAC addresses
+    uint8_t sensor_nr = 0;
+
+    data_out[2] = command_byte;
+    data_out[3] = sensor_nr;
+    data_out[4] = COMM_CMD_REQ_CONN_DEV_LIST;
+
+    // Copy data to packet
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER), dev, len);
+
+    // Set data len
+    data_len += len;
+    data_out[1] = (uint8_t) data_len;
+
+    // Checksum
+    uint8_t cs = calculate_cs(data_out, &data_len);
+    data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
+
+    // Send over UART to STM32
+    uart_queued_tx(data_out, &data_len);
+    // NRF_LOG_INFO("Data send");   
+}
+
 
 void comm_rx_process(void *p_event_data, uint16_t event_size)
 {
@@ -222,15 +269,14 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         switch (config_data)
         {
-        case COMM_CMD_LIST_CONN_DEV:
+        case COMM_CMD_SET_CONN_DEV_LIST:
         {
 
-            NRF_LOG_INFO("COMM_CMD_LIST_CONN_DEV");
+            NRF_LOG_INFO("COMM_CMD_SET_CONN_DEV_LIST");
             
             dcu_conn_dev_t conn_dev[NRF_BLE_SCAN_ADDRESS_CNT];
              // Init with zeros
             memset(conn_dev, 0, sizeof(conn_dev));
-
 
             // Copy data into buffer
             memcpy(conn_dev, &rx_data[j+1], sizeof(conn_dev));
@@ -241,6 +287,18 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             remaining_data_len = remaining_data_len - sizeof(conn_dev) - 1;
             // j++;
         }break;
+
+        case COMM_CMD_REQ_CONN_DEV_LIST:
+        {
+            dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+            get_connected_devices(dev, sizeof(dev));
+            
+            uart_send_conn_dev(dev, sizeof(dev));
+            
+            remaining_data_len--;
+            j++;
+
+        } break;
 
         case COMM_CMD_START:
             config_send();
