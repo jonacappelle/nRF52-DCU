@@ -284,15 +284,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             case CMD_SYNC_ENABLE:
                 NRF_LOG_INFO("CMD_SYNC_ENABLE received");
 
-                // Start synchronization
-                err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO); //TIME_SYNC_FREQ_AUTO
-                // err_code = ts_tx_start(2);
-                APP_ERROR_CHECK(err_code);
-                // ts_gpio_trigger_enable();
-                ts_imu_trigger_enable();
-                NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
-
-                set_config_sync_enable(1);
+                sync_enable();
 
                 uart_print("------------------------------------------\n");
                 uart_print("Synchonization started.\n");
@@ -303,13 +295,7 @@ void uart_rx_scheduled(void *p_event_data, uint16_t event_size)
             case CMD_SYNC_DISABLE:
                 NRF_LOG_INFO("CMD_SYNC_DISABLE received");
 
-                // Stop synchronization
-                err_code = ts_tx_stop();
-                ts_imu_trigger_disable();
-                APP_ERROR_CHECK(err_code);
-                NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
-
-                set_config_sync_enable(0);
+                sync_disable();
 
                 uart_print("------------------------------------------\n");
                 uart_print("Synchonization stopped.\n");

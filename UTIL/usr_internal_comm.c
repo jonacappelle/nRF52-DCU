@@ -58,7 +58,8 @@ typedef enum
     COMM_CMD_FREQUENCY,
     COMM_CMD_CALIBRATE,
     COMM_CMD_RESET,
-    COMM_CMD_BATTERY_LEVEL
+    COMM_CMD_REQ_BATTERY_LEVEL,
+    COMM_CMD_SEND_BATTERY_LEVEL
 } command_type_byte_t;
 
 
@@ -111,32 +112,15 @@ static void decode_sync(uint8_t data)
     switch (data)
     {
     case COMM_CMD_START_SYNC:
-        
-        // Start synchronization
-        err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO); //TIME_SYNC_FREQ_AUTO
-        // err_code = ts_tx_start(2);
-        APP_ERROR_CHECK(err_code);
-        // ts_gpio_trigger_enable();
-        ts_imu_trigger_enable();
-        NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
-
-        set_config_sync_enable(1);
-
+        sync_enable();
         break;
     
     case COMM_CMD_STOP_SYNC:
-
-         // Stop synchronization
-        err_code = ts_tx_stop();
-        ts_imu_trigger_disable();
-        APP_ERROR_CHECK(err_code);
-        NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
-
-        set_config_sync_enable(0);
-
+        sync_disable();
         break;
 
     default:
+        sync_disable();
         break;
     }
 }
@@ -145,6 +129,58 @@ static void decode_frequency(uint8_t data)
 {
     set_config_frequency(data);
 }
+
+void send_battery_voltages()
+{
+    // | START_BYTE | packet_len | command (DATA_BYTE) |  sensor_nr |  data_type | data | CS |
+    // | ----------- |-----------|-----------|------------|-----------|----------------|---|
+    // | 1 byte     | 1 byte     | 1 byte               | 1 byte    | 1 byte    | k bytes | 1 byte |
+
+    ret_code_t err_code;
+
+    BATTERY_ARRAY bat;
+    uint32_t len;
+    get_battery(&bat, &len);
+
+    uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
+    uint32_t data_len;
+    data_type_byte_t type_byte;
+    command_byte_t command_byte;
+
+    // Fill configuration bytes
+    data_out[0] = START_BYTE;
+
+    data_len = 0;
+    // Length of frame
+    data_len += OVERHEAD_BYTES;
+
+    // Tell the receiver its data we're sending
+    command_byte = CONFIG;
+
+    // TODO match this to the MAC address - keep track of list of MAC addresses
+    uint8_t sensor_nr = 0;
+
+    data_out[2] = command_byte;
+    data_out[3] = sensor_nr;
+    data_out[4] = COMM_CMD_SEND_BATTERY_LEVEL;
+
+    // Copy data to packet
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER), &bat, len);
+
+    // Set data len
+    data_len += len;
+    data_out[1] = (uint8_t) data_len;
+
+    // Checksum
+    uint8_t cs = calculate_cs(data_out, &data_len);
+    data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
+
+    // Send over UART to STM32
+    uart_queued_tx(data_out, &data_len);
+    // NRF_LOG_INFO("Data send");  
+}
+
+
 
 void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
 {
@@ -269,7 +305,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         switch (config_data)
         {
-        case COMM_CMD_SET_CONN_DEV_LIST:
+        case COMM_CMD_SET_CONN_DEV_LIST: // WORKING
         {
 
             NRF_LOG_INFO("COMM_CMD_SET_CONN_DEV_LIST");
@@ -288,13 +324,13 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             // j++;
         }break;
 
-        case COMM_CMD_REQ_CONN_DEV_LIST:
+        case COMM_CMD_REQ_CONN_DEV_LIST: // WORKING
         {
             dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
             get_connected_devices(dev, sizeof(dev));
             
             uart_send_conn_dev(dev, sizeof(dev));
-            
+
             remaining_data_len--;
             j++;
 
@@ -325,7 +361,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             j=j+2;
             break;
         
-        case COMM_CMD_SYNC:
+        case COMM_CMD_SYNC: // WORKING
             
             config_data = rx_data[j+1];
             
@@ -361,9 +397,10 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             j++;
             break;
 
-        case COMM_CMD_BATTERY_LEVEL:
+        case COMM_CMD_REQ_BATTERY_LEVEL:
 
             // TODO return battery level packet
+            send_battery_voltages();
 
             remaining_data_len--;
             j++;

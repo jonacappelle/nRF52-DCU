@@ -875,6 +875,12 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
     }
 }
 
+void get_battery(BATTERY_ARRAY* batt, uint32_t* len)
+{
+    *len = sizeof(batt_array);
+    memcpy(batt, &batt_array, *len);
+}
+
 /**
  * @brief Battery level collector initialization.
  */
@@ -1498,6 +1504,34 @@ void get_connected_devices(dcu_connected_devices_t* conn_dev, uint32_t len)
     memcpy(conn_dev, dcu_conn_dev, len);
 }
 
+
+void sync_enable()
+{
+    ret_code_t err_code;
+
+    // Start synchronization
+    err_code = ts_tx_start(TIME_SYNC_FREQ_AUTO); //TIME_SYNC_FREQ_AUTO
+    // err_code = ts_tx_start(2);
+    APP_ERROR_CHECK(err_code);
+    // ts_gpio_trigger_enable();
+    ts_imu_trigger_enable();
+    NRF_LOG_INFO("Starting sync beacon transmission!\r\n");
+
+    set_config_sync_enable(1);
+}
+
+void sync_disable()
+{
+    ret_code_t err_code;
+
+    // Stop synchronization
+    err_code = ts_tx_stop();
+    ts_imu_trigger_disable();
+    APP_ERROR_CHECK(err_code);
+    NRF_LOG_INFO("Stopping sync beacon transmission!\r\n");
+
+    set_config_sync_enable(0);
+}
 
 
 

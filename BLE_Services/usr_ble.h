@@ -132,6 +132,7 @@ typedef struct imu
 } IMU;
 
 void usr_batt_print_conn_handle();
+void get_battery(BATTERY_ARRAY* batt, uint32_t* len);
 
 void received_data_buffers_init();
 
@@ -148,6 +149,9 @@ void usr_ble_disconnect();
 void usr_ble_handles_assign(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt);
 
 void usr_enable_notif(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_c_evt_t *p_evt);
+
+void sync_enable();
+void sync_disable();
 
 void db_discovery_init(void);
 void ble_stack_init(void);
