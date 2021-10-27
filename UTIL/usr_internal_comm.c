@@ -12,12 +12,13 @@
 NRF_LOG_MODULE_REGISTER();
 
 
-#define START_BYTE          0x73 // s
-#define OVERHEAD_BYTES      6
-#define PACKET_DATA_PLACEHOLDER 5
-#define USR_INTERNAL_COMM_MAX_LEN   128
-#define CONFIG_PACKET_DATA_OFFSET   3
-#define CS_LEN                      1
+#define START_BYTE                      0x73 // s
+#define OVERHEAD_BYTES                  6
+#define PACKET_DATA_PLACEHOLDER         5
+#define USR_INTERNAL_COMM_MAX_LEN       128
+#define CONFIG_PACKET_DATA_OFFSET       3
+#define CS_LEN                          1
+
 
 typedef enum 
 { 
@@ -61,9 +62,6 @@ typedef enum
     COMM_CMD_REQ_BATTERY_LEVEL,
     COMM_CMD_SEND_BATTERY_LEVEL
 } command_type_byte_t;
-
-
-
 
 typedef enum
 {
@@ -175,6 +173,9 @@ void send_battery_voltages()
     uint8_t cs = calculate_cs(data_out, &data_len);
     data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
 
+    // check for buffer overflows
+    check_buffer_overflow(&data_len);
+
     // Send over UART to STM32
     uart_queued_tx(data_out, &data_len);
     // NRF_LOG_INFO("Data send");  
@@ -222,6 +223,9 @@ void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
     // Checksum
     uint8_t cs = calculate_cs(data_out, &data_len);
     data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
+
+    // check for buffer overflows
+    check_buffer_overflow(&data_len);
 
     // Send over UART to STM32
     uart_queued_tx(data_out, &data_len);
@@ -336,20 +340,21 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         } break;
 
-        case COMM_CMD_START:
+        case COMM_CMD_START: // WORKING
             config_send();
             remaining_data_len--;
             j++;
             break;
 
         case COMM_CMD_STOP:
-            set_config_reset();
-            config_send();
+            config_send_stop();
+            // set_config_reset();
+            // config_send();
             remaining_data_len--;
             j++;
             break;
 
-        case COMM_CMD_MEAS:
+        case COMM_CMD_MEAS: // WORKING
 
             // Check which measurement to start
             config_data = rx_data[j+1]; // Peek the next byte
@@ -371,7 +376,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             j=j+2;
             break;
 
-        case COMM_CMD_FREQUENCY:
+        case COMM_CMD_FREQUENCY: // WORKING
 
             config_data = rx_data[j+1];
 
@@ -410,6 +415,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             break;
         }
     }
+
+    check_not_negative_uint8(&remaining_data_len);
 }
 
 
@@ -571,12 +578,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
         }
 
         // check for buffer overflows
-        if(data_len >= USR_INTERNAL_COMM_MAX_LEN)
-        {
-            NRF_LOG_INFO("data_len: %d", data_len);
-            err_code = NRF_ERROR_NO_MEM;
-            APP_ERROR_CHECK(err_code);
-        }
+        check_buffer_overflow(&data_len);
 
         // Send over UART to STM32
         uart_queued_tx(data_out, &data_len);
@@ -585,10 +587,33 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     }
 
     }
-
-    
 }
 
 
 
+// Error checking helper functions
 
+static void check_buffer_overflow(uint32_t* len)
+{
+    ret_code_t err_code;
+
+    if(*len >= USR_INTERNAL_COMM_MAX_LEN)
+    {
+        NRF_LOG_INFO("data_len: %d", *len);
+        err_code = NRF_ERROR_NO_MEM;
+        APP_ERROR_CHECK(err_code);
+    }
+
+}
+
+
+static void check_not_negative_uint8(uint8_t* data)
+{
+    ret_code_t err_code;
+
+    if(*data < 0)
+    {
+        err_code = NRF_ERROR_INVALID_LENGTH;
+        APP_ERROR_CHECK(err_code);
+    }
+}

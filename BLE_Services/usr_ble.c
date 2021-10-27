@@ -670,7 +670,7 @@ void set_config_reset()
     imu.quat9_enabled = 0;
     imu.euler_enabled = 0;
     imu.frequency = 0;
-    imu.sync_enabled = 0;
+    // imu.sync_enabled = 0; //  Do not reset sync status: gives problems when disconnecting and starting a new measurement when timesync still on.
     imu.stop = 0;
     imu.adc = 0;
     imu.wom = 0;
@@ -708,6 +708,44 @@ void config_send()
  
     // Send config to peripheral
     usr_ble_config_send(config);
+}
+
+
+
+void config_send_stop()
+{
+    ret_code_t err_code;
+
+    set_config_reset();
+
+    ble_imu_service_config_t config;
+    config.gyro_enabled = imu.gyro_enabled;
+    config.accel_enabled = imu.accel_enabled;
+    config.mag_enabled = imu.mag_enabled;
+    config.euler_enabled = imu.euler_enabled;
+    config.quat6_enabled = imu.quat6_enabled;
+    config.quat9_enabled = imu.quat9_enabled;
+    config.motion_freq_hz = imu.frequency;
+    config.wom_enabled = imu.wom;
+    config.sync_enabled = 0; //imu.sync_enabled; // Here we have to adjust for the stop condition
+    config.stop = imu.stop;
+    config.adc_enabled = imu.adc;
+    config.start_calibration = imu.start_calibration;
+
+    // Get timestamp from master
+    imu.sync_start_time = usr_ts_timestamp_get_ticks_u64();
+
+    // Send start signal to be 2 seconds later
+    imu.sync_start_time = ( USR_TIME_SYNC_TIMESTAMP_TO_USEC(imu.sync_start_time) / 1000 ) + 2000;
+
+    imu.sync_start_time = ( USR_TIME_SYNC_MSEC_TO_TICK(imu.sync_start_time) / 100 ) * 100;
+
+
+    config.sync_start_time = imu.sync_start_time;
+ 
+    // Send config to peripheral
+    usr_ble_config_send(config);
+
 }
 
 
@@ -851,8 +889,6 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
             NRF_LOG_DEBUG("Enabling Battery Level Notification.");
             err_code = ble_bas_c_bl_notif_enable(p_bas_c);
             APP_ERROR_CHECK(err_code);
-
-            NRF_LOG_FLUSH();
 
         } break;
 

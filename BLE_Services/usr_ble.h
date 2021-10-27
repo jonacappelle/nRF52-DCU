@@ -177,6 +177,7 @@ void set_config_frequency(uint32_t freq);
 void set_config_start_calibration(bool enable);
 void set_config_reset();
 void config_send();
+void config_send_stop();
 
 void set_conn_dev_mask(dcu_conn_dev_t data[], uint8_t len);
 void get_connected_devices(dcu_connected_devices_t* conn_dev, uint32_t len);
