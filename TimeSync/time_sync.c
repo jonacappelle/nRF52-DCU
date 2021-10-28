@@ -57,6 +57,8 @@
 #include "nrf_sdh_soc.h"
 #include "nrf_sdm.h"
 
+#include "nrf_log_ctrl.h"
+#include "nrf_log_default_backends.h"
 #define NRF_LOG_MODULE_NAME time_sync
 #define NRF_LOG_LEVEL 4
 #include "nrf_log.h"
@@ -551,6 +553,13 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
                     ++m_tx_slot_retry_count;
                     m_timeslot_req_normal.params.normal.distance_us = m_timeslot_distance * (m_tx_slot_retry_count + 2);
                     uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_normal);
+                    if(err_code == NRF_ERROR_FORBIDDEN)
+                    {
+                        NRF_LOG_INFO("m_send_sync_pkt: %d", m_send_sync_pkt);
+                        NRF_LOG_INFO("m_tx_slot_retry_count: %d", m_tx_slot_retry_count);
+                        NRF_LOG_INFO("m_timeslot_session_open: %d", m_timeslot_session_open);
+                        NRF_LOG_FLUSH();
+                    }
                     APP_ERROR_CHECK(err_code);
                 }
                 else
