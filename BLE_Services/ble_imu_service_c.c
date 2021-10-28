@@ -134,7 +134,7 @@ static void gatt_error_handler(uint32_t   nrf_error,
 {
     // ble_imu_service_c_t * p_tes_c = (ble_imu_service_c_t *)p_ctx;
 
-    NRF_LOG_DEBUG("A GATT Client error has occurred on conn_handle: 0X%X", conn_handle);
+    NRF_LOG_INFO("A GATT Client error has occurred on conn_handle: 0X%X", conn_handle);
 
     // if (p_tes_c->error_handler != NULL)
     // {
@@ -518,7 +518,7 @@ static uint32_t cccd_configure_tes(ble_imu_service_c_t * p_ble_imu_service_c, ui
     memset(&tes_c_req, 0, sizeof(tes_c_req));
  
     tes_c_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
-    // tes_c_req.error_handler.cb            = gatt_error_handler;
+    tes_c_req.error_handler.cb            = gatt_error_handler;
     tes_c_req.error_handler.p_ctx         = p_ble_imu_service_c;
     tes_c_req.params.gattc_write.handle   = handle_cccd;
     tes_c_req.params.gattc_write.len      = BLE_CCCD_VALUE_LEN;
@@ -637,7 +637,7 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu
     memset(&write_req, 0, sizeof(nrf_ble_gq_req_t));
 
     write_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
-    // write_req.error_handler.cb            = gatt_error_handler;
+    write_req.error_handler.cb            = gatt_error_handler;
     write_req.error_handler.p_ctx         = p_imu_service;
     write_req.params.gattc_write.handle   = p_imu_service->peer_imu_service_db.config_handle;
     write_req.params.gattc_write.len      = length;

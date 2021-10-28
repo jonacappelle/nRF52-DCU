@@ -130,7 +130,7 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 // How many packets (QUAT - RAW) are grouped in a message
 #define BLE_PACKET_BUFFER_COUNT     5
 
-/**@brief TES Client event type. */
+/**@brief ble_imu_service_c Client event type. */
 typedef enum
 {
     BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE = 1,       /**< Event indicating that the Thingy enviroment Service has been discovered at the peer. */
@@ -325,7 +325,7 @@ typedef void (* ble_imu_service_c_evt_handler_t) (ble_imu_service_c_t * p_ble_im
 struct ble_imu_service_c_s
 {
     uint16_t                conn_handle;  /**< Connection handle as provided by the SoftDevice. */
-    imu_service_db_t                peer_imu_service_db;  /**< Handles related to tes on the peer*/
+    imu_service_db_t                peer_imu_service_db;  /**< Handles related to ble_imu-service on the peer*/
     ble_imu_service_c_evt_handler_t evt_handler;  /**< Application event handler to be called when there is an event related to the Thingy Enviroment service. */
     uint8_t                 uuid_type;    /**< UUID type. */
     // ble_gatts_char_handles_t config_handles;               /**< Handles related to the config characteristic (as provided by the S132 SoftDevice). */

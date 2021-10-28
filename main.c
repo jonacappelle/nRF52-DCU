@@ -13,7 +13,7 @@
  *         File: main.c
  *      Created: 14-5-2021
  *       Author: Jona Cappelle
- *      Version: v1.0
+ *      Version: v0.1
  *
  *  Description: Main file for NOMADe receiver (DCU)
  *
