@@ -62,7 +62,8 @@
 			"tuple": "c",
 			"utility": "c",
 			"usr_internal_comm.h": "c",
-			"usr_dfu.h": "c"
+			"usr_dfu.h": "c",
+			"internal_comm_protocol.h": "c"
 		}
 	}
 }

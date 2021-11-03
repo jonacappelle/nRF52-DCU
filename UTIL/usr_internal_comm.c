@@ -4,6 +4,9 @@
 #include "usr_ble.h"
 #include "usr_time_sync.h"
 
+#include "internal_comm_protocol.h"
+
+
 // Logging
 #include "nrf_log_ctrl.h"
 #include "nrf_log_default_backends.h"
@@ -11,71 +14,6 @@
 #include "nrf_log.h"
 NRF_LOG_MODULE_REGISTER();
 
-
-#define START_BYTE                      0x73 // s
-#define OVERHEAD_BYTES                  6
-#define PACKET_DATA_PLACEHOLDER         5
-#define USR_INTERNAL_COMM_MAX_LEN       128
-#define CONFIG_PACKET_DATA_OFFSET       3
-#define CS_LEN                          1
-
-
-typedef enum 
-{ 
-    DATA = 1,
-    CONFIG
-} command_byte_t;
-
-typedef enum 
-{ 
-    QUATERNIONS = 1,
-    EULER,
-    RAW
-} data_type_byte_t;
-
-
-typedef enum
-{
-    COMM_CMD_MEAS_RAW = 1,
-    COMM_CMD_MEAS_QUAT6,
-    COMM_CMD_MEAS_QUAT9,
-    COMM_CMD_MEAS_WOM
-} command_type_meas_byte_t;
-
-typedef enum
-{
-    COMM_CMD_START_SYNC = 1,
-    COMM_CMD_STOP_SYNC
-} command_type_sync_byte_t;
-
-typedef enum 
-{ 
-    COMM_CMD_SET_CONN_DEV_LIST = 1,
-    COMM_CMD_REQ_CONN_DEV_LIST,
-    COMM_CMD_START,
-    COMM_CMD_STOP,
-    COMM_CMD_MEAS,
-    COMM_CMD_SYNC,
-    COMM_CMD_FREQUENCY,
-    COMM_CMD_CALIBRATE,
-    COMM_CMD_RESET,
-    COMM_CMD_REQ_BATTERY_LEVEL,
-    COMM_CMD_SEND_BATTERY_LEVEL
-} command_type_byte_t;
-
-typedef enum
-{
-    COMM_CMD_CALIBRATION = 1, // command_type_calibration_byte_t
-} command_type_info_byte_t;
-
-typedef enum
-{
-    COMM_CMD_CALIBRATION_START = 1,
-    COMM_CMD_CALIBRATION_DONE,
-    COMM_CMD_CALIBRATION_GYRO_DONE,
-    COMM_CMD_CALIBRATION_ACCEL_DONE,
-    COMM_CMD_CALIBRATION_MAG_DONE,
-} command_type_calibration_byte_t;
 
 
 static void decode_meas(uint8_t data)
