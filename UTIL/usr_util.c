@@ -641,12 +641,22 @@ void clocks_start(void)
     // Start LFXO and wait for it to start
     NRF_CLOCK->LFCLKSRC = CLOCK_LFCLKSRC_SRC_Xtal << CLOCK_LFCLKSRC_SRC_Pos;
     NRF_CLOCK->TASKS_LFCLKSTART = 1;
-    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0);
+    while (NRF_CLOCK->EVENTS_LFCLKSTARTED == 0)
+    {
+        NRF_LOG_INFO("LFXO not starting!");
+        NRF_LOG_FLUSH();
+        nrf_delay_ms(200);
+    }
 
     // Start HFCLK and wait for it to start.
     NRF_CLOCK->EVENTS_HFCLKSTARTED = 0;
     NRF_CLOCK->TASKS_HFCLKSTART = 1;
-    while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0);
+    while (NRF_CLOCK->EVENTS_HFCLKSTARTED == 0)
+    {
+        NRF_LOG_INFO("HFCLK not starting!");
+        NRF_LOG_FLUSH();
+        nrf_delay_ms(200);
+    }
 
 }
 

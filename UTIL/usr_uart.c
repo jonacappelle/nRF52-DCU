@@ -44,13 +44,15 @@ typedef struct uart
 {
     // Keep track if UART transaction is ongoing
     bool in_progress;
+    bool int_tx_in_progress;
     // Event scheduled handler
     app_sched_event_handler_t uart_scheduled;
 } uart_t;
 
 // Initialize uart variables
-static uart_t uart = {
+static volatile uart_t uart = {
     .in_progress = 0,
+    .int_tx_in_progress = 0,
 };
 
 // Buffer for UART
@@ -123,7 +125,6 @@ uint32_t uart_rx_to_cmd(uint8_t *command_in, uint8_t len)
     return x;
 }
 
-
 void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 {
     nrf_libuarte_async_t * p_libuarte = (nrf_libuarte_async_t *)context;
@@ -175,7 +176,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             break;
         case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
         {
-            // NRF_LOG_INFO("TX_DONE - start");
+            NRF_LOG_INFO("TX_DONE - start");
 
             // NRF_LOG_INFO("%s", buffer.uart_tx_done_buff);
 
@@ -189,12 +190,16 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             {
                 buffer.uart_tx_done_buff_len = index;
 
+                // Notofy that there is still a TX transfer going on
+                uart.int_tx_in_progress = 1;
+
                 err_code = nrf_libuarte_async_tx(&libuarte, buffer.uart_tx_done_buff, buffer.uart_tx_done_buff_len);
                 APP_ERROR_CHECK(err_code);
+                
                 // NRF_LOG_INFO("Send next bytes from fifo");
-            }else if (err_code = NRF_ERROR_NOT_FOUND) // FIFO is empty
+            }else if (err_code = NRF_ERROR_NOT_FOUND) // FIFO is empty and no transfer is going on
             {
-                // NRF_LOG_INFO("No data left in uart_tx_done_buff_instance buffer");
+                NRF_LOG_INFO("Uart done");
 
                 // Notify TX done
                 uart.in_progress = 0;
@@ -202,7 +207,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
                 APP_ERROR_CHECK(err_code);
             }
 
-            // NRF_LOG_INFO("TX_DONE - stop");
+            NRF_LOG_INFO("TX_DONE - stop");
         }
             break;
         default:
@@ -238,6 +243,8 @@ void libuarte_init(app_sched_event_handler_t scheduled_function)
     nrf_libuarte_async_config_t nrf_libuarte_async_config = {
             .tx_pin     = TX_PIN_NUMBER,
             .rx_pin     = RX_PIN_NUMBER,
+            .cts_pin    = CTS_PIN_NUMBER,
+            .rts_pin    = RTS_PIN_NUMBER,
             .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
             .parity     = NRF_UARTE_PARITY_EXCLUDED,
             .hwfc       = NRF_UARTE_HWFC_ENABLED, // Yes, please !

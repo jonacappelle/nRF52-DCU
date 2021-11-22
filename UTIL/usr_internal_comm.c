@@ -21,18 +21,22 @@ static void decode_meas(uint8_t data)
     switch (data)
     {
     case COMM_CMD_MEAS_RAW:
+        NRF_LOG_INFO("COMM_CMD_MEAS_RAW");
         set_config_raw_enable(1);
         break;
 
     case COMM_CMD_MEAS_QUAT6:
+        NRF_LOG_INFO("COMM_CMD_MEAS_QUAT6");
         set_config_quat6_enable(1);
         break;
 
     case COMM_CMD_MEAS_QUAT9:
+        NRF_LOG_INFO("COMM_CMD_MEAS_QUAT9");
         set_config_quat9_enable(1);
         break;
 
     case COMM_CMD_MEAS_WOM:
+        NRF_LOG_INFO("COMM_CMD_MEAS_WOM");
         set_config_wom_enable(1);
         break;
 
@@ -48,10 +52,12 @@ static void decode_sync(uint8_t data)
     switch (data)
     {
     case COMM_CMD_START_SYNC:
+        NRF_LOG_INFO("COMM_CMD_START_SYNC");
         sync_enable();
         break;
     
     case COMM_CMD_STOP_SYNC:
+        NRF_LOG_INFO("COMM_CMD_STOP_SYNC");
         sync_disable();
         break;
 
@@ -88,20 +94,20 @@ void send_battery_voltages()
 
     data_len = 0;
     // Length of frame
-    data_len += OVERHEAD_BYTES;
+    data_len += OVERHEAD_BYTES-1;
 
     // Tell the receiver its data we're sending
     command_byte = CONFIG;
 
     // TODO match this to the MAC address - keep track of list of MAC addresses
-    uint8_t sensor_nr = 0;
+    // uint8_t sensor_nr = 0;
 
     data_out[2] = command_byte;
-    data_out[3] = sensor_nr;
-    data_out[4] = COMM_CMD_SEND_BATTERY_LEVEL;
+    // data_out[3] = sensor_nr;
+    data_out[3] = COMM_CMD_REQ_BATTERY_LEVEL;
 
     // Copy data to packet
-    memcpy((data_out + PACKET_DATA_PLACEHOLDER), &bat, len);
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER-1), &bat, len);
 
     // Set data len
     data_len += len;
@@ -109,7 +115,7 @@ void send_battery_voltages()
 
     // Checksum
     uint8_t cs = calculate_cs(data_out, &data_len);
-    data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
+    data_out[PACKET_DATA_PLACEHOLDER-1 + len] = cs;
 
     // check for buffer overflows
     check_buffer_overflow(&data_len);
@@ -123,9 +129,9 @@ void send_battery_voltages()
 
 void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
 {
-    // | START_BYTE | packet_len | command (DATA_BYTE) |  sensor_nr |  data_type | data | CS |
-    // | ----------- |-----------|-----------|------------|-----------|----------------|---|
-    // | 1 byte     | 1 byte     | 1 byte               | 1 byte    | 1 byte    | k bytes | 1 byte |
+    // | START_BYTE | packet_len | command (DATA_BYTE)  |  data_type | data    |   CS    |
+    // | ----------- |-----------|----------------------|------------|---------|---------|
+    // | 1 byte     | 1 byte     | 1 byte               |   1 byte    | k bytes | 1 byte |
 
     ret_code_t err_code;
 
@@ -139,20 +145,20 @@ void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
 
     data_len = 0;
     // Length of frame
-    data_len += OVERHEAD_BYTES;
+    data_len += OVERHEAD_BYTES-1;
 
     // Tell the receiver its data we're sending
     command_byte = CONFIG;
 
     // TODO match this to the MAC address - keep track of list of MAC addresses
-    uint8_t sensor_nr = 0;
+    // uint8_t sensor_nr = 0;
 
     data_out[2] = command_byte;
-    data_out[3] = sensor_nr;
-    data_out[4] = COMM_CMD_REQ_CONN_DEV_LIST;
+    // data_out[3] = sensor_nr;
+    data_out[3] = COMM_CMD_REQ_CONN_DEV_LIST;
 
     // Copy data to packet
-    memcpy((data_out + PACKET_DATA_PLACEHOLDER), dev, len);
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER-1), dev, len);
 
     // Set data len
     data_len += len;
@@ -160,7 +166,7 @@ void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
 
     // Checksum
     uint8_t cs = calculate_cs(data_out, &data_len);
-    data_out[PACKET_DATA_PLACEHOLDER + len] = cs;
+    data_out[PACKET_DATA_PLACEHOLDER-1 + len] = cs;
 
     // check for buffer overflows
     check_buffer_overflow(&data_len);
@@ -268,6 +274,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_REQ_CONN_DEV_LIST: // WORKING
         {
+            NRF_LOG_INFO("COMM_CMD_REQ_CONN_DEV_LIST");
+
             dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
             get_connected_devices(dev, sizeof(dev));
             
@@ -279,12 +287,18 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
         } break;
 
         case COMM_CMD_START: // WORKING
+
+            NRF_LOG_INFO("COMM_CMD_START");
+
             config_send();
             remaining_data_len--;
             j++;
             break;
 
         case COMM_CMD_STOP:
+
+            NRF_LOG_INFO("COMM_CMD_STOP");
+
             config_send_stop();
             // set_config_reset();
             // config_send();
@@ -293,6 +307,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             break;
 
         case COMM_CMD_MEAS: // WORKING
+
+            NRF_LOG_INFO("COMM_CMD_MEAS");
 
             // Check which measurement to start
             config_data = rx_data[j+1]; // Peek the next byte
@@ -305,6 +321,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             break;
         
         case COMM_CMD_SYNC: // WORKING
+
+            NRF_LOG_INFO("COMM_CMD_SYNC");
             
             config_data = rx_data[j+1];
             
@@ -316,6 +334,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_FREQUENCY: // WORKING
 
+            NRF_LOG_INFO("COMM_CMD_FREQUENCY");
+
             config_data = rx_data[j+1];
 
             decode_frequency(config_data);
@@ -326,6 +346,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_CALIBRATE:
 
+            NRF_LOG_INFO("COMM_CMD_CALIBRATE");
+
             set_config_start_calibration(1);
             remaining_data_len--;
             j++;
@@ -334,6 +356,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_RESET:
 
+            NRF_LOG_INFO("COMM_CMD_RESET");
+
             set_config_reset();
 
             remaining_data_len--;
@@ -341,6 +365,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             break;
 
         case COMM_CMD_REQ_BATTERY_LEVEL: // WORKING
+
+            NRF_LOG_INFO("COMM_CMD_REQ_BATTERY_LEVEL");
 
             // TODO return battery level packet
             send_battery_voltages();
@@ -390,7 +416,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
     data_out[0] = START_BYTE;
 
     // Calibration info
-    if(type == BLE_IMU_SERVICE_EVT_INFO)
+    if(type == BLE_IMU_SERVICE_EVT_INFO) // If we have calibration info, send it!
     {
         NRF_LOG_INFO("SEND CALIBRATION CONFIG over uart");
 
@@ -405,8 +431,8 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
         uint8_t sensor_nr = data_in->conn_handle + 1;
 
         data_out[2] = command_byte;
-        data_out[3] = sensor_nr;
-        data_out[4] = COMM_CMD_CALIBRATION;
+        data_out[3] = COMM_CMD_CALIBRATE;
+        data_out[4] = sensor_nr;
 
         uint8_t temp;
 

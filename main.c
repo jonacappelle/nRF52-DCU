@@ -30,12 +30,12 @@ int main(void)
 {
     ret_code_t err_code;
 
-    clocks_start();
-
-    // nrf_delay_ms(2000);
+    nrf_delay_ms(2000);
 
     // Logging
     log_init();
+
+    clocks_start();
 
     // Check reset reason
     check_reset_reason();
