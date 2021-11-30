@@ -551,6 +551,8 @@ void usr_enable_notif(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu_service_
     APP_ERROR_CHECK(err_code);
     err_code = ble_imu_service_c_raw_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
     APP_ERROR_CHECK(err_code);
+    err_code = ble_imu_service_c_info_notif_enable(&m_imu_service_c[p_evt->conn_handle]);
+    APP_ERROR_CHECK(err_code);
 }
 
 void usr_ble_config_send(ble_imu_service_config_t config)

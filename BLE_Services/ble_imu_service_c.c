@@ -229,6 +229,8 @@ static void on_hvx(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t const * 
     //     ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_C_EVT_CONFIG_NOTIFICATION;
     // } else return;
 
+    else return;
+
     p_ble_imu_service_c->evt_handler(p_ble_imu_service_c, &ble_imu_service_c_evt);
 }
 
