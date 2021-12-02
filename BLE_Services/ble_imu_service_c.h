@@ -117,7 +117,7 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #define IMU_SERVICE_UUID_SERVICE          0x0400
 #define IMU_SERVICE_UUID_CONFIG_CHAR      0x0401                      /**< The UUID of the config Characteristic. */
 #define IMU_SERVICE_UUID_TAP_CHAR         0x0402                      /**< The UUID of the tap Characteristic. */
-#define IMU_SERVICE_UUID_ADC_CHAR 0x0403                      /**< The UUID of the adc Characteristic. */
+#define IMU_SERVICE_UUID_ADC_CHAR         0x0403                      /**< The UUID of the adc Characteristic. */
 #define IMU_SERVICE_UUID_QUATERNION_CHAR  0x0404                      /**< The UUID of the quaternion Characteristic. */
 #define IMU_SERVICE_UUID_PEDOMETER_CHAR   0x0405                      /**< The UUID of the pedometer Characteristic. */
 #define IMU_SERVICE_UUID_RAW_CHAR         0x0406                      /**< The UUID of the raw data Characteristic. */

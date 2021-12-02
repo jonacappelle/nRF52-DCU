@@ -316,14 +316,17 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.quat_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.quat_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("404 evt Quaternion handle = %d", evt.params.peer_db.quat_handle);
+                    break;
                 case IMU_SERVICE_UUID_INFO_CHAR:
                     evt.params.peer_db.info_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.info_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("404 evt Info handle = %d", evt.params.peer_db.info_handle);
+                    break;
                 case IMU_SERVICE_UUID_PEDOMETER_CHAR: 
                     evt.params.peer_db.pedometer_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.pedometer_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("405 evt step counter handle = %d", evt.params.peer_db.pedometer_handle);
+                    break;
                 case IMU_SERVICE_UUID_RAW_CHAR:
                     evt.params.peer_db.raw_cccd_handle      = p_char->cccd_handle;
                     evt.params.peer_db.raw_handle = p_char->characteristic.handle_value;
@@ -338,14 +341,17 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.rot_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.rot_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("408 evt rotation matrix handle = %d", evt.params.peer_db.rot_handle);
+                    break;
                 case IMU_SERVICE_UUID_HEADING_CHAR:
                     evt.params.peer_db.heading_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.heading_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("409 evt heading handle = %d", evt.params.peer_db.heading_handle);
+                    break;
                 case IMU_SERVICE_UUID_GRAVITY_CHAR: 
                     evt.params.peer_db.gravity_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.gravity_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("410 evt gravity handle = %d", evt.params.peer_db.gravity_handle);
+                    break;
                 default:
                     break;
             }
