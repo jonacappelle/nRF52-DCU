@@ -9,6 +9,8 @@
 
 #include "ble_imu_service_c.h"
 
+// #include "usr_ble.h"
+
 typedef struct
 {
     uint8_t addr[BLE_GAP_ADDR_LEN]; /**< 48-bit address, LSB format. */
@@ -20,5 +22,5 @@ void comm_rx_process(void *p_event_data, uint16_t event_size);
 static uint8_t calculate_cs(uint8_t * data, uint32_t * len);
 static void check_buffer_overflow(uint32_t* data_len);
 static void check_not_negative_uint8(uint8_t* data);
-
+// void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len);
 #endif

@@ -243,8 +243,8 @@ void libuarte_init(app_sched_event_handler_t scheduled_function)
     nrf_libuarte_async_config_t nrf_libuarte_async_config = {
             .tx_pin     = TX_PIN_NUMBER,
             .rx_pin     = RX_PIN_NUMBER,
-            .cts_pin    = CTS_PIN_NUMBER,
-            .rts_pin    = RTS_PIN_NUMBER,
+            // .cts_pin    = CTS_PIN_NUMBER,
+            // .rts_pin    = RTS_PIN_NUMBER,
             .baudrate   = NRF_UARTE_BAUDRATE_1000000, //NRF_UARTE_BAUDRATE_115200,
             .parity     = NRF_UARTE_PARITY_EXCLUDED,
             .hwfc       = NRF_UARTE_HWFC_ENABLED, // Yes, please !

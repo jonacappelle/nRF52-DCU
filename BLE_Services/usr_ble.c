@@ -1123,12 +1123,18 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         APP_ERROR_CHECK(err_code);
 
         // Print to uart if device disconnects
-        char str1[100];
-        sprintf(str1, "Connected: %d\n", p_gap_evt->conn_handle);
+        // char str1[100];
+        // sprintf(str1, "Connected: %d\n", p_gap_evt->conn_handle);
         // uart_print("------------------------------------------\n");
-        uart_print(str1);
+        // uart_print(str1);
         // uart_print("------------------------------------------\n");
 
+        // Send connection dev list once a device has connected
+        dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+        get_connected_devices(dev, sizeof(dev));
+        uart_send_conn_dev(dev, sizeof(dev));
+
+        // Set connection LEDs
         DCU_set_connection_leds(dcu_conn_dev, CONNECTION);
     }
     break;
@@ -1167,6 +1173,11 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         NRF_LOG_INFO("Disconnected. conn_handle: 0x%x, reason: 0x%x",
                      p_gap_evt->conn_handle,
                      p_gap_evt->params.disconnected.reason);
+
+        // Send connection dev list once a device has connected
+        dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+        get_connected_devices(dev, sizeof(dev));
+        uart_send_conn_dev(dev, sizeof(dev));
 
         DCU_set_connection_leds(dcu_conn_dev, DISCONNECTION);
     }
