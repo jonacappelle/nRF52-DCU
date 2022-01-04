@@ -359,12 +359,13 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
     case BLE_IMU_SERVICE_EVT_INFO:
     {
 
-        NRF_LOG_INFO("Event INFO: start %d - done %d - gyr %d - accel %d - mag %d", 
+        NRF_LOG_INFO("Event INFO: start %d - done %d - gyr %d - accel %d - mag %d - sync complete %d", 
             p_evt->params.value.info_data.calibration_start,
             p_evt->params.value.info_data.calibration_done,
             p_evt->params.value.info_data.gyro_calibration_done,
             p_evt->params.value.info_data.accel_calibration_drone,
-            p_evt->params.value.info_data.mag_calibration_done);
+            p_evt->params.value.info_data.mag_calibration_done,
+            p_evt->params.value.info_data.sync_complete);
         NRF_LOG_FLUSH();
 
         // Process packet

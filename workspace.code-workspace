@@ -63,7 +63,8 @@
 			"utility": "c",
 			"usr_internal_comm.h": "c",
 			"usr_dfu.h": "c",
-			"internal_comm_protocol.h": "c"
+			"internal_comm_protocol.h": "c",
+			"nrf_log_ctrl.h": "c"
 		}
 	}
 }

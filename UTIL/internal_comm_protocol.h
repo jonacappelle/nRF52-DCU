@@ -79,7 +79,8 @@ typedef enum
     COMM_CMD_FREQUENCY,
     COMM_CMD_CALIBRATE,
     COMM_CMD_RESET,
-    COMM_CMD_REQ_BATTERY_LEVEL
+    COMM_CMD_REQ_BATTERY_LEVEL,
+    COMM_CMD_OK
 } command_type_byte_t;
 
 
@@ -89,8 +90,14 @@ typedef enum
     COMM_CMD_CALIBRATION_DONE,
     COMM_CMD_CALIBRATION_GYRO_DONE,
     COMM_CMD_CALIBRATION_ACCEL_DONE,
-    COMM_CMD_CALIBRATION_MAG_DONE,
+    COMM_CMD_CALIBRATION_MAG_DONE
 } command_type_calibration_byte_t;
+
+typedef enum
+{
+    COMM_CMD_SYNC_COMPLETE = 1,
+    COMM_CMD_SYNC_LOST
+} command_type_sync_type_byte_t;
 
 
 typedef  struct
