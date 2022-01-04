@@ -258,11 +258,11 @@ void libuarte_init(app_sched_event_handler_t scheduled_function)
     // Enable RX
     nrf_libuarte_async_enable(&libuarte);
 
-    static uint8_t text[] = "ble_app_libUARTE example started.\r\n";
-    static uint8_t text_size = sizeof(text);
+    // static uint8_t text[] = "ble_app_libUARTE example started.\r\n";
+    // static uint8_t text_size = sizeof(text);
 
-    err_code = nrf_libuarte_async_tx(&libuarte, text, text_size);
-    APP_ERROR_CHECK(err_code);
+    // err_code = nrf_libuarte_async_tx(&libuarte, text, text_size);
+    // APP_ERROR_CHECK(err_code);
 }
 
 
