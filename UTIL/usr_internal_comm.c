@@ -349,6 +349,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             NRF_LOG_INFO("COMM_CMD_CALIBRATE");
 
             set_config_start_calibration(1);
+            config_send();
             remaining_data_len--;
             j++;
 
