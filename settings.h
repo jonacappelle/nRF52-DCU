@@ -3,7 +3,7 @@
 
 
 // // Enable - disable DFU // //
-#define USR_DFU             0
+#define USR_DFU             1
 #define USR_ADVERTISING     0
 #define SOFTDEVICE_ENABLED  1
 // // // // // // // // // // //
