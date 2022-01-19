@@ -802,13 +802,13 @@ void imu_uart_sceduled(void *p_event_data, uint16_t event_size)
             if (temp.quat_data_present)
             {
                 // sprintf(string, "%d Q   %.3f    %.3f    %.3f    %.3f\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
-                sprintf(string, "w%.3fwa%.3fab%.3fbc%.3fc\n", temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
+                sprintf(string, "x%dxw%.3fwa%.3fab%.3fbc%.3fc\n", temp.conn_handle, temp.quat_data.w, temp.quat_data.x, temp.quat_data.y, temp.quat_data.z);
             }
             else
                 // if packet contains RAW DATA
                 if (temp.raw_data_present)
             {
-                sprintf(string, "%d G %.3f %.3f %.3f        A %.3f %.3f %.3f        M %.3f %.3f %.3f\n", temp.conn_handle, temp.raw_data.gryo.x, temp.raw_data.gryo.y, temp.raw_data.gryo.z, temp.raw_data.accel.x, temp.raw_data.accel.y, temp.raw_data.accel.z, temp.raw_data.mag.x, temp.raw_data.mag.y, temp.raw_data.mag.z);
+                sprintf(string, "%dx%.3fx%.3fx%.3fx%.3fx%.3fx%.3fx%.3fx%.3fx%.3f\n", temp.conn_handle, temp.raw_data.gryo.x, temp.raw_data.gryo.y, temp.raw_data.gryo.z, temp.raw_data.accel.x, temp.raw_data.accel.y, temp.raw_data.accel.z, temp.raw_data.mag.x, temp.raw_data.mag.y, temp.raw_data.mag.z);
             }
             // else
                 // If packet contains ADC DATA
