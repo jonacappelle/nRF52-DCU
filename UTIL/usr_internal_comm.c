@@ -509,10 +509,14 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
 
         }else{
             if(data_in->params.value.info_data.calibration_start) temp = COMM_CMD_CALIBRATION_START;
-            else if(data_in->params.value.info_data.calibration_done) temp = COMM_CMD_CALIBRATION_DONE;
-            else if(data_in->params.value.info_data.gyro_calibration_done) temp = COMM_CMD_CALIBRATION_GYRO_DONE;
-            else if (data_in->params.value.info_data.accel_calibration_drone && data_in->params.value.info_data.gyro_calibration_done) temp = COMM_CMD_CALIBRATION_ACCEL_DONE;
-            else if(data_in->params.value.info_data.accel_calibration_drone && data_in->params.value.info_data.gyro_calibration_done && data_in->params.value.info_data.mag_calibration_done) temp = COMM_CMD_CALIBRATION_MAG_DONE;
+            
+            if(data_in->params.value.info_data.gyro_calibration_done) temp = COMM_CMD_CALIBRATION_GYRO_DONE;
+            
+            if (data_in->params.value.info_data.accel_calibration_drone && data_in->params.value.info_data.gyro_calibration_done) temp = COMM_CMD_CALIBRATION_ACCEL_DONE;
+            
+            if(data_in->params.value.info_data.accel_calibration_drone && data_in->params.value.info_data.gyro_calibration_done && data_in->params.value.info_data.mag_calibration_done) temp = COMM_CMD_CALIBRATION_MAG_DONE;
+
+            if(data_in->params.value.info_data.calibration_done) temp = COMM_CMD_CALIBRATION_DONE;
 
             data_out[3] = COMM_CMD_CALIBRATE;
         }
