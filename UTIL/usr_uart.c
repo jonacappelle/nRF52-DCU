@@ -176,7 +176,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             break;
         case NRF_LIBUARTE_ASYNC_EVT_TX_DONE:
         {
-            NRF_LOG_INFO("TX_DONE - start");
+            // NRF_LOG_INFO("TX_DONE - start");
 
             // NRF_LOG_INFO("%s", buffer.uart_tx_done_buff);
 
@@ -199,7 +199,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
                 // NRF_LOG_INFO("Send next bytes from fifo");
             }else if (err_code = NRF_ERROR_NOT_FOUND) // FIFO is empty and no transfer is going on
             {
-                NRF_LOG_INFO("Uart done");
+                // NRF_LOG_INFO("Uart done");
 
                 // Notify TX done
                 uart.in_progress = 0;
@@ -207,7 +207,7 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
                 APP_ERROR_CHECK(err_code);
             }
 
-            NRF_LOG_INFO("TX_DONE - stop");
+            // NRF_LOG_INFO("TX_DONE - stop");
         }
             break;
         default:

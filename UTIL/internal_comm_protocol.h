@@ -80,7 +80,8 @@ typedef enum
     COMM_CMD_CALIBRATE,
     COMM_CMD_RESET,
     COMM_CMD_REQ_BATTERY_LEVEL,
-    COMM_CMD_OK
+    COMM_CMD_OK,
+    COMM_CMD_TIME
 } command_type_byte_t;
 
 
@@ -135,6 +136,8 @@ typedef struct
     stm32_gyro_t    gyro;
     stm32_compass_t compass;
 } stm32_raw_t;
+
+
 
 
 #endif

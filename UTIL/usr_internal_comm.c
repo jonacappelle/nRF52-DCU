@@ -15,6 +15,9 @@
 NRF_LOG_MODULE_REGISTER();
 
 
+stm32_time_t global_time = 0;
+
+
 
 static void decode_meas(uint8_t data)
 {
@@ -297,11 +300,25 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
 
         case COMM_CMD_START: // WORKING
 
-            NRF_LOG_INFO("COMM_CMD_START");
+            NRF_LOG_INFO("COMM_CMD_START with time");
 
+            // Handle epoch time from STM32
+            uint8_t *temp_time1 = &rx_data[j+1];
+            stm32_time_t epoch_time1;
+            NRF_LOG_INFO("epoch time: %d %X", epoch_time1, epoch_time1);
+            memcpy(&epoch_time1, temp_time1, sizeof(epoch_time1));
+
+            set_stm32_real_time(epoch_time1);
+
+            // Send the configuration to all sensors
             config_send();
+
+            // remaining_data_len--;
+            // j++;
             remaining_data_len--;
+            remaining_data_len -= 8;
             j++;
+            j += 8;
             break;
 
         case COMM_CMD_STOP:
@@ -389,12 +406,66 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             j++;
             break;
 
+        case COMM_CMD_TIME:;
+            
+            NRF_LOG_INFO("COMM_CMD_TIME");
+
+            NRF_LOG_INFO("%X", rx_data[j+1]);
+            NRF_LOG_INFO("%X", rx_data[j+2]);
+            NRF_LOG_INFO("%X", rx_data[j+3]);
+            NRF_LOG_INFO("%X", rx_data[j+4]);
+            NRF_LOG_INFO("%X", rx_data[j+5]);
+            NRF_LOG_INFO("%X", rx_data[j+6]);
+            NRF_LOG_INFO("%X", rx_data[j+7]);
+            NRF_LOG_INFO("%X", rx_data[j+8]);
+
+            uint8_t *temp_time = &rx_data[j+1];
+            stm32_time_t epoch_time;
+            NRF_LOG_INFO("epoch time: %d %X", epoch_time, epoch_time);
+            memcpy(&epoch_time, temp_time, sizeof(epoch_time));
+
+            set_stm32_real_time(epoch_time);
+
+            remaining_data_len--;
+            remaining_data_len -= 8;
+            j++;
+            j += 8;
+            break;
+
         default:
             break;
         }
     }
 
     check_not_negative_uint8(&remaining_data_len);
+}
+
+
+stm32_time_t get_stm32_real_time()
+{
+    return global_time;
+}
+
+void set_stm32_real_time(stm32_time_t time)
+{
+    global_time = time;
+
+    char string[20];
+    sprintf(string, "%llu", global_time);
+
+    NRF_LOG_INFO("Time updated, global time is now:");
+    NRF_LOG_INFO("time: %s", string);
+}
+
+stm32_time_t calculate_total_time(stm32_time_t local_time)
+{
+    stm32_time_t total_time;
+    stm32_time_t real_time = get_stm32_real_time();
+
+    // Calculate
+    total_time = real_time + local_time;
+
+    return total_time;
 }
 
 
@@ -564,6 +635,8 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 ble_imu_service_quat_t *quat = &data_in->params.value.quat_data;
 
                 data_len += (4*sizeof(int32_t))/sizeof(uint8_t);
+                data_len += sizeof(uint64_t)/sizeof(uint8_t);
+
                 data_out[1] = (uint8_t) data_len; //22
 
                 type_byte = QUATERNIONS;
@@ -574,10 +647,17 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + sizeof(int32_t)), &quat->quat[i].x, sizeof(int32_t));
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 2*sizeof(int32_t)), &quat->quat[i].y, sizeof(int32_t));
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 3*sizeof(int32_t)), &quat->quat[i].z, sizeof(int32_t));
+                
+                // Timestamp ms
+                stm32_time_t time = calculate_total_time(quat->quat[i].timestamp_ms);
+                memcpy((data_out + PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t)), &time, sizeof(stm32_time_t));
 
                 // Checksum
                 uint8_t cs = calculate_cs(data_out, &data_len);
-                data_out[PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t)] = cs;
+                data_out[PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t) + sizeof(stm32_time_t)] = cs;
+
+
+                NRF_LOG_INFO("Timestamp: %d", (uint32_t) time);
 
             }break;
 
@@ -592,6 +672,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 ble_imu_service_raw_t *raw = &data_in->params.value.raw_data;
 
                 data_len += (3*3*sizeof(int16_t))/sizeof(uint8_t);
+                data_len += sizeof(uint32_t)/sizeof(uint8_t);
 
                 type_byte = RAW;
                 data_out[4] = type_byte;
@@ -610,9 +691,12 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 7*sizeof(int16_t)), &raw->single_raw[i].compass.y, sizeof(int16_t));
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 8*sizeof(int16_t)), &raw->single_raw[i].compass.z, sizeof(int16_t));
 
+                // Timestamp
+                memcpy((data_out + PACKET_DATA_PLACEHOLDER + 9*sizeof(int16_t)), &raw->single_raw[i].timestamp_ms, sizeof(uint32_t));
+
                 // Checksum
                 uint8_t cs = calculate_cs(data_out, &data_len);
-                data_out[PACKET_DATA_PLACEHOLDER + 3*3*sizeof(int16_t)] = cs;
+                data_out[PACKET_DATA_PLACEHOLDER + 3*3*sizeof(int16_t) + sizeof(uint32_t)] = cs;
 
             }break;
 
