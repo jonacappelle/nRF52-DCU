@@ -693,7 +693,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
 
                 // Timestamp ms
                 stm32_time_t time = calculate_total_time(raw->single_raw[i].timestamp_ms);
-                memcpy((data_out + PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t)), &time, sizeof(stm32_time_t));
+                memcpy((data_out + PACKET_DATA_PLACEHOLDER + 9*sizeof(int16_t)), &time, sizeof(stm32_time_t));
 
                 // Checksum
                 uint8_t cs = calculate_cs(data_out, &data_len);
