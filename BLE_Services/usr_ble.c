@@ -351,8 +351,14 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
         // Enable notifications - in peripheral this equates to turning on the sensors
         usr_enable_notif(p_ble_imu_service_c, p_evt);
-
         NRF_LOG_FLUSH();
+
+        // Added in an attempt to improve faster commissioning
+        // Send connection dev list once a device has connected
+        dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+        get_connected_devices(dev, sizeof(dev));
+        uart_send_conn_dev(dev, sizeof(dev));
+        
     }
     break;
 
@@ -1133,9 +1139,9 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         // uart_print("------------------------------------------\n");
 
         // Send connection dev list once a device has connected
-        dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
-        get_connected_devices(dev, sizeof(dev));
-        uart_send_conn_dev(dev, sizeof(dev));
+        // dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
+        // get_connected_devices(dev, sizeof(dev));
+        // uart_send_conn_dev(dev, sizeof(dev));
 
         // Set connection LEDs
         DCU_set_connection_leds(dcu_conn_dev, CONNECTION);
