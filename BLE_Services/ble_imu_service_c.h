@@ -175,13 +175,21 @@ typedef struct
     int16_t z;
 } ble_imu_service_raw_compass_t;
 
-typedef struct
+#ifdef __GNUC__
+    #ifdef PACKED
+        #undef PACKED
+    #endif
+
+    #define PACKED(TYPE) TYPE __attribute__ ((packed))
+#endif
+
+typedef PACKED( struct
 {
     ble_imu_service_raw_accel_t   accel;
     ble_imu_service_raw_gyro_t    gyro;
     ble_imu_service_raw_compass_t compass;
     uint32_t timestamp_ms;
-} ble_imu_service_single_raw_t;
+}) ble_imu_service_single_raw_t;
 
 typedef struct
 {

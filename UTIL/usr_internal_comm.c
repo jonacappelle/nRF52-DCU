@@ -454,7 +454,7 @@ void set_stm32_real_time(stm32_time_t time)
     sprintf(string, "%llu", global_time);
 
     NRF_LOG_INFO("Time updated, global time is now:");
-    NRF_LOG_INFO("time: %s", string);
+    NRF_LOG_INFO("time: %s", (uint32_t) string);
 }
 
 stm32_time_t calculate_total_time(stm32_time_t local_time)
@@ -657,7 +657,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 data_out[PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t) + sizeof(stm32_time_t)] = cs;
 
 
-                NRF_LOG_INFO("Timestamp: %d", (uint32_t) time);
+                NRF_LOG_INFO("Time diff: %d", quat->quat[i].timestamp_ms);
 
             }break;
 
@@ -694,6 +694,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 // Timestamp ms
                 stm32_time_t time = calculate_total_time(raw->single_raw[i].timestamp_ms);
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 9*sizeof(int16_t)), &time, sizeof(stm32_time_t));
+                NRF_LOG_INFO("time diff: %d", raw->single_raw[i].timestamp_ms);
 
                 // Checksum
                 uint8_t cs = calculate_cs(data_out, &data_len);
