@@ -8,6 +8,7 @@
 #include <string.h>
 
 #include "ble_imu_service_c.h"
+#include "internal_comm_protocol.h"
 
 // #include "usr_ble.h"
 
@@ -24,7 +25,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size);
 static uint8_t calculate_cs(uint8_t * data, uint32_t * len);
 static void check_buffer_overflow(uint32_t* data_len);
 static void check_not_negative_uint8(uint8_t* data);
-void comm_send_ok();
+void comm_send_ok(command_type_byte_t command_type);
 
 void set_stm32_real_time(stm32_time_t time, uint32_t this_offset);
 stm32_time_t get_stm32_real_time();

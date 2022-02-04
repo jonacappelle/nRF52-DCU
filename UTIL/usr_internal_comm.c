@@ -26,25 +26,25 @@ static void decode_meas(uint8_t data)
     case COMM_CMD_MEAS_RAW:
         NRF_LOG_INFO("COMM_CMD_MEAS_RAW");
         set_config_raw_enable(1);
-        comm_send_ok();
+        comm_send_ok(COMM_CMD_MEAS);
         break;
 
     case COMM_CMD_MEAS_QUAT6:
         NRF_LOG_INFO("COMM_CMD_MEAS_QUAT6");
         set_config_quat6_enable(1);
-        comm_send_ok();
+        comm_send_ok(COMM_CMD_MEAS);
         break;
 
     case COMM_CMD_MEAS_QUAT9:
         NRF_LOG_INFO("COMM_CMD_MEAS_QUAT9");
         set_config_quat9_enable(1);
-        comm_send_ok();
+        comm_send_ok(COMM_CMD_MEAS);
         break;
 
     case COMM_CMD_MEAS_WOM:
         NRF_LOG_INFO("COMM_CMD_MEAS_WOM");
         set_config_wom_enable(1);
-        comm_send_ok();
+        comm_send_ok(COMM_CMD_MEAS);
         break;
 
     default:
@@ -280,7 +280,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             remaining_data_len = remaining_data_len - sizeof(conn_dev) - 1;
             // j++;
 
-            comm_send_ok();
+            comm_send_ok(COMM_CMD_SET_CONN_DEV_LIST);
 
         }break;
 
@@ -365,7 +365,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             config_data = rx_data[j+1];
 
             decode_frequency(config_data);
-            comm_send_ok();
+            comm_send_ok(COMM_CMD_FREQUENCY);
 
             remaining_data_len = remaining_data_len-2;
             j=j+2;
@@ -389,7 +389,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             NRF_LOG_INFO("COMM_CMD_RESET");
 
             set_config_reset();
-            comm_send_ok();
+            comm_send_ok(COMM_CMD_RESET);
 
             remaining_data_len--;
             j++;
@@ -488,7 +488,7 @@ static uint8_t calculate_cs(uint8_t * data, uint32_t * len) //tested
     return cs;
 }
 
-void comm_send_ok()
+void comm_send_ok(command_type_byte_t command_type)
 {
     // | START_BYTE | packet_len | command (DATA_BYTE) |  sensor_nr |  data_type | data | CS |
     // | ----------- |-----------|-----------|------------|-----------|----------------|---|
@@ -521,12 +521,15 @@ void comm_send_ok()
     data_out[3] = COMM_CMD_OK;
     data_out[4] = sensor_nr;
 
-    // data_len += sizeof(uint8_t); // No data to be added to OK packet
+    data_len += sizeof(command_type); // No data to be added to OK packet
     data_out[1] = (uint8_t) data_len;
+
+    // Copy data into packet
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER), &command_type, sizeof(command_type));
 
     // Checksum
     uint8_t cs = calculate_cs(data_out, &data_len);
-    data_out[PACKET_DATA_PLACEHOLDER] = cs;
+    data_out[PACKET_DATA_PLACEHOLDER + sizeof(command_type)] = cs;
 
     // check for buffer overflows
     check_buffer_overflow(&data_len);
