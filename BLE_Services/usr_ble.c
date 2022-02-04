@@ -444,7 +444,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
         ble_imu_service_c_evt_type_t type = BLE_IMU_SERVICE_EVT_RAW;
         comm_process(type, p_evt);
 
-        NRF_LOG_INFO("p_evt raw timestamp: %d", p_evt->params.value.raw_data.single_raw[0].timestamp_ms);
+        // NRF_LOG_INFO("p_evt raw timestamp: %d", p_evt->params.value.raw_data.single_raw[0].timestamp_ms);
 
         #else
 
