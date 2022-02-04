@@ -635,7 +635,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 ble_imu_service_quat_t *quat = &data_in->params.value.quat_data;
 
                 data_len += (4*sizeof(int32_t))/sizeof(uint8_t);
-                data_len += sizeof(uint64_t)/sizeof(uint8_t);
+                data_len += sizeof(stm32_time_t)/sizeof(uint8_t);
 
                 data_out[1] = (uint8_t) data_len; //22
 
@@ -672,7 +672,7 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 ble_imu_service_raw_t *raw = &data_in->params.value.raw_data;
 
                 data_len += (3*3*sizeof(int16_t))/sizeof(uint8_t);
-                data_len += sizeof(uint32_t)/sizeof(uint8_t);
+                data_len += sizeof(stm32_time_t)/sizeof(uint8_t);
 
                 type_byte = RAW;
                 data_out[4] = type_byte;
@@ -694,9 +694,13 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
                 // Timestamp
                 memcpy((data_out + PACKET_DATA_PLACEHOLDER + 9*sizeof(int16_t)), &raw->single_raw[i].timestamp_ms, sizeof(uint32_t));
 
+                // Timestamp ms
+                stm32_time_t time = calculate_total_time(raw->single_raw[i].timestamp_ms);
+                memcpy((data_out + PACKET_DATA_PLACEHOLDER + 4*sizeof(int32_t)), &time, sizeof(stm32_time_t));
+
                 // Checksum
                 uint8_t cs = calculate_cs(data_out, &data_len);
-                data_out[PACKET_DATA_PLACEHOLDER + 3*3*sizeof(int16_t) + sizeof(uint32_t)] = cs;
+                data_out[PACKET_DATA_PLACEHOLDER + 3*3*sizeof(int16_t) + sizeof(stm32_time_t)] = cs;
 
             }break;
 
