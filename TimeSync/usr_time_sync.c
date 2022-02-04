@@ -49,6 +49,8 @@ void ts_imu_trigger_enable(void)
     nrf_gpiote_task_set(NRF_GPIOTE_TASKS_CLR_3);
 
     m_imu_trigger_enabled = 1;
+
+    // return time_target-time_now_msec;
 }
 
 void ts_imu_trigger_disable(void)

@@ -688,7 +688,7 @@ void set_config_reset()
     imu.start_calibration = 0;
 }
 
-void config_send()
+uint32_t config_send()
 {
     ret_code_t err_code;
 
@@ -708,6 +708,7 @@ void config_send()
 
     // Get timestamp from master
     imu.sync_start_time = usr_ts_timestamp_get_ticks_u64();
+    uint64_t temp_timestamp = USR_TIME_SYNC_TIMESTAMP_TO_USEC(imu.sync_start_time)/1000;
 
     // Send start signal to be 2 seconds later
     imu.sync_start_time = ( USR_TIME_SYNC_TIMESTAMP_TO_USEC(imu.sync_start_time) / 1000 ) + 2000;
@@ -715,10 +716,18 @@ void config_send()
     imu.sync_start_time = ( USR_TIME_SYNC_MSEC_TO_TICK(imu.sync_start_time) / 100 ) * 100;
 
 
+
+    NRF_LOG_INFO("old sync start time: %d", temp_timestamp);
+    NRF_LOG_INFO("new sync start time: %d", imu.sync_start_time);
+
+
     config.sync_start_time = imu.sync_start_time;
  
     // Send config to peripheral
     usr_ble_config_send(config);
+
+    // Return ms to first packet
+    return (uint32_t) (config.sync_start_time - temp_timestamp);
 }
 
 

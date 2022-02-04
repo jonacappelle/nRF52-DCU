@@ -16,7 +16,7 @@ NRF_LOG_MODULE_REGISTER();
 
 
 stm32_time_t global_time = 0;
-
+uint32_t offset_time = 0;
 
 
 static void decode_meas(uint8_t data)
@@ -308,10 +308,10 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             NRF_LOG_INFO("epoch time: %d %X", epoch_time1, epoch_time1);
             memcpy(&epoch_time1, temp_time1, sizeof(epoch_time1));
 
-            set_stm32_real_time(epoch_time1);
-
             // Send the configuration to all sensors
-            config_send();
+            uint32_t offset = config_send();
+
+            set_stm32_real_time(epoch_time1, offset);
 
             // remaining_data_len--;
             // j++;
@@ -424,7 +424,8 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
             NRF_LOG_INFO("epoch time: %d %X", epoch_time, epoch_time);
             memcpy(&epoch_time, temp_time, sizeof(epoch_time));
 
-            set_stm32_real_time(epoch_time);
+            // TODO: offset assumed 0 for now, this introduces an error of the time needed to transmit this value to the sensors and start the measurement
+            set_stm32_real_time(epoch_time, 0);
 
             remaining_data_len--;
             remaining_data_len -= 8;
@@ -446,24 +447,28 @@ stm32_time_t get_stm32_real_time()
     return global_time;
 }
 
-void set_stm32_real_time(stm32_time_t time)
+void set_stm32_real_time(stm32_time_t time, uint32_t this_offset)
 {
     global_time = time;
+    offset_time = this_offset;
 
     char string[20];
     sprintf(string, "%llu", global_time);
 
-    NRF_LOG_INFO("Time updated, global time is now:");
+    NRF_LOG_INFO("Time updated, global time is now: ");
     NRF_LOG_INFO("time: %s", (uint32_t) string);
+    NRF_LOG_INFO("Offset to start of measurement: %d", offset_time);
 }
 
 stm32_time_t calculate_total_time(stm32_time_t local_time)
 {
     stm32_time_t total_time;
     stm32_time_t real_time = get_stm32_real_time();
+    uint32_t offset = offset_time;
 
     // Calculate
-    total_time = real_time + local_time;
+    // -------- = Start time + Time since start of measurement + offset time to wait before measurement has actually started
+    total_time = real_time + local_time + offset;
 
     return total_time;
 }

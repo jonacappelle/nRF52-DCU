@@ -26,7 +26,7 @@ static void check_buffer_overflow(uint32_t* data_len);
 static void check_not_negative_uint8(uint8_t* data);
 void comm_send_ok();
 
-void set_stm32_real_time(stm32_time_t time);
+void set_stm32_real_time(stm32_time_t time, uint32_t this_offset);
 stm32_time_t get_stm32_real_time();
 stm32_time_t calculate_total_time(stm32_time_t local_time);
 
