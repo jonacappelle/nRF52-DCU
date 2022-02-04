@@ -32,4 +32,5 @@ stm32_time_t get_stm32_real_time();
 stm32_time_t calculate_total_time(stm32_time_t local_time);
 
 // void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len);
+// void uart_send_conn_dev_update(ble_gap_addr_t* dev, uint32_t len, command_type_conn_dev_update_byte_t state);
 #endif

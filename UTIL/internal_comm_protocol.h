@@ -81,8 +81,15 @@ typedef enum
     COMM_CMD_RESET,
     COMM_CMD_REQ_BATTERY_LEVEL,
     COMM_CMD_OK,
-    COMM_CMD_TIME
+    COMM_CMD_TIME,
+    COMM_CMD_CONN_DEV_UPDATE
 } command_type_byte_t;
+
+typedef enum 
+{ 
+    COMM_CMD_CONN_DEV_UPDATE_CONNECTED = 1,
+    COMM_CMD_CONN_DEV_UPDATE_DISCONNECTED
+} command_type_conn_dev_update_byte_t;
 
 
 typedef enum

@@ -185,6 +185,56 @@ void uart_send_conn_dev(dcu_connected_devices_t* dev, uint32_t len)
     // NRF_LOG_INFO("Data send");   
 }
 
+void uart_send_conn_dev_update(ble_gap_addr_t* dev, uint32_t len, command_type_conn_dev_update_byte_t state)
+{
+    // | START_BYTE | packet_len | command (DATA_BYTE)  |  data_type | data    |   CS    |
+    // | ----------- |-----------|----------------------|------------|---------|---------|
+    // | 1 byte     | 1 byte     | 1 byte               |   1 byte    | k bytes | 1 byte |
+
+    ret_code_t err_code;
+
+    uint8_t data_out[USR_INTERNAL_COMM_MAX_LEN]; //64 bytes long is more than enough for a data packet
+    uint32_t data_len;
+    data_type_byte_t type_byte;
+    command_byte_t command_byte;
+
+    // Fill configuration bytes
+    data_out[0] = START_BYTE;
+
+    data_len = 0;
+    // Length of frame
+    data_len += OVERHEAD_BYTES-1;
+
+    // Tell the receiver its data we're sending
+    command_byte = CONFIG;
+
+    // TODO match this to the MAC address - keep track of list of MAC addresses
+    // uint8_t sensor_nr = 0;
+
+    data_out[2] = command_byte;
+    // data_out[3] = sensor_nr;
+    data_out[3] = COMM_CMD_CONN_DEV_UPDATE;
+
+    // Copy data to packet
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER-1), &state, sizeof(state));
+    memcpy((data_out + PACKET_DATA_PLACEHOLDER-1 + sizeof(state)), dev, len);
+
+    // Set data len
+    data_len += len;
+    data_len += sizeof(state);
+    data_out[1] = (uint8_t) data_len;
+
+    // Checksum
+    uint8_t cs = calculate_cs(data_out, &data_len);
+    data_out[PACKET_DATA_PLACEHOLDER-1 + len + sizeof(command_type_conn_dev_update_byte_t)] = cs;
+
+    // check for buffer overflows
+    check_buffer_overflow(&data_len);
+
+    // Send over UART to STM32
+    uart_queued_tx(data_out, &data_len);
+    // NRF_LOG_INFO("Data send");   
+}
 
 void comm_rx_process(void *p_event_data, uint16_t event_size)
 {

@@ -357,7 +357,18 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
         // Send connection dev list once a device has connected
         dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
         get_connected_devices(dev, sizeof(dev));
-        uart_send_conn_dev(dev, sizeof(dev));
+        // uart_send_conn_dev(dev, sizeof(dev));
+
+        // Get MAC address of connection handle
+        ble_gap_addr_t address;
+        for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+        {
+            if(dev[i].conn_handle == p_evt->conn_handle)
+            {
+                address = dev[i].addr;
+            }
+        }
+        uart_send_conn_dev_update(&address, sizeof(address), COMM_CMD_CONN_DEV_UPDATE_CONNECTED);
         
     }
     break;
@@ -1195,7 +1206,18 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         // Send connection dev list once a device has connected
         dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
         get_connected_devices(dev, sizeof(dev));
-        uart_send_conn_dev(dev, sizeof(dev));
+        // uart_send_conn_dev(dev, sizeof(dev));
+
+        // Get MAC address of connection handle
+        ble_gap_addr_t address;
+        for(uint8_t i=0; i<NRF_SDH_BLE_CENTRAL_LINK_COUNT; i++)
+        {
+            if(dev[i].conn_handle == p_gap_evt->conn_handle)
+            {
+                address = dev[i].addr;
+            }
+        }
+        uart_send_conn_dev_update(&address, sizeof(address), COMM_CMD_CONN_DEV_UPDATE_DISCONNECTED);
 
         DCU_set_connection_leds(dcu_conn_dev, DISCONNECTION);
     }
