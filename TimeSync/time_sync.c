@@ -124,8 +124,6 @@ typedef PACKED_STRUCT
     uint32_t counter_val;
 } sync_pkt_t;
 
-static nrf_atomic_u32_t first_sync_packet_cnt = 0;
-
 static uint8_t          m_sync_pkt_ringbuf[10][sizeof(sync_pkt_t)];
 static nrf_atomic_u32_t m_sync_pkt_ringbuf_idx;
 
@@ -542,14 +540,6 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
         case NRF_EVT_RADIO_BLOCKED:
         case NRF_EVT_RADIO_CANCELED:
         {
-            // NRF_LOG_INFO("---");
-            // NRF_LOG_INFO("m_pending_close: %d", m_pending_close);
-            // NRF_LOG_INFO("sys_evt: %d", sys_evt);
-            // NRF_LOG_INFO("m_tx_slot_retry_count: %d", m_tx_slot_retry_count);
-            // NRF_LOG_INFO("m_send_sync_pkt: %d", m_send_sync_pkt);
-            // NRF_LOG_INFO("m_timeslot_session_open: %d", m_timeslot_session_open);
-            // NRF_LOG_INFO("---");
-
             if (!m_pending_close)
             {
                 /*
@@ -563,21 +553,11 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
                     ++m_tx_slot_retry_count;
                     m_timeslot_req_normal.params.normal.distance_us = m_timeslot_distance * (m_tx_slot_retry_count + 2);
                     uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_normal);
-                    NRF_LOG_INFO("sd_radio_request normal: %d", err_code);
-
-                    //  @retval ::NRF_ERROR_FORBIDDEN Either:
-                    //  - The session is not open. -> session is open
-                    //  - The session is not IDLE. -> session is not idle
-                    //  - This is the first request and its type is not @ref NRF_RADIO_REQ_TYPE_EARLIEST. -> possible cause
-                    //  - The request type was set to @ref NRF_RADIO_REQ_TYPE_NORMAL after a @ref NRF_RADIO_REQ_TYPE_EARLIEST request was blocked.
                     if(err_code == NRF_ERROR_FORBIDDEN)
-                    {                    
-                        // If request for normal timeslot fails, then request timeslot earliest
-                        uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_earliest);
-                        // NRF_LOG_INFO("sd_radio_request earliest: %d", err_code);
-                        APP_ERROR_CHECK(err_code);
-
-                        NRF_LOG_INFO("!!FORBIDDEN!! timeslot with type normal");
+                    {
+                        NRF_LOG_INFO("m_send_sync_pkt: %d", m_send_sync_pkt);
+                        NRF_LOG_INFO("m_tx_slot_retry_count: %d", m_tx_slot_retry_count);
+                        NRF_LOG_INFO("m_timeslot_session_open: %d", m_timeslot_session_open);
                         NRF_LOG_FLUSH();
                     }
                     APP_ERROR_CHECK(err_code);
@@ -585,7 +565,6 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
                 else
                 {
                     uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_earliest);
-                    // NRF_LOG_INFO("sd_radio_request earliest: %d", err_code);
                     APP_ERROR_CHECK(err_code);
                 }
 
@@ -1149,7 +1128,6 @@ uint32_t ts_enable(const ts_rf_config_t* p_rf_config)
     }
 
     err_code = sd_radio_request(&m_timeslot_req_earliest);
-    NRF_LOG_INFO("initial sd_radio_request earliest: %d", err_code);
     if (err_code != NRF_SUCCESS)
     {
         return err_code;
@@ -1241,8 +1219,6 @@ uint32_t ts_tx_start(uint32_t sync_freq_hz)
     m_usec_since_tx_offset_calc = 0;
 
     nrf_atomic_flag_set(&m_send_sync_pkt);
-
-    NRF_LOG_INFO("Sending first sync packet...");
 
     return NRF_SUCCESS;
 }

@@ -65,11 +65,7 @@
 			"usr_dfu.h": "c",
 			"internal_comm_protocol.h": "c",
 			"nrf_log_ctrl.h": "c",
-			"stdio.h": "c",
-			"deque": "c",
-			"vector": "c",
-			"string_view": "c",
-			"ranges": "c"
+			"stdio.h": "c"
 		}
 	}
 }
