@@ -563,7 +563,7 @@ void ts_on_sys_evt(uint32_t sys_evt, void * p_context)
                     ++m_tx_slot_retry_count;
                     m_timeslot_req_normal.params.normal.distance_us = m_timeslot_distance * (m_tx_slot_retry_count + 2);
                     uint32_t err_code = sd_radio_request((nrf_radio_request_t*) &m_timeslot_req_normal);
-                    NRF_LOG_INFO("sd_radio_request normal: %d", err_code);
+                    // NRF_LOG_INFO("sd_radio_request normal: %d", err_code);
 
                     //  @retval ::NRF_ERROR_FORBIDDEN Either:
                     //  - The session is not open. -> session is open
