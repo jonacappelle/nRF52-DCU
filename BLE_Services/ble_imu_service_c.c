@@ -249,30 +249,18 @@ static void on_disconnected(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t
     if (p_ble_imu_service_c->conn_handle == p_ble_evt->evt.gap_evt.conn_handle)
     {
         p_ble_imu_service_c->conn_handle                            = BLE_CONN_HANDLE_INVALID;
-
         p_ble_imu_service_c->peer_imu_service_db.config_cccd_handle    = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.config_handle       = BLE_GATT_HANDLE_INVALID;
-
         p_ble_imu_service_c->peer_imu_service_db.euler_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.heading_cccd_handle       = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.adc_cccd_handle       = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.pedometer_cccd_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle          = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle          = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle         = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.rot_cccd_handle         = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.tap_cccd_handle            = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.gravity_cccd_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.euler_handle                 = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.heading_handle               = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.adc_handle              = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.pedometer_handle         = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.quat_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.info_handle            = BLE_GATT_HANDLE_INVALID;
         p_ble_imu_service_c->peer_imu_service_db.raw_handle            = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.rot_handle                 = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.tap_handle               = BLE_GATT_HANDLE_INVALID;
-        p_ble_imu_service_c->peer_imu_service_db.gravity_handle              = BLE_GATT_HANDLE_INVALID;
     }
 }
 
@@ -302,11 +290,6 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.config_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("401 evt CONFIG handle = %d", p_char->characteristic.handle_value);
                     break;                    
-                case IMU_SERVICE_UUID_TAP_CHAR:
-                    evt.params.peer_db.tap_cccd_handle      = p_char->cccd_handle;
-                    evt.params.peer_db.tap_handle = p_char->characteristic.handle_value;
-                    // NRF_LOG_INFO("402 evt TAP handle = %d", p_char->characteristic.handle_value);
-                    break;
                 case IMU_SERVICE_UUID_ADC_CHAR: 
                     evt.params.peer_db.adc_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.adc_handle = p_char->characteristic.handle_value;
@@ -322,11 +305,6 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.info_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("404 evt Info handle = %d", evt.params.peer_db.info_handle);
                     break;
-                case IMU_SERVICE_UUID_PEDOMETER_CHAR: 
-                    evt.params.peer_db.pedometer_cccd_handle = p_char->cccd_handle;
-                    evt.params.peer_db.pedometer_handle = p_char->characteristic.handle_value;
-                    // NRF_LOG_INFO("405 evt step counter handle = %d", evt.params.peer_db.pedometer_handle);
-                    break;
                 case IMU_SERVICE_UUID_RAW_CHAR:
                     evt.params.peer_db.raw_cccd_handle      = p_char->cccd_handle;
                     evt.params.peer_db.raw_handle = p_char->characteristic.handle_value;
@@ -336,21 +314,6 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                     evt.params.peer_db.euler_cccd_handle = p_char->cccd_handle;
                     evt.params.peer_db.euler_handle = p_char->characteristic.handle_value;
                     // NRF_LOG_INFO("407 evt euler handle = %d", evt.params.peer_db.euler_handle);
-                    break;
-                case IMU_SERVICE_UUID_ROT_MAT_CHAR: 
-                    evt.params.peer_db.rot_cccd_handle = p_char->cccd_handle;
-                    evt.params.peer_db.rot_handle = p_char->characteristic.handle_value;
-                    // NRF_LOG_INFO("408 evt rotation matrix handle = %d", evt.params.peer_db.rot_handle);
-                    break;
-                case IMU_SERVICE_UUID_HEADING_CHAR:
-                    evt.params.peer_db.heading_cccd_handle = p_char->cccd_handle;
-                    evt.params.peer_db.heading_handle = p_char->characteristic.handle_value;
-                    // NRF_LOG_INFO("409 evt heading handle = %d", evt.params.peer_db.heading_handle);
-                    break;
-                case IMU_SERVICE_UUID_GRAVITY_CHAR: 
-                    evt.params.peer_db.gravity_cccd_handle = p_char->cccd_handle;
-                    evt.params.peer_db.gravity_handle = p_char->characteristic.handle_value;
-                    // NRF_LOG_INFO("410 evt gravity handle = %d", evt.params.peer_db.gravity_handle);
                     break;
                 default:
                     break;
@@ -365,22 +328,14 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
                 (p_ble_imu_service_c->peer_imu_service_db.config_handle         = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.euler_cccd_handle    = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.euler_handle         = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.pedometer_cccd_handle = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.pedometer_handle     = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle     = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.quat_handle          = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle     = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.info_handle          = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.raw_handle           = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.tap_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.tap_handle           = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.heading_cccd_handle  = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.heading_handle       = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.adc_cccd_handle   = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.adc_handle        = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.rot_cccd_handle      = BLE_GATT_HANDLE_INVALID)&&
-                (p_ble_imu_service_c->peer_imu_service_db.rot_handle           = BLE_GATT_HANDLE_INVALID))
+                (p_ble_imu_service_c->peer_imu_service_db.adc_handle        = BLE_GATT_HANDLE_INVALID))
             {
                 p_ble_imu_service_c->peer_imu_service_db = evt.params.peer_db;
             }
@@ -403,7 +358,7 @@ uint32_t ble_imu_service_c_init(ble_imu_service_c_t * p_ble_imu_service_c, ble_i
 {
     uint32_t      err_code;
     ble_uuid_t    imu_service_uuid;
-    ble_uuid128_t imu_service_base_uuid = {THINGY_UUID_BASE};
+    ble_uuid128_t imu_service_base_uuid = {MOTION_SERVICE_UUID_BASE};
 
     VERIFY_PARAM_NOT_NULL(p_ble_imu_service_c);
     VERIFY_PARAM_NOT_NULL(p_ble_imu_service_c_init);
@@ -413,25 +368,14 @@ uint32_t ble_imu_service_c_init(ble_imu_service_c_t * p_ble_imu_service_c, ble_i
     p_ble_imu_service_c->peer_imu_service_db.config_handle           = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.euler_cccd_handle      = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.euler_handle           = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.heading_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.heading_handle         = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.adc_cccd_handle     = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.adc_handle          = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.pedometer_cccd_handle  = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.pedometer_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.quat_cccd_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.quat_handle            = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.info_cccd_handle       = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.info_handle            = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.raw_cccd_handle        = BLE_GATT_HANDLE_INVALID;
     p_ble_imu_service_c->peer_imu_service_db.raw_handle             = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.rot_cccd_handle        = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.rot_handle             = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.tap_cccd_handle        = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.tap_handle             = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.gravity_cccd_handle    = BLE_GATT_HANDLE_INVALID;
-    p_ble_imu_service_c->peer_imu_service_db.gravity_handle         = BLE_GATT_HANDLE_INVALID;
-
     p_ble_imu_service_c->conn_handle                    = BLE_CONN_HANDLE_INVALID;
     p_ble_imu_service_c->evt_handler                    = p_ble_imu_service_c_init->evt_handler;
     p_ble_imu_service_c->p_gatt_queue               = p_ble_imu_service_c_init->p_gatt_queue;
@@ -614,7 +558,7 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu
 
     VERIFY_PARAM_NOT_NULL(p_imu_service);
 
-    if ((p_imu_service->conn_handle == BLE_CONN_HANDLE_INVALID))// || (!p_imu_service->is_tap_notif_enabled))
+    if ((p_imu_service->conn_handle == BLE_CONN_HANDLE_INVALID))
     {
         return NRF_ERROR_INVALID_STATE;
     }
@@ -626,19 +570,6 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu
         NRF_LOG_WARNING("Content too long.");
         return NRF_ERROR_INVALID_PARAM;
     }
-
-    // ble_gattc_write_params_t write_params;
-
-    // memset(&write_params, 0, sizeof(write_params));
-
-    // write_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    // write_params.handle = p_imu_service->peer_imu_service_db.config_handle;
-    // write_params.len = length;
-    // write_params.offset = 0;
-    // write_params.p_value = (uint8_t *)p_data;
-    // write_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
-
-    // return sd_ble_gattc_write(p_imu_service->conn_handle, &write_params);
 
     nrf_ble_gq_req_t write_req;
 
@@ -652,68 +583,12 @@ uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu
     write_req.params.gattc_write.offset   = 0;
     write_req.params.gattc_write.p_value  = (uint8_t *)p_data;
     write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_REQ;
-    // write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_CMD;
     write_req.params.gattc_write.flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
 
     ret_code_t err_code;
     err_code =  nrf_ble_gq_item_add(p_imu_service->p_gatt_queue, &write_req, p_imu_service->conn_handle);
     return err_code;
-
-
-    // tx_message_t * p_msg;
-    // // uint16_t       cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
-    
-    // p_msg              = &m_tx_buffer[m_tx_insert_index++];
-    // m_tx_insert_index &= TX_BUFFER_MASK;
-
-    // p_msg->req.write_req.gattc_params.handle   = p_imu_service->peer_imu_service_db.config_handle;
-    // p_msg->req.write_req.gattc_params.len      = length;
-    // p_msg->req.write_req.gattc_params.p_value  = (uint8_t *)p_data;
-    // p_msg->req.write_req.gattc_params.flags = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
-    // // p_msg->req.write_req.gattc_params.offset   = 0;
-    // p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    // // p_msg->req.write_req.gattc_value[0]        = LSB_16(cccd_val);
-    // // p_msg->req.write_req.gattc_value[1]        = MSB_16(cccd_val);
-    // p_msg->conn_handle                         = p_imu_service->conn_handle;
-    // p_msg->type                                = WRITE_REQ;
-
-    // tx_buffer_process();
-    // return NRF_SUCCESS;
 }
-
-
-// uint32_t ble_nus_c_string_send(ble_nus_c_t * p_ble_nus_c, uint8_t * p_string, uint16_t length)
-// {
-//     VERIFY_PARAM_NOT_NULL(p_ble_nus_c);
-
-//     nrf_ble_gq_req_t write_req;
-
-//     memset(&write_req, 0, sizeof(nrf_ble_gq_req_t));
-
-//     if (length > BLE_NUS_MAX_DATA_LEN)
-//     {
-//         NRF_LOG_WARNING("Content too long.");
-//         return NRF_ERROR_INVALID_PARAM;
-//     }
-//     if (p_ble_nus_c->conn_handle == BLE_CONN_HANDLE_INVALID)
-//     {
-//         NRF_LOG_WARNING("Connection handle invalid.");
-//         return NRF_ERROR_INVALID_STATE;
-//     }
-
-//     write_req.type                        = NRF_BLE_GQ_REQ_GATTC_WRITE;
-//     write_req.error_handler.cb            = gatt_error_handler;
-//     write_req.error_handler.p_ctx         = p_ble_nus_c;
-//     write_req.params.gattc_write.handle   = p_ble_nus_c->handles.nus_rx_handle;
-//     write_req.params.gattc_write.len      = length;
-//     write_req.params.gattc_write.offset   = 0;
-//     write_req.params.gattc_write.p_value  = p_string;
-//     write_req.params.gattc_write.write_op = BLE_GATT_OP_WRITE_CMD;
-//     write_req.params.gattc_write.flags    = BLE_GATT_EXEC_WRITE_FLAG_PREPARED_WRITE;
-
-//     return nrf_ble_gq_item_add(p_ble_nus_c->p_gatt_queue, &write_req, p_ble_nus_c->conn_handle);
-// }
-
 
 uint32_t ble_imu_service_c_handles_assign(ble_imu_service_c_t    * p_ble_imu_service_c,
                                   uint16_t         conn_handle,

@@ -105,27 +105,16 @@ NRF_SDH_BLE_OBSERVERS(_name ## _obs,                                            
 #endif
 
 
+#define MOTION_SERVICE_UUID_BASE                  {0x5d, 0x82, 0x7d, 0x69, 0x83, 0xd1, 0x7c, 0x96, 0x2e, 0x43, 0xfb, 0x95, 0x54, 0x03, 0xaa, 0xcb}
 
-// #define THINGY_UUID_BASE        {0x42, 0x00, 0x74, 0xA9, 0xFF, 0x52, 0x10, 0x9B, 0x33, 0x49, 0x35, 0x9B, 0x00, 0x00, 0x68, 0xEF}
-#define THINGY_UUID_BASE                  {0x5d, 0x82, 0x7d, 0x69, 0x83, 0xd1, 0x7c, 0x96, 0x2e, 0x43, 0xfb, 0x95, 0x54, 0x03, 0xaa, 0xcb}
-
-
-#define THINGY_UIS_UUID_SERVICE     0x0300
-#define THINGY_UIS_UUID_BUTTON_CHAR 0x0302
-#define THINGY_UIS_UUID_LED_CHAR    0x0301
 
 #define IMU_SERVICE_UUID_SERVICE          0x0400
 #define IMU_SERVICE_UUID_CONFIG_CHAR      0x0401                      /**< The UUID of the config Characteristic. */
-#define IMU_SERVICE_UUID_TAP_CHAR         0x0402                      /**< The UUID of the tap Characteristic. */
-#define IMU_SERVICE_UUID_ADC_CHAR         0x0403                      /**< The UUID of the adc Characteristic. */
-#define IMU_SERVICE_UUID_QUATERNION_CHAR  0x0404                      /**< The UUID of the quaternion Characteristic. */
-#define IMU_SERVICE_UUID_PEDOMETER_CHAR   0x0405                      /**< The UUID of the pedometer Characteristic. */
-#define IMU_SERVICE_UUID_RAW_CHAR         0x0406                      /**< The UUID of the raw data Characteristic. */
-#define IMU_SERVICE_UUID_EULER_CHAR       0x0407                      /**< The UUID of the euler Characteristic. */
-#define IMU_SERVICE_UUID_ROT_MAT_CHAR     0x0408                      /**< The UUID of the rotation matrix Characteristic. */
-#define IMU_SERVICE_UUID_HEADING_CHAR     0x0409                      /**< The UUID of the compass heading Characteristic. */
-#define IMU_SERVICE_UUID_GRAVITY_CHAR     0x040A                      /**< The UUID of the gravity vector Characteristic. */
-#define IMU_SERVICE_UUID_INFO_CHAR        0x040B
+#define IMU_SERVICE_UUID_ADC_CHAR         0x0402                      /**< The UUID of the adc Characteristic. */
+#define IMU_SERVICE_UUID_QUATERNION_CHAR  0x0403                      /**< The UUID of the quaternion Characteristic. */
+#define IMU_SERVICE_UUID_RAW_CHAR         0x0404                      /**< The UUID of the raw data Characteristic. */
+#define IMU_SERVICE_UUID_EULER_CHAR       0x0405                      /**< The UUID of the euler Characteristic. */
+#define IMU_SERVICE_UUID_INFO_CHAR        0x0406
 
 // How many packets (QUAT - RAW) are grouped in a message
 #define BLE_PACKET_BUFFER_COUNT     5
@@ -135,15 +124,10 @@ typedef enum
 {
     BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE = 1,       /**< Event indicating that the Thingy enviroment Service has been discovered at the peer. */
     BLE_IMU_SERVICE_EVT_CONFIG_RECEIVED,
-    BLE_IMU_SERVICE_EVT_TAP,
     BLE_IMU_SERVICE_EVT_ADC,
     BLE_IMU_SERVICE_EVT_QUAT,
-    BLE_IMU_SERVICE_EVT_PEDOMETER,
     BLE_IMU_SERVICE_EVT_RAW,
     BLE_IMU_SERVICE_EVT_EULER,
-    BLE_IMU_SERVICE_EVT_ROT_MAT,
-    BLE_IMU_SERVICE_EVT_HEADING,
-    BLE_IMU_SERVICE_EVT_GRAVITY,     /**< Event indicating that a notification of the Thingy enviroment temperature characteristic has been received from the peer. */
     BLE_IMU_SERVICE_EVT_INFO,
 } ble_imu_service_c_evt_type_t;
 
@@ -291,26 +275,16 @@ typedef struct
 {
     uint16_t config_cccd_handle;
     uint16_t euler_cccd_handle;       /**< Handle of the CCCD of the <...> characteristic. */
-    uint16_t heading_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t adc_cccd_handle;          /**< Handle of the CCCD of the <...> characteristic. */
-    uint16_t pedometer_cccd_handle;               /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t quat_cccd_handle;             /**< Handle of the CCCD of the <...> characteristic. */
     uint16_t info_cccd_handle;
     uint16_t raw_cccd_handle;            /**< Handle of the CCCD of the <...> characteristic. */
-    uint16_t rot_cccd_handle;       /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t tap_cccd_handle;          /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t gravity_cccd_handle;          /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t config_handle;
     uint16_t euler_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t heading_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t adc_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t pedometer_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t quat_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
     uint16_t info_handle;
     uint16_t raw_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t rot_handle;            /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t tap_handle;               /**< Handle of the <...> characteristic as provided by the SoftDevice. */
-    uint16_t gravity_handle;             /**< Handle of the <...> characteristic as provided by the SoftDevice. */
 } imu_service_db_t;
 
 /**@brief Thingy enviroment Event structure. */
