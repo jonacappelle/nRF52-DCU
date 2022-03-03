@@ -149,10 +149,10 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
 
             NRF_LOG_INFO("NRF_LIBUARTE_ASYNC_EVT_RX_DATA");
 
-            if(p_evt->data.rxtx.length > 2)
-            {
-                NRF_LOG_ERROR("Error");
-            }
+            // if(p_evt->data.rxtx.length > 2)
+            // {
+            //     NRF_LOG_ERROR("Error");
+            // }
 
             err_code = app_fifo_write(&buffer.uart_rx_buff_instance, p_evt->data.rxtx.p_data, (uint32_t *) &p_evt->data.rxtx.length);
             APP_ERROR_CHECK(err_code);
@@ -163,9 +163,9 @@ void uart_event_handler(void * context, nrf_libuarte_async_evt_t * p_evt)
             }
             
 
-            NRF_LOG_INFO("data: %d - %s", p_evt->data.rxtx.p_data[0], p_evt->data.rxtx.p_data[0]);
+            // NRF_LOG_INFO("data: %d - %s", p_evt->data.rxtx.p_data[0], p_evt->data.rxtx.p_data[0]);
 
-            NRF_LOG_INFO("FIFO put");
+            // NRF_LOG_INFO("FIFO put");
 
             err_code = app_sched_event_put(0, 0, uart.uart_scheduled);
             APP_ERROR_CHECK(err_code);

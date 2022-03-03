@@ -242,6 +242,7 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
     //| ----------- |-----------|---------           --|------------- |-----  -|
     //| 1 byte        | 1 byte  |               1 byte |      k bytes |  1 byte |
 
+    NRF_LOG_HEXDUMP_INFO(p_event_data, event_size);
 
     // Get data from buffer - store in var rx_data
     uint8_t p_byte;
@@ -351,11 +352,13 @@ void comm_rx_process(void *p_event_data, uint16_t event_size)
         case COMM_CMD_START: // WORKING
 
             NRF_LOG_INFO("COMM_CMD_START with time");
+            NRF_LOG_FLUSH();
 
             // Handle epoch time from STM32
             uint8_t *temp_time1 = &rx_data[j+1];
             stm32_time_t epoch_time1;
             NRF_LOG_INFO("epoch time: %d %X", epoch_time1, epoch_time1);
+            NRF_LOG_FLUSH();
             memcpy(&epoch_time1, temp_time1, sizeof(epoch_time1));
 
             // Send the configuration to all sensors
