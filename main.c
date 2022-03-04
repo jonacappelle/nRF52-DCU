@@ -11,9 +11,9 @@
  *  B-9000 Gent, Belgium
  *
  *         File: main.c
- *      Created: 14-5-2021
+ *      Created: 2022-03-01
  *       Author: Jona Cappelle
- *      Version: v0.1
+ *      Version: v1.0
  *
  *  Description: Main file for NOMADe receiver (DCU)
  *
@@ -98,7 +98,7 @@ int main(void)
     ble_conn_state_init();
     /* END ADDED CHANGES */
 
-    // Init scanning for devices with NUS service + start scanning
+    // Init scanning for devices
     scan_init();
     scan_start();
 

@@ -1,5 +1,27 @@
-#include "usr_util.h"
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: usr_util.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: Utilities
+ *
+ *  Commissiond by Interreg NOMADe
+ *
+ */
 
+#include "usr_util.h"
 
 #include "nrf_log.h"
 #include "nrf_log_ctrl.h"
@@ -11,18 +33,13 @@
 #include "app_error.h"
 #include "boards.h"
 #include "nrf_delay.h"
-
 #include "app_fifo.h"
-
 #include "app_scheduler.h"
-
 #include "usr_uart.h"
 #include "usr_ble.h"
 #include "time_sync.h"
 #include "usr_time_sync.h"
-
 #include "nrf_pwr_mgmt.h"
-
 #include "bsp_btn_ble.h"
 
 
@@ -133,9 +150,6 @@ void buttons_leds_init(void)
     // err_code = bsp_btn_ble_init(NULL, &startup_event);
     // APP_ERROR_CHECK(err_code);
 }
-
-
-
 
 
 uint32_t calculate_string_len(char * string)
@@ -599,9 +613,6 @@ uint8_t usr_adc_voltage_to_percent(float voltage)
 }
 
 
-
-
-
 #define RESET_REASON_HW_RESET   1
 #define RESET_REASON_SW_RESET   4
 
@@ -667,5 +678,3 @@ void timer_init(void)
     ret_code_t err_code = app_timer_init();
     APP_ERROR_CHECK(err_code);
 }
-
-

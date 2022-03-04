@@ -1,62 +1,26 @@
-/**
- * Copyright (c) 2016 - 2018, Nordic Semiconductor ASA
- * 
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form, except as embedded into a Nordic
- *    Semiconductor ASA integrated circuit in a product or a software update for
- *    such product, must reproduce the above copyright notice, this list of
- *    conditions and the following disclaimer in the documentation and/or other
- *    materials provided with the distribution.
- * 
- * 3. Neither the name of Nordic Semiconductor ASA nor the names of its
- *    contributors may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
- * 
- * 4. This software, with or without modification, must only be used with a
- *    Nordic Semiconductor ASA integrated circuit.
- * 
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- * 
- * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: ble_imu_service.h
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: Motion service and characteristics for BLE communication
+ *
+ *  Commissiond by Interreg NOMADe
+ *
  */
-/**@file
- *
- * @defgroup ble_imu_service_c Thingy Enviroment Service Client
- * @{
- * @ingroup  ble_sdk_srv
- * @brief    The Thingy Enviroment Service client can be used to set a LED, and read a button state on a
- *           Thingy Enviroment service server.
- *
- * @details  This module contains the APIs and types exposed by the Thingy Enviroment Service Client
- *           module. These APIs and types can be used by the application to perform discovery of
- *           Thingy Enviroment Service at the peer and interact with it.
- *
- * @note    The application must register this module as BLE event observer using the
- *          NRF_SDH_BLE_OBSERVER macro. Example:
- *          @code
- *              ble_imu_service_c_t instance;
- *              NRF_SDH_BLE_OBSERVER(anything, BLE_imu_service_C_BLE_OBSERVER_PRIO,
- *                                   ble_imu_service_c_on_ble_evt, &instance);
- *          @endcode
- */
+
 
 #ifndef BLE_IMU_SERVICE_C_H__
 #define BLE_IMU_SERVICE_C_H__
@@ -68,6 +32,14 @@
 
 #ifdef __cplusplus
 extern "C" {
+#endif
+
+#ifdef __GNUC__
+    #ifdef PACKED
+        #undef PACKED
+    #endif
+
+    #define PACKED(TYPE) TYPE __attribute__ ((packed))
 #endif
 
 
@@ -159,14 +131,6 @@ typedef struct
     int16_t z;
 } ble_imu_service_raw_compass_t;
 
-#ifdef __GNUC__
-    #ifdef PACKED
-        #undef PACKED
-    #endif
-
-    #define PACKED(TYPE) TYPE __attribute__ ((packed))
-#endif
-
 typedef PACKED( struct
 {
     ble_imu_service_raw_accel_t   accel;
@@ -212,7 +176,6 @@ typedef struct
     int32_t yaw;
     uint32_t timestamp_ms;
 } ble_imu_service_euler_t;
-
 
 typedef struct
 {
@@ -357,26 +320,18 @@ uint32_t ble_imu_service_c_init(ble_imu_service_c_t * p_ble_imu_service_c, ble_i
 void ble_imu_service_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context);
 
 
-/**@brief Function for requesting the peer to start sending notification of the different characteristics
- *        Characteristic.
- *
- * @details This function will enable to notification of the characteristic at the peer
- *          by writing to the CCCD of the temperature Characteristic.
- *
- * @param[in] p_ble_imu_service_c Pointer to the Thingy Enviroment Client structure.
- *
- * @retval  NRF_SUCCESS If the SoftDevice has been requested to write to the CCCD of the peer.
- *                      Otherwise, an error code. This function propagates the error code returned
- *                      by the SoftDevice API @ref sd_ble_gattc_write.
- *          NRF_ERROR_INVALID_STATE if no connection handle has been assigned (@ref ble_imu_service_c_handles_assign)
- *          NRF_ERROR_NULL if the given parameter is NULL
- */
+// Enable notifications from quaternions
 uint32_t ble_imu_service_c_quaternion_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
+// Enable notifications from info characteristic
 uint32_t ble_imu_service_c_info_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
+// Enable notifications from adc (EMG) readings
 uint32_t ble_imu_service_c_adc_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
+// Enable notifications from euler angles
 uint32_t ble_imu_service_c_euler_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
+// Enable notifications from RAW data
 uint32_t ble_imu_service_c_raw_notif_enable(ble_imu_service_c_t * p_ble_imu_service_c);
 
+// Send the configuration characteristic
 uint32_t ble_imu_service_config_set(ble_imu_service_c_t * p_imu_service, ble_imu_service_config_t * p_data);
 
 

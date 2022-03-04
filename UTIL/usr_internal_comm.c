@@ -1,3 +1,26 @@
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: usr_internal_comm.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: Communication between nRF52 and STM32
+ *
+ *  Commissiond by Interreg NOMADe
+ *
+ */
+
 #include "usr_internal_comm.h"
 
 #include "usr_uart.h"
@@ -783,8 +806,6 @@ void comm_process(ble_imu_service_c_evt_type_t type, ble_imu_service_c_evt_t * d
 
     }
 }
-
-
 
 // Error checking helper functions
 

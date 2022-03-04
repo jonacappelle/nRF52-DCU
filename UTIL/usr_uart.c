@@ -1,3 +1,26 @@
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: usr_uart.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: Non-blocking DMA-based UART driver with double buffering, based on libuarte
+ *
+ *  Commissiond by Interreg NOMADe
+ *
+ */
+
 #include "usr_uart.h"
 
 // Includes for libuarte

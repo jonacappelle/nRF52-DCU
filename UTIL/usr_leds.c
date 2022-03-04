@@ -1,3 +1,26 @@
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: usr_leds.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: On-board LED drivers
+ *
+ *  Commissiond by Interreg NOMADe
+ *
+ */
+
 #include "usr_leds.h"
 
 #include "nrf_log.h"
@@ -10,25 +33,17 @@
 #include "app_error.h"
 #include "boards.h"
 #include "nrf_delay.h"
-
 #include "app_fifo.h"
-
 #include "app_scheduler.h"
-
 #include "usr_uart.h"
 #include "usr_ble.h"
 #include "time_sync.h"
 #include "usr_time_sync.h"
-
 #include "nrf_pwr_mgmt.h"
-
 #include "bsp_btn_ble.h"
-
 #include "app_timer.h"
 
 #define PIN_CPU_ACTIVITY    19
-
-
 
 // Declare DCU LED pins
 #define USR_LED_0 11
@@ -74,8 +89,6 @@ static void indication_led_timer_handler(void * p_context)
     }
 
 }
-
-
 
 /**@brief Create timers.
  */
@@ -161,7 +174,7 @@ void usr_gpio_init()
     nrf_gpio_cfg_output(PIN_CPU_ACTIVITY);
 }
 
-
+// TODO can be moved to "usr_util.h"
 void check_cpu_activity()
 {
     nrf_gpio_pin_toggle(PIN_CPU_ACTIVITY);

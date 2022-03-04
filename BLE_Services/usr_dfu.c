@@ -1,4 +1,25 @@
-// DFU
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: usr_dfu.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: DFU: Firmware upgrades
+ *
+ *  Commissiond by Interreg NOMADe
+ *
+ */
 
 #include "settings.h"
 
@@ -84,34 +105,14 @@ static ble_uuid_t m_adv_uuids[] = {{BLE_UUID_DEVICE_INFORMATION_SERVICE, BLE_UUI
 #define DEAD_BEEF                       0xDEADBEEF                                  /**< Value used as error code on stack dump, can be used to identify stack location on stack unwind. */
 
 
-/** @brief Clear bonding information from persistent storage.
- */
-// static void delete_bonds(void)
-// {
-//     ret_code_t err_code;
-
-//     NRF_LOG_INFO("Erase bonds!");
-
-//     err_code = pm_peers_delete();
-//     APP_ERROR_CHECK(err_code);
-// }
-
 /**@brief Function for starting advertising.
  */
 void advertising_start(bool erase_bonds)
 {
-    // if (erase_bonds == true)
-    // {
-        // delete_bonds();
-        // Advertising is started by PM_EVT_PEERS_DELETE_SUCCEEDED event.
-    // }
-    // else
-    // {
-        uint32_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
-        APP_ERROR_CHECK(err_code);
+    uint32_t err_code = ble_advertising_start(&m_advertising, BLE_ADV_MODE_FAST);
+    APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_DEBUG("advertising is started");
-    // }
+    NRF_LOG_DEBUG("advertising is started");
 }
 
 
@@ -306,10 +307,6 @@ static void ble_dfu_evt_handler(ble_dfu_buttonless_evt_type_t event)
 }
 
 
-
-
-
-
 void ble_dfu_init()
 {
     #if USR_DFU == 1
@@ -426,6 +423,3 @@ static void nrf_qwr_error_handler(uint32_t nrf_error)
 {
     APP_ERROR_HANDLER(nrf_error);
 }
-
-
-

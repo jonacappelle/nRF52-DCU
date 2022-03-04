@@ -1,3 +1,26 @@
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: main.h
+ *      Created: 2022-3-01
+ *       Author: Jona Cappelle
+ *      Version: v1.0
+ *
+ *  Description: Main header file for NOMADe receiver (DCU)
+ *
+ *  Commissiond by NOMADe
+ * 
+ */
+
 #ifndef __MAIN_H__
 #define __MAIN_H__
 
@@ -22,7 +45,6 @@
 #include "nrf_sdh.h"
 #include "nrf_sdh_ble.h"
 #include "nrf_sdh_soc.h"
-#include "ble_nus_c.h"
 #include "nrf_ble_gatt.h"
 #include "nrf_pwr_mgmt.h"
 #include "nrf_ble_scan.h"
@@ -70,12 +92,9 @@
 // Bluetooth functionality
 #include "usr_ble.h"
 
-
 // Struct to keep track of received data
-
 #include "usr_internal_comm.h"
 
 #include "usr_leds.h"
-
 
 #endif

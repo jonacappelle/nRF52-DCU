@@ -144,7 +144,4 @@ typedef struct
     stm32_compass_t compass;
 } stm32_raw_t;
 
-
-
-
 #endif

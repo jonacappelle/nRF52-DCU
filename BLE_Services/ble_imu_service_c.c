@@ -1,42 +1,27 @@
-/**
- * Copyright (c) 2012 - 2018, Nordic Semiconductor ASA
- * 
- * All rights reserved.
- * 
- * Redistribution and use in source and binary forms, with or without modification,
- * are permitted provided that the following conditions are met:
- * 
- * 1. Redistributions of source code must retain the above copyright notice, this
- *    list of conditions and the following disclaimer.
- * 
- * 2. Redistributions in binary form, except as embedded into a Nordic
- *    Semiconductor ASA integrated circuit in a product or a software update for
- *    such product, must reproduce the above copyright notice, this list of
- *    conditions and the following disclaimer in the documentation and/or other
- *    materials provided with the distribution.
- * 
- * 3. Neither the name of Nordic Semiconductor ASA nor the names of its
- *    contributors may be used to endorse or promote products derived from this
- *    software without specific prior written permission.
- * 
- * 4. This software, with or without modification, must only be used with a
- *    Nordic Semiconductor ASA integrated circuit.
- * 
- * 5. Any software provided in binary form under this license must not be reverse
- *    engineered, decompiled, modified and/or disassembled.
- * 
- * THIS SOFTWARE IS PROVIDED BY NORDIC SEMICONDUCTOR ASA "AS IS" AND ANY EXPRESS
- * OR IMPLIED WARRANTIES, INCLUDING, BUT NOT LIMITED TO, THE IMPLIED WARRANTIES
- * OF MERCHANTABILITY, NONINFRINGEMENT, AND FITNESS FOR A PARTICULAR PURPOSE ARE
- * DISCLAIMED. IN NO EVENT SHALL NORDIC SEMICONDUCTOR ASA OR CONTRIBUTORS BE
- * LIABLE FOR ANY DIRECT, INDIRECT, INCIDENTAL, SPECIAL, EXEMPLARY, OR
- * CONSEQUENTIAL DAMAGES (INCLUDING, BUT NOT LIMITED TO, PROCUREMENT OF SUBSTITUTE
- * GOODS OR SERVICES; LOSS OF USE, DATA, OR PROFITS; OR BUSINESS INTERRUPTION)
- * HOWEVER CAUSED AND ON ANY THEORY OF LIABILITY, WHETHER IN CONTRACT, STRICT
- * LIABILITY, OR TORT (INCLUDING NEGLIGENCE OR OTHERWISE) ARISING IN ANY WAY OUT
- * OF THE USE OF THIS SOFTWARE, EVEN IF ADVISED OF THE POSSIBILITY OF SUCH DAMAGE.
- * 
+/*  ____  ____      _    __  __  ____ ___
+ * |  _ \|  _ \    / \  |  \/  |/ ___/ _ \
+ * | | | | |_) |  / _ \ | |\/| | |  | | | |
+ * | |_| |  _ <  / ___ \| |  | | |__| |_| |
+ * |____/|_| \_\/_/   \_\_|  |_|\____\___/
+ *                           research group
+ *                             dramco.be/
+ *
+ *  KU Leuven - Technology Campus Gent,
+ *  Gebroeders De Smetstraat 1,
+ *  B-9000 Gent, Belgium
+ *
+ *         File: ble_imu_service.c
+ *      Created: 2022-03-01
+ *       Author: Jona Cappelle
+ *      Version: 1.0
+ *
+ *  Description: Motion service and characteristics for BLE communication
+ *
+ *  Commissiond by Interreg NOMADe
+ *
  */
+
+
 #include "sdk_common.h"
 // #if NRF_MODULE_ENABLED(BLE_IMU_SERVICE_C)
 // #ifdef BLE_IMU_SERVICE_C_ENABLED
@@ -87,39 +72,6 @@ typedef struct
 static tx_message_t m_tx_buffer[TX_BUFFER_SIZE];  /**< Transmit buffer for messages to be transmitted to the central. */
 static uint32_t     m_tx_insert_index = 0;        /**< Current index in the transmit buffer where the next message should be inserted. */
 static uint32_t     m_tx_index = 0;               /**< Current index in the transmit buffer from where the next message to be transmitted resides. */
-
-
-/**@brief Function for passing any pending request from the buffer to the stack.
- */
-// static void tx_buffer_process(void)
-// {
-//     if (m_tx_index != m_tx_insert_index)
-//     {
-//         uint32_t err_code;
-
-//         if (m_tx_buffer[m_tx_index].type == READ_REQ)
-//         {
-//             err_code = sd_ble_gattc_read(m_tx_buffer[m_tx_index].conn_handle,
-//                                          m_tx_buffer[m_tx_index].req.read_handle,
-//                                          0);
-//         }
-//         else
-//         {
-//             err_code = sd_ble_gattc_write(m_tx_buffer[m_tx_index].conn_handle,
-//                                           &m_tx_buffer[m_tx_index].req.write_req.gattc_params);
-//         }
-//         if (err_code == NRF_SUCCESS)
-//         {
-//             NRF_LOG_DEBUG("SD Read/Write API returns Success..");
-//             m_tx_index++;
-//             m_tx_index &= TX_BUFFER_MASK;
-//         }
-//         else
-//         {
-//             NRF_LOG_DEBUG("SD Read/Write API returns error. This message sending will be attempted again..");
-//         }
-//     }
-// }
 
 
 /**@brief Function for intercepting errors of GATTC and BLE GATT Queue.
@@ -184,7 +136,6 @@ static void on_hvx(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t const * 
 
     ble_imu_service_c_evt.conn_handle                = p_ble_imu_service_c->conn_handle;
     
-    
     // Check if this is a Quaternion notification.
     if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.quat_handle)
     {
@@ -214,21 +165,6 @@ static void on_hvx(ble_imu_service_c_t * p_ble_imu_service_c, ble_evt_t const * 
         ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_EVT_ADC;
         ble_imu_service_c_evt.params.value.adc_data = *(ble_imu_service_adc_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
     }
-    // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.gas_handle)
-    // {
-    //     ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_C_EVT_GAS_NOTIFICATION;
-    //     ble_imu_service_c_evt.params.value.gas_data = *(ble_imu_service_gas_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
-    // }
-    // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.color_handle)
-    // {
-    //     ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_C_EVT_COLOR_NOTIFICATION;
-    //     ble_imu_service_c_evt.params.value.color_data = *(ble_imu_service_color_t *)p_ble_evt->evt.gattc_evt.params.hvx.data;
-    // }
-    // else if (p_ble_evt->evt.gattc_evt.params.hvx.handle == p_ble_imu_service_c->peer_imu_service_db.config_handle)
-    // {
-    //     ble_imu_service_c_evt.evt_type = BLE_IMU_SERVICE_C_EVT_CONFIG_NOTIFICATION;
-    // } else return;
-
     else return;
 
     p_ble_imu_service_c->evt_handler(p_ble_imu_service_c, &ble_imu_service_c_evt);
@@ -434,30 +370,6 @@ void ble_imu_service_c_on_ble_evt(ble_evt_t const * p_ble_evt, void * p_context)
  */
 static uint32_t cccd_configure_tes(ble_imu_service_c_t * p_ble_imu_service_c, uint16_t conn_handle, uint16_t handle_cccd, bool enable)
 {
-    // NRF_LOG_DEBUG("Configuring CCCD. CCCD Handle = %d, Connection Handle = %d",
-    //     handle_cccd,conn_handle);
-
-    // tx_message_t * p_msg;
-    // uint16_t       cccd_val = enable ? BLE_GATT_HVX_NOTIFICATION : 0;
-    
-    // p_msg              = &m_tx_buffer[m_tx_insert_index++];
-    // m_tx_insert_index &= TX_BUFFER_MASK;
-
-    // p_msg->req.write_req.gattc_params.handle   = handle_cccd;
-    // p_msg->req.write_req.gattc_params.len      = WRITE_MESSAGE_LENGTH;
-    // p_msg->req.write_req.gattc_params.p_value  = p_msg->req.write_req.gattc_value;
-    // p_msg->req.write_req.gattc_params.offset   = 0;
-    // p_msg->req.write_req.gattc_params.write_op = BLE_GATT_OP_WRITE_REQ;
-    // p_msg->req.write_req.gattc_value[0]        = LSB_16(cccd_val);
-    // p_msg->req.write_req.gattc_value[1]        = MSB_16(cccd_val);
-    // p_msg->conn_handle                         = conn_handle;
-    // p_msg->type                                = WRITE_REQ;
-
-    // tx_buffer_process();
-    // return NRF_SUCCESS;
-
-///////////
-
     NRF_LOG_DEBUG("Configuring CCCD. CCCD Handle = %d, Connection Handle = %d", handle_cccd, conn_handle);
 
     nrf_ble_gq_req_t tes_c_req;
