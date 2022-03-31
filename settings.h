@@ -8,7 +8,7 @@
 #define SOFTDEVICE_ENABLED  1
 // // // // // // // // // // //
 
-
+#define RF_TIMESYNC_CHANNEL 80
 
 
 #endif

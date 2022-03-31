@@ -40,6 +40,8 @@
 
 #include "boards.h"
 
+#include "settings.h"
+
 static uint32_t ts_pin = 0;
 static uint32_t ts_meas_pin = 0;
 static bool m_imu_trigger_enabled = 0;
@@ -217,8 +219,9 @@ void sync_timer_init()
 
     ts_rf_config_t rf_config =
         {
-            .rf_chn = 80,
+            .rf_chn = RF_TIMESYNC_CHANNEL,
             .rf_addr = {0xDE, 0xAD, 0xBE, 0xEF, 0x19}};
+            // .rf_addr = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE}};
 
     err_code = ts_enable(&rf_config);
     APP_ERROR_CHECK(err_code);
