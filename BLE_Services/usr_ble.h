@@ -162,6 +162,7 @@ void services_init();
 // Scanning
 void scan_init(void);
 void scan_start(void);
+void scan_stop(void);
 
 
 // Buffers

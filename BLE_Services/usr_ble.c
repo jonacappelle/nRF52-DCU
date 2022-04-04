@@ -200,7 +200,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
     case BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE:
     {
 
-        NRF_LOG_INFO("imu_service_c_evt_handler: conn_handle: %d", p_evt->conn_handle);
+        // NRF_LOG_INFO("imu_service_c_evt_handler: conn_handle: %d", p_evt->conn_handle);
 
         // Assign connection handles
         // usr_ble_handles_assign(p_ble_imu_service_c, p_evt);
@@ -212,7 +212,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
                                         &p_evt->params.peer_db);
         APP_ERROR_CHECK(err_code);
 
-        NRF_LOG_INFO("IMU assigned conn_handle: %d - %d, %d", p_ble_imu_service_c->conn_handle, m_imu_service_c[0].conn_handle, m_imu_service_c[1].conn_handle);
+        // NRF_LOG_INFO("IMU assigned conn_handle: %d - %d, %d", p_ble_imu_service_c->conn_handle, m_imu_service_c[0].conn_handle, m_imu_service_c[1].conn_handle);
 
         // Enable notifications - in peripheral this equates to turning on the sensors
         usr_enable_notif(p_ble_imu_service_c, p_evt);
@@ -234,7 +234,19 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
             }
         }
         uart_send_conn_dev_update(&address, sizeof(address), COMM_CMD_CONN_DEV_UPDATE_CONNECTED);
+        NRF_LOG_INFO("BLE_IMU_SERVICE_C_EVT_DISCOVERY_COMPLETE for %X %X %X %X %X %X: TX send", address.addr[0], address.addr[1], address.addr[2], address.addr[3], address.addr[4], address.addr[5]);
         
+        /* ADDED CHANGES*/
+        if (ble_conn_state_central_conn_count() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
+        {
+
+            NRF_LOG_INFO("%d of %d modules connected -> Resume scanning", ble_conn_state_central_conn_count(), NRF_SDH_BLE_CENTRAL_LINK_COUNT);
+            // Resume scanning.
+            scan_start();
+        }else{
+            NRF_LOG_INFO("%d of %d modules connected -> Stop scanning", ble_conn_state_central_conn_count(), NRF_SDH_BLE_CENTRAL_LINK_COUNT);
+        }
+        /* END ADDED CHANGES */
     }
     break;
 
@@ -390,7 +402,7 @@ void imu_service_c_evt_handler(ble_imu_service_c_t *p_ble_imu_service_c, ble_imu
 
     default:
     {
-        NRF_LOG_INFO("imu_service_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
+        // NRF_LOG_INFO("imu_service_c_evt_handler DEFAULT: %d", (p_evt->evt_type));
     }
     break;
     }
@@ -451,7 +463,7 @@ void usr_ble_config_send(ble_imu_service_config_t config)
         // TODO: Make list of connected handles instead of sending it to all of the 8 handles
         // This could prevent torubles in the future
 
-        NRF_LOG_INFO("IMU conn_handle: %d", m_imu_service_c[i].conn_handle);
+        // NRF_LOG_INFO("IMU conn_handle: %d", m_imu_service_c[i].conn_handle);
 
         err_code = ble_imu_service_config_set(&m_imu_service_c[i], &config);
 
@@ -763,7 +775,7 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
 {
     ret_code_t err_code;
 
-    NRF_LOG_INFO("bas_c_evt_handler: %d", p_bas_c_evt->evt_type);
+    // NRF_LOG_INFO("bas_c_evt_handler: %d", p_bas_c_evt->evt_type);
 
     switch (p_bas_c_evt->evt_type)
     {
@@ -774,15 +786,15 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
                                                 &p_bas_c_evt->params.bas_db);
             APP_ERROR_CHECK(err_code);
 
-            NRF_LOG_INFO("BAS assigned conn_handle: %d - %d, %d", p_bas_c_evt->conn_handle, m_bas_c[0].conn_handle, m_bas_c[1].conn_handle);
+            // NRF_LOG_INFO("BAS assigned conn_handle: %d - %d, %d", p_bas_c_evt->conn_handle, m_bas_c[0].conn_handle, m_bas_c[1].conn_handle);
 
             // Battery service discovered. Enable notification of Battery Level.
-            NRF_LOG_DEBUG("Battery Service discovered. Reading battery level.");
+            // NRF_LOG_DEBUG("Battery Service discovered. Reading battery level.");
 
             err_code = ble_bas_c_bl_read(p_bas_c);
             APP_ERROR_CHECK(err_code);
 
-            NRF_LOG_DEBUG("Enabling Battery Level Notification.");
+            // NRF_LOG_DEBUG("Enabling Battery Level Notification.");
             err_code = ble_bas_c_bl_notif_enable(p_bas_c);
             APP_ERROR_CHECK(err_code);
 
@@ -790,7 +802,7 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
 
         case BLE_BAS_C_EVT_BATT_NOTIFICATION:
         case BLE_BAS_C_EVT_BATT_READ_RESP:
-            NRF_LOG_INFO("Battery Level received %d %%.", p_bas_c_evt->params.battery_level);
+            // NRF_LOG_INFO("Battery Level received %d %%.", p_bas_c_evt->params.battery_level);
 
             // Calculate and store battery voltage level in buffer
             batt_array.batt[p_bas_c_evt->conn_handle].voltage = usr_map_adc_to_uint8(p_bas_c_evt->params.battery_level);
@@ -798,7 +810,7 @@ static void bas_c_evt_handler(ble_bas_c_t * p_bas_c, ble_bas_c_evt_t * p_bas_c_e
 
             // Calculate and store battery percentage level in buffer
             batt_array.batt[p_bas_c_evt->conn_handle].level =  usr_adc_voltage_to_percent(batt_array.batt[p_bas_c_evt->conn_handle].voltage);
-            NRF_LOG_INFO("Percentage (conn handle %d) -> %d", p_bas_c_evt->conn_handle, batt_array.batt[p_bas_c_evt->conn_handle].level);
+            // NRF_LOG_INFO("Percentage (conn handle %d) -> %d", p_bas_c_evt->conn_handle, batt_array.batt[p_bas_c_evt->conn_handle].level);
 
             break;
 
@@ -929,14 +941,16 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
 
     case BLE_GAP_EVT_CONNECTED:
     {
+        // Stop scanning for a moment to allow correct configuration and recognition of services
+        scan_stop();
 
-        NRF_LOG_INFO("Connected to %02x:%02x:%02x:%02x:%02x:%02x", p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[0],
-                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[1],
-                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[2],
-                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[3],
-                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[4],
-                                                                        p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[5]);
-        NRF_LOG_INFO("conn_handle: %02x", p_ble_evt->evt.gap_evt.conn_handle);
+        // NRF_LOG_INFO("Connected to %02x:%02x:%02x:%02x:%02x:%02x", p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[0],
+                                                                        // p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[1],
+                                                                        // p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[2],
+                                                                        // p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[3],
+                                                                        // p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[4],
+                                                                        // p_ble_evt->evt.gap_evt.params.connected.peer_addr.addr[5]);
+        // NRF_LOG_INFO("conn_handle: %02x", p_ble_evt->evt.gap_evt.conn_handle);
 
         // Save connection handles and IDs
         if(p_gap_evt->conn_handle != BLE_CONN_HANDLE_INVALID)
@@ -966,7 +980,7 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
             APP_ERROR_CHECK(err_code);
         }
 
-        NRF_LOG_INFO("ble_evt_handler conn_handle: %d", p_gap_evt->conn_handle);
+        // NRF_LOG_INFO("ble_evt_handler conn_handle: %d", p_gap_evt->conn_handle);
 
         // IMU_SERVICE CHANGES - add handles
         err_code = ble_imu_service_c_handles_assign(&m_imu_service_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
@@ -975,14 +989,6 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         // BAS CHANGES - add handles
         err_code = ble_bas_c_handles_assign(&m_bas_c[p_gap_evt->conn_handle], p_gap_evt->conn_handle, NULL);
         APP_ERROR_CHECK(err_code);
-
-        /* ADDED CHANGES*/
-        if (ble_conn_state_central_conn_count() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
-        {
-            // Resume scanning.
-            scan_start();
-        }
-        /* END ADDED CHANGES */
 
         err_code = bsp_indication_set(BSP_INDICATE_CONNECTED);
         APP_ERROR_CHECK(err_code);
@@ -1001,18 +1007,6 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
             };
         err_code = sd_ble_gap_phy_update(p_ble_evt->evt.gap_evt.conn_handle, &phys);
         APP_ERROR_CHECK(err_code);
-
-        // Print to uart if device disconnects
-        // char str1[100];
-        // sprintf(str1, "Connected: %d\n", p_gap_evt->conn_handle);
-        // uart_print("------------------------------------------\n");
-        // uart_print(str1);
-        // uart_print("------------------------------------------\n");
-
-        // Send connection dev list once a device has connected
-        // dcu_connected_devices_t dev[NRF_SDH_BLE_CENTRAL_LINK_COUNT];
-        // get_connected_devices(dev, sizeof(dev));
-        // uart_send_conn_dev(dev, sizeof(dev));
 
         // Set connection LEDs
         DCU_set_connection_leds(dcu_conn_dev, CONNECTION);
@@ -1043,12 +1037,12 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         }
 
         
-        // Print to uart if device disconnects
-        char str2[100];
-        sprintf(str2, "Disconnected: %d\n", p_gap_evt->conn_handle);
-        // uart_print("------------------------------------------\n");
-        uart_print(str2);
-        // uart_print("------------------------------------------\n");
+        // // Print to uart if device disconnects
+        // char str2[100];
+        // sprintf(str2, "Disconnected: %d\n", p_gap_evt->conn_handle);
+        // // uart_print("------------------------------------------\n");
+        // uart_print(str2);
+        // // uart_print("------------------------------------------\n");
 
         NRF_LOG_INFO("Disconnected. conn_handle: 0x%x, reason: 0x%x",
                      p_gap_evt->conn_handle,
@@ -1071,6 +1065,17 @@ static void ble_evt_handler(ble_evt_t const *p_ble_evt, void *p_context)
         uart_send_conn_dev_update(&address, sizeof(address), COMM_CMD_CONN_DEV_UPDATE_DISCONNECTED);
 
         DCU_set_connection_leds(dcu_conn_dev, DISCONNECTION);
+
+        // If disconnect event occurs, resume scanning since a module is not discovered
+        /* ADDED CHANGES*/
+        if (ble_conn_state_central_conn_count() < NRF_SDH_BLE_CENTRAL_LINK_COUNT)
+        {
+
+            NRF_LOG_INFO("%d of %d modules connected -> Resume scanning", ble_conn_state_central_conn_count(), NRF_SDH_BLE_CENTRAL_LINK_COUNT);
+            // Resume scanning.
+            scan_start();
+        }
+        /* END ADDED CHANGES */
     }
     break;
 
@@ -1164,6 +1169,8 @@ static void scan_evt_handler(scan_evt_t const *p_scan_evt)
     switch (p_scan_evt->scan_evt_id)
     {
     case NRF_BLE_SCAN_EVT_FILTER_MATCH:
+
+        NRF_LOG_INFO("-------------------------------");
         NRF_LOG_INFO("Filter MATCH");
 
         // uart_print("Filter match\n");
@@ -1265,7 +1272,7 @@ void ble_stack_init(void)
 /**@brief Function for handling events from the GATT library. */
 void gatt_evt_handler(nrf_ble_gatt_t *p_gatt, nrf_ble_gatt_evt_t const *p_evt)
 {
-    NRF_LOG_INFO("BLE gatt evt handler");
+    // NRF_LOG_INFO("BLE gatt evt handler");
 
     if (p_evt->evt_id == NRF_BLE_GATT_EVT_ATT_MTU_UPDATED)
     {

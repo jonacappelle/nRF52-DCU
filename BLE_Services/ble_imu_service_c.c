@@ -258,7 +258,7 @@ void ble_imu_service_on_db_disc_evt(ble_imu_service_c_t * p_ble_imu_service_c, b
         //If the instance has been assigned prior to db_discovery, assign the db_handles
          if (p_ble_imu_service_c->conn_handle != BLE_CONN_HANDLE_INVALID)
         {
-            NRF_LOG_INFO("IMU_SERVICE instance has been initialized prior");
+            // NRF_LOG_INFO("IMU_SERVICE instance has been initialized prior");
             if (
                 (p_ble_imu_service_c->peer_imu_service_db.config_cccd_handle    = BLE_GATT_HANDLE_INVALID)&&
                 (p_ble_imu_service_c->peer_imu_service_db.config_handle         = BLE_GATT_HANDLE_INVALID)&&
@@ -514,7 +514,7 @@ uint32_t ble_imu_service_c_handles_assign(ble_imu_service_c_t    * p_ble_imu_ser
         p_ble_imu_service_c->peer_imu_service_db = *p_peer_handles;
     }
 
-    NRF_LOG_INFO("conn_handle assign: %d", p_ble_imu_service_c->conn_handle);
+    // NRF_LOG_INFO("conn_handle assign: %d", p_ble_imu_service_c->conn_handle);
 
     // return NRF_SUCCESS;
 

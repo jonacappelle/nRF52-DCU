@@ -58,7 +58,7 @@
 
 // <o> NRF_BLE_GQ_QUEUE_SIZE - Queue size for BLE GATT Queue module. 
 #ifndef NRF_BLE_GQ_QUEUE_SIZE
-#define NRF_BLE_GQ_QUEUE_SIZE 8//4
+#define NRF_BLE_GQ_QUEUE_SIZE 10 //8//4
 #endif
 
 // </h> 
@@ -11509,7 +11509,7 @@
 
 // <o> NRF_SDH_BLE_CENTRAL_LINK_COUNT - Maximum number of central links. 
 #ifndef NRF_SDH_BLE_CENTRAL_LINK_COUNT
-#define NRF_SDH_BLE_CENTRAL_LINK_COUNT 8 //4
+#define NRF_SDH_BLE_CENTRAL_LINK_COUNT 6 //8 //4
 #endif
 
 // <o> NRF_SDH_BLE_TOTAL_LINK_COUNT - Total link count. 

@@ -41,6 +41,8 @@ NRF_LOG_MODULE_REGISTER();
 stm32_time_t global_time = 0;
 uint32_t offset_time = 0;
 
+#define UART_RETRY_LEN  2
+
 
 static void decode_meas(uint8_t data)
 {
@@ -255,8 +257,11 @@ void uart_send_conn_dev_update(ble_gap_addr_t* dev, uint32_t len, command_type_c
     check_buffer_overflow(&data_len);
 
     // Send over UART to STM32
-    uart_queued_tx(data_out, &data_len);
-    // NRF_LOG_INFO("Data send");   
+    for(uint8_t i=0; i<UART_RETRY_LEN; i++)
+    {
+        uart_queued_tx(data_out, &data_len);
+    }
+    // NRF_LOG_INFO("Sensor is connected: TX send");
 }
 
 void comm_rx_process(void *p_event_data, uint16_t event_size)

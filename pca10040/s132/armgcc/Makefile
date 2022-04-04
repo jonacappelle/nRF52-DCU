@@ -264,7 +264,7 @@ OPT = -O0 -g
 #OPT += -flto
 
 # C flags common to all targets
-CFLAGS += -DDEBUG # Allow NRF_LOG_DEBUG() to be printed
+# CFLAGS += -DDEBUG # Allow NRF_LOG_DEBUG() to be printed
 CFLAGS += $(OPT)
 CFLAGS += -DAPP_TIMER_V2
 CFLAGS += -DAPP_TIMER_V2_RTC1_ENABLED
