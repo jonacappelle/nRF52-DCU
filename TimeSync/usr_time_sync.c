@@ -220,12 +220,12 @@ void sync_timer_init()
     ts_rf_config_t rf_config =
         {
             .rf_chn = RF_TIMESYNC_CHANNEL,
-            .rf_addr = {0xDE, 0xAD, 0xBE, 0xEF, 0x19} // set_sarah
+            // .rf_addr = {0xDE, 0xAD, 0xBE, 0xEF, 0x19} // set_sarah
             // .rf_addr = {0xAA, 0xBB, 0xCC, 0xDD, 0xEE} // set debug
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x31} // set_1 in ascii
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x32} // set_2 in ascii
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x33} // set_3 in ascii
-            // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x34} // set_4 in ascii
+            .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x34} // set_4 in ascii
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x35} // set_5 in ascii
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x36} // set_6 in ascii
             // .rf_addr = {0x73, 0x65, 0x74, 0x5F, 0x37} // set_7 in ascii
@@ -241,6 +241,9 @@ void sync_timer_init()
     NRF_LOG_INFO("Started listening for beacons.\r\n");
     NRF_LOG_INFO("Press Button 1 to start transmitting sync beacons\r\n");
     NRF_LOG_INFO("GPIO toggling will begin when transmission has started.\r\n");
+
+    NRF_LOG_INFO("RF Channel: %X%X%X%X%X", 
+    rf_config.rf_addr[0], rf_config.rf_addr[1], rf_config.rf_addr[2], rf_config.rf_addr[3], rf_config.rf_addr[4])
 }
 
 
